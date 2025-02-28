@@ -3,129 +3,109 @@ import { Form, Button, Row, Col, Dropdown } from "react-bootstrap";
 
 const HomePage = () => {
   const [locations, setLocations] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [streets, setStreets] = useState([]);
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedStreet, setSelectedStreet] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedProvince, setSelectedProvince] = useState("Chọn Tỉnh/TP...");
+  const [selectedDistrict, setSelectedDistrict] = useState("Quận/Huyện...");
+  const [selectedStreet, setSelectedStreet] = useState("Đường phố...");
   const [selectedPrice, setSelectedPrice] = useState("Tất cả mức giá");
   const [selectedArea, setSelectedArea] = useState("Tất cả diện tích");
   const [selectedCategory, setSelectedCategory] = useState("tat-ca");
 
   useEffect(() => {
-    fetch("https://api.example.com/provinces") // Thay URL bằng API thật
+    fetch("https://api.example.com/locations") 
       .then((response) => response.json())
       .then((data) => setLocations(data))
       .catch((error) => console.error("Error fetching locations:", error));
   }, []);
 
-  useEffect(() => {
-    if (selectedProvince) {
-      fetch(`https://api.example.com/districts?province=${selectedProvince}`)
-        .then((response) => response.json())
-        .then((data) => setDistricts(data))
-        .catch((error) => console.error("Error fetching districts:", error));
-    } else {
-      setDistricts([]);
-      setStreets([]);
-    }
-  }, [selectedProvince]);
-
-  useEffect(() => {
-    if (selectedDistrict) {
-      fetch(`https://api.example.com/streets?district=${selectedDistrict}`)
-        .then((response) => response.json())
-        .then((data) => setStreets(data))
-        .catch((error) => console.error("Error fetching streets:", error));
-    } else {
-      setStreets([]);
-    }
-  }, [selectedDistrict]);
-
   return (
     <div>
-      {/* Banner */}
       <div className="banner text-center p-5 bg-danger text-white">
         <h1>Tìm nhanh, kiếm dễ - Trọ mới toàn quốc</h1>
         <p>Hơn 500 tin đăng mới và 30.000 lượt xem mỗi ngày</p>
       </div>
 
-      {/* Bộ lọc tìm kiếm */}
-      <div className="filter-bar bg-primary p-3 text-white">
-        <Row>
-          <Col md={3}>
+      <div className="filter-bar p-3 text-white">
+        <Row className="mb-3">
+          <Col style={{ padding: "0px"}}>
             <Button 
-              variant={selectedCategory === "tat-ca" ? "warning" : "light"} 
+            className="bd-0"
               onClick={() => setSelectedCategory("tat-ca")}
+              style={{ padding: "15px 40px", marginLeft: "5px" , backgroundColor: selectedCategory === "tat-ca" ? "#0046a8" : "#e5ecf6", border: "none", color: selectedCategory === "tat-ca" ? "white" : "#0046a8" }}
             >
               Tất cả
             </Button>
             <Button 
-              variant={selectedCategory === "nha-tro" ? "warning" : "light"} 
-              onClick={() => setSelectedCategory("nha-tro")}
+            className="bd-0"
+              onClick={() => setSelectedCategory("nha-tro-phong-tro")}
+              style={{ padding: "15px 40px", marginLeft: "5px" , backgroundColor: selectedCategory === "nha-tro-phong-tro" ? "#0046a8" : "#e5ecf6", border: "none", color: selectedCategory === "nha-tro-phong-tro" ? "white" : "#0046a8" }}
             >
               Nhà trọ, phòng trọ
             </Button>
             <Button 
-              variant={selectedCategory === "nha-nguyen-can" ? "warning" : "light"} 
+            className="bd-0"
               onClick={() => setSelectedCategory("nha-nguyen-can")}
+              style={{ padding: "15px 40px", marginLeft: "5px" , backgroundColor: selectedCategory === "nha-nguyen-can" ? "#0046a8" : "#e5ecf6", border: "none", color: selectedCategory === "nha-nguyen-can" ? "white" : "#0046a8" }}
             >
               Nhà nguyên căn
             </Button>
             <Button 
-              variant={selectedCategory === "can-ho-chung-cu" ? "warning" : "light"} 
+            className="bd-0"
               onClick={() => setSelectedCategory("can-ho-chung-cu")}
+              style={{ padding: "15px 40px", marginLeft: "5px" , backgroundColor: selectedCategory === "can-ho-chung-cu" ? "#0046a8" : "#e5ecf6", border: "none", color: selectedCategory === "can-ho-chung-cu" ? "white" : "#0046a8" }} 
             >
               Căn hộ chung cư
             </Button>
           </Col>
-          <Col md={9}>
+        </Row>
+        <Row>
+          <Col style={{ padding: "30px", backgroundColor: "#0046a8" }}>
             <Form>
               <Row>
                 <Col>
+                  <Form.Control 
+                    type="text" 
+                    placeholder="Bạn muốn tìm trọ ở đâu?" 
+                    value={selectedLocation} 
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    style={{ padding: "10px" }}
+                  />
+                </Col>
+                <Col>
                   <Dropdown>
-                    <Dropdown.Toggle variant="light" className="w-100">
-                      {selectedProvince || "Chọn Tỉnh/TP..."}
+                    <Dropdown.Toggle variant="white" className="w-100" style={{ padding: "10px" }}>
+                      {selectedProvince}
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="w-100">
-                      {locations.map((province, index) => (
-                        <Dropdown.Item key={index} onClick={() => setSelectedProvince(province)}>
-                          {province}
-                        </Dropdown.Item>
-                      ))}
+                      <Dropdown.Item onClick={() => setSelectedProvince("Hồ Chí Minh")}>Hồ Chí Minh</Dropdown.Item>
+                      <Dropdown.Item onClick={() => setSelectedProvince("Hà Nội")}>Hà Nội</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Col>
                 <Col>
                   <Dropdown>
-                    <Dropdown.Toggle variant="light" className="w-100" disabled={!selectedProvince}>
-                      {selectedDistrict || "Quận/Huyện..."}
+                    <Dropdown.Toggle variant="white" className="w-100" style={{ padding: "10px" }}>
+                      {selectedPrice}
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="w-100">
-                      {districts.map((district, index) => (
-                        <Dropdown.Item key={index} onClick={() => setSelectedDistrict(district)}>
-                          {district}
-                        </Dropdown.Item>
-                      ))}
+                      <Dropdown.Item onClick={() => setSelectedPrice("Dưới 1 triệu")}>Dưới 1 triệu</Dropdown.Item>
+                      <Dropdown.Item onClick={() => setSelectedPrice("1 - 10 triệu")}>1 - 10 triệu</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Col>
                 <Col>
                   <Dropdown>
-                    <Dropdown.Toggle variant="light" className="w-100" disabled={!selectedDistrict}>
-                      {selectedStreet || "Đường phố..."}
+                    <Dropdown.Toggle variant="white" className="w-100" style={{ padding: "10px" }}>
+                      {selectedArea}
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="w-100">
-                      {streets.map((street, index) => (
-                        <Dropdown.Item key={index} onClick={() => setSelectedStreet(street)}>
-                          {street}
-                        </Dropdown.Item>
-                      ))}
+                      <Dropdown.Item onClick={() => setSelectedArea("Dưới 20m²")}>Dưới 20m²</Dropdown.Item>
+                      <Dropdown.Item onClick={() => setSelectedArea("20 - 40m²")}>20 - 40m²</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Col>
                 <Col>
-                  <Button variant="warning">Tìm kiếm</Button>
+                  <Button variant="warning" style={{ padding: "10px" }}>Tìm kiếm</Button>
                 </Col>
               </Row>
             </Form>
