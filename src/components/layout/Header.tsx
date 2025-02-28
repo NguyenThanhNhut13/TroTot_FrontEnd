@@ -27,6 +27,12 @@ const Header = () => {
             <Nav.Link as={Link} to="/category/blog">
               Blog
             </Nav.Link>
+            <Nav.Link as={Link} to="/category/sign-in">
+              Đăng nhập
+            </Nav.Link>
+            <Nav.Link as={Link} to="/category/sign-up">
+              Đăng ký
+            </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </div>
