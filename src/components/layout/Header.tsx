@@ -7,16 +7,13 @@ const Header = () => {
     <Navbar bg="dark" variant="dark" expand="lg">
       <div className="container">
         <Navbar.Brand as={Link} to="/">
-          Tromoi
+          TROMOI
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/category/nha-tro">
-              Nhà trọ
-            </Nav.Link>
-            <Nav.Link as={Link} to="/category/phong-tro">
-              Phòng trọ
+            <Nav.Link as={Link} to="/category/nha-tro-phong-tro">
+              Nhà trọ, phòng trọ
             </Nav.Link>
             <Nav.Link as={Link} to="/category/nha-nguyen-can">
               Nhà nguyên căn
