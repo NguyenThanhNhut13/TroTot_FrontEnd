@@ -30,6 +30,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
         <div className="text-center mt-3">
           Chưa có tài khoản? <a href="#" className="text-primary">Đăng ký ngay</a>
         </div>
+        <div className="text-center mt-3">Hoặc đăng ký bằng</div>
+                <div className="d-flex justify-content-center mt-2">
+                  <Button variant="light" className="me-2">
+                    <i className="fab fa-google text-danger"></i> G
+                  </Button>
+                  <Button variant="light">
+                    <i className="fab fa-facebook text-primary"></i> F
+                  </Button>
+                </div>
       </Modal.Body>
     </Modal>
   );

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import LoginModal from "../auth/LoginModal" // Import popup đăng nhập
+import LoginModal from "../auth/LoginModal";
+import RegisterModal from "../auth/RegisterModal";
 
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -12,7 +14,9 @@ const Header = () => {
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
           {/* Logo bên trái */}
-          <Navbar.Brand as={Link} to="/">TROMOI</Navbar.Brand>
+          <Navbar.Brand as={Link} to="/">
+            TROMOI
+          </Navbar.Brand>
 
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
@@ -30,18 +34,30 @@ const Header = () => {
               <Nav.Link as={Link} to="/category/video-review">
                 Video Review
               </Nav.Link>
-              <Nav.Link as={Link} to="/category/blog">Blog</Nav.Link>
+              <Nav.Link as={Link} to="/category/blog">
+                Blog
+              </Nav.Link>
             </Nav>
 
             {/* Nút chức năng bên phải */}
             <Nav>
-              <Button variant="link" className="text-white" onClick={() => setShowLogin(true)}>
+              <Button
+                variant="link"
+                className="text-white"
+                onClick={() => setShowLogin(true)}
+              >
                 Đăng nhập
               </Button>
-              <Nav.Link as={Link} to="/register">Đăng ký</Nav.Link>
-              <Button 
-                variant="warning" 
-                className="ms-3" 
+              <Button
+                variant="link"
+                className="text-white"
+                onClick={() => setShowRegister(true)}
+              >
+                Đăng ký
+              </Button>
+              <Button
+                variant="warning"
+                className="ms-3"
                 onClick={() => navigate("/post-room")}
               >
                 Đăng trọ ngay
@@ -51,8 +67,11 @@ const Header = () => {
         </Container>
       </Navbar>
 
-      {/* Popup đăng nhập */}
       <LoginModal show={showLogin} handleClose={() => setShowLogin(false)} />
+      <RegisterModal
+        show={showRegister}
+        handleClose={() => setShowRegister(false)}
+      />
     </>
   );
 };
