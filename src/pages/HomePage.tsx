@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Dropdown, Card } from "react-bootstrap";
+import RoomList from "../components/banner/RoomList";
 
 const HomePage = () => {
   const [locations, setLocations] = useState([]);
@@ -257,80 +258,135 @@ const HomePage = () => {
       {/* Lua chọn */}
       <div className="hot-listings mt-4">
         <h2 className="text-primary">LỰA CHỌN CHỖ Ở HOT</h2>
-        {Array.from({ length: Math.ceil(hotListings.length / 5) }, (_, rowIndex) => (
-          <Row key={rowIndex} className="mb-4">
-            {hotListings.slice(rowIndex * 5, rowIndex * 5 + 5).map((listing, index) => (
-              <Col key={index} md={2} lg={2} xl={2} className="mb-4" style={{ width: "20%" }}>
-                <Card style={{ height: "100%" }}>
-                  <Card.Img variant="top" src={listing.image} alt={listing.title} style={{ height: "150px", objectFit: "cover" }} />
-                  <Card.Body className="d-flex flex-column">
-                    <Card.Title>{listing.title}</Card.Title>
-                    <Card.Text className="flex-grow-1">
-                      <strong>Giá:</strong> {listing.price} <br />
-                      <strong>Diện tích:</strong> {listing.area}m² <br />
-                      <strong>Địa chỉ:</strong> {listing.location}
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        ))}
+        {Array.from(
+          { length: Math.ceil(hotListings.length / 5) },
+          (_, rowIndex) => (
+            <Row key={rowIndex} className="mb-4">
+              {hotListings
+                .slice(rowIndex * 5, rowIndex * 5 + 5)
+                .map((listing, index) => (
+                  <Col
+                    key={index}
+                    md={2}
+                    lg={2}
+                    xl={2}
+                    className="mb-4"
+                    style={{ width: "20%" }}
+                  >
+                    <Card style={{ height: "100%" }}>
+                      <Card.Img
+                        variant="top"
+                        src={listing.image}
+                        alt={listing.title}
+                        style={{ height: "150px", objectFit: "cover" }}
+                      />
+                      <Card.Body className="d-flex flex-column">
+                        <Card.Title>{listing.title}</Card.Title>
+                        <Card.Text className="flex-grow-1">
+                          <strong>Giá:</strong> {listing.price} <br />
+                          <strong>Diện tích:</strong> {listing.area}m² <br />
+                          <strong>Địa chỉ:</strong> {listing.location}
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+            </Row>
+          )
+        )}
         <div className="mt-3">
           <Button variant="primary">
             <i className="fas fa-arrow-right"></i> Xem tất cả
           </Button>
         </div>
       </div>
+
+      <RoomList />
+      {/* Nha nguyen can */}
       <div className="hot-listings mt-4">
         <h2 className="text-primary">NHÀ NGUYÊN CĂN CHO THUÊ</h2>
-        {Array.from({ length: Math.ceil(hotListings.length / 5) }, (_, rowIndex) => (
-          <Row key={rowIndex} className="mb-4">
-            {hotListings.slice(rowIndex * 5, rowIndex * 5 + 5).map((listing, index) => (
-              <Col key={index} md={2} lg={2} xl={2} className="mb-4" style={{ width: "20%" }}>
-                <Card style={{ height: "100%" }}>
-                  <Card.Img variant="top" src={listing.image} alt={listing.title} style={{ height: "150px", objectFit: "cover" }} />
-                  <Card.Body className="d-flex flex-column">
-                    <Card.Title>{listing.title}</Card.Title>
-                    <Card.Text className="flex-grow-1">
-                      <strong>Giá:</strong> {listing.price} <br />
-                      <strong>Diện tích:</strong> {listing.area}m² <br />
-                      <strong>Địa chỉ:</strong> {listing.location}
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        ))}
+        {Array.from(
+          { length: Math.ceil(hotListings.length / 5) },
+          (_, rowIndex) => (
+            <Row key={rowIndex} className="mb-4">
+              {hotListings
+                .slice(rowIndex * 5, rowIndex * 5 + 5)
+                .map((listing, index) => (
+                  <Col
+                    key={index}
+                    md={2}
+                    lg={2}
+                    xl={2}
+                    className="mb-4"
+                    style={{ width: "20%" }}
+                  >
+                    <Card style={{ height: "100%" }}>
+                      <Card.Img
+                        variant="top"
+                        src={listing.image}
+                        alt={listing.title}
+                        style={{ height: "150px", objectFit: "cover" }}
+                      />
+                      <Card.Body className="d-flex flex-column">
+                        <Card.Title>{listing.title}</Card.Title>
+                        <Card.Text className="flex-grow-1">
+                          <strong>Giá:</strong> {listing.price} <br />
+                          <strong>Diện tích:</strong> {listing.area}m² <br />
+                          <strong>Địa chỉ:</strong> {listing.location}
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+            </Row>
+          )
+        )}
         <div className="mt-3">
           <Button variant="primary">
             <i className="fas fa-arrow-right"></i> Xem tất cả
           </Button>
         </div>
       </div>
+
       {/* Can ho, chung cu cho thue */}
       <div className="hot-listings mt-4">
         <h2 className="text-primary">CĂN HỘ, CHUNG CƯ CHO THUÊ</h2>
-        {Array.from({ length: Math.ceil(hotListings.length / 5) }, (_, rowIndex) => (
-          <Row key={rowIndex} className="mb-4">
-            {hotListings.slice(rowIndex * 5, rowIndex * 5 + 5).map((listing, index) => (
-              <Col key={index} md={2} lg={2} xl={2} className="mb-4" style={{ width: "20%" }}>
-                <Card style={{ height: "100%" }}>
-                  <Card.Img variant="top" src={listing.image} alt={listing.title} style={{ height: "150px", objectFit: "cover" }} />
-                  <Card.Body className="d-flex flex-column">
-                    <Card.Title>{listing.title}</Card.Title>
-                    <Card.Text className="flex-grow-1">
-                      <strong>Giá:</strong> {listing.price} <br />
-                      <strong>Diện tích:</strong> {listing.area}m² <br />
-                      <strong>Địa chỉ:</strong> {listing.location}
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        ))}
+        {Array.from(
+          { length: Math.ceil(hotListings.length / 5) },
+          (_, rowIndex) => (
+            <Row key={rowIndex} className="mb-4">
+              {hotListings
+                .slice(rowIndex * 5, rowIndex * 5 + 5)
+                .map((listing, index) => (
+                  <Col
+                    key={index}
+                    md={2}
+                    lg={2}
+                    xl={2}
+                    className="mb-4"
+                    style={{ width: "20%" }}
+                  >
+                    <Card style={{ height: "100%" }}>
+                      <Card.Img
+                        variant="top"
+                        src={listing.image}
+                        alt={listing.title}
+                        style={{ height: "150px", objectFit: "cover" }}
+                      />
+                      <Card.Body className="d-flex flex-column">
+                        <Card.Title>{listing.title}</Card.Title>
+                        <Card.Text className="flex-grow-1">
+                          <strong>Giá:</strong> {listing.price} <br />
+                          <strong>Diện tích:</strong> {listing.area}m² <br />
+                          <strong>Địa chỉ:</strong> {listing.location}
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+            </Row>
+          )
+        )}
         <div className="mt-3">
           <Button variant="primary">
             <i className="fas fa-arrow-right"></i> Xem tất cả
