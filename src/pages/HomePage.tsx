@@ -80,7 +80,6 @@ const HomePage = () => {
     },
   ];
 
-
   const provinces = [
     { name: "Hồ Chí Minh", rooms: 4180 },
     { name: "Hà Nội", rooms: 1473 },
@@ -95,7 +94,6 @@ const HomePage = () => {
     { name: "Khánh Hòa", rooms: 30 },
     { name: "Bà Rịa - Vũng Tàu", rooms: 4 },
   ];
-
 
   useEffect(() => {
     fetch("https://api.example.com/locations")
@@ -275,14 +273,11 @@ const HomePage = () => {
       </div>
 
       {/* Lua chọn */}
-      <HotListings hotListings={hotListings}/>
+      <HotListings hotListings={hotListings} />
 
       <RoomList />
 
-      <HotListings
-        hotListings={hotListings}
-        title="NHÀ NGUYÊN CĂN CHO THUÊ"
-      />
+      <HotListings hotListings={hotListings} title="NHÀ NGUYÊN CĂN CHO THUÊ" />
 
       <HotListings
         hotListings={hotListings}
@@ -290,7 +285,6 @@ const HomePage = () => {
       />
 
       <ProvinceListings provinces={provinces} />
-
     </div>
   );
 };

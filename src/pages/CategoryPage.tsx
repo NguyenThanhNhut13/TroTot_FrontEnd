@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
-
-interface Post {
-  id: number;
-  title: string;
-}
+import { useParams , Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Post, mockPosts } from "../data/mockPosts";
+import CategorySharedPage from "./CategorySharedPage";
+import VideoReviewPage from "./VideoReviewPage";
+import BlogPage from "./BlogPage";
+import {
+  SHARED_CATEGORIES,
+  VIDEO_CATEGORY,
+  BLOG_CATEGORY,
+  categoryNameMap
+} from "../data/categories";
 
 const CategoryPage = () => {
   const { type } = useParams();
@@ -13,20 +17,29 @@ const CategoryPage = () => {
 
   useEffect(() => {
     if (type) {
-      axios.get<Post[]>(`http://localhost:5000/posts?category=${type}`)
-        .then(response => setPosts(response.data))
-        .catch(error => console.error("Error fetching posts:", error));
+      const filtered = mockPosts.filter(p => p.category === type);
+      setPosts(filtered);
     }
   }, [type]);
 
+  if (!type) return <div>Không xác định danh mục.</div>;
+
+  const categoryName = categoryNameMap[type] || type.replaceAll("-", " ");
+
   return (
     <div>
-      <h2>Trang chu / {type ? type.replace("-", " ") : "Không xác định"}</h2>
-      <ul>
-        {posts.map(post => (
-          <li key={post.id}>{post.title}</li>
-        ))}
-      </ul>
+      {/* ✅ Breadcrumb */}
+      <p className="text-muted mb-3">
+        <Link to="/">Trang chủ</Link> / <Link to="/category">Danh mục</Link> / <strong>{categoryName}</strong>
+      </p>
+
+      {/* ✅ Giao diện tùy loại */}
+      {SHARED_CATEGORIES.includes(type) && (
+        <CategorySharedPage posts={posts} title={categoryName} />
+      )}
+
+      {type === VIDEO_CATEGORY && <VideoReviewPage posts={posts} />}
+      {type === BLOG_CATEGORY && <BlogPage posts={posts} />}
     </div>
   );
 };
