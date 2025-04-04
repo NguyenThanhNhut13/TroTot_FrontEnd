@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Dropdown, Card } from "react-bootstrap";
 import RoomList from "../components/banner/RoomList";
 import HotListings from "../components/common/HotListings";
+import ProvinceListings from "../components/common/ProvinceListings ";
 
 const HomePage = () => {
   const [locations, setLocations] = useState([]);
@@ -78,6 +79,23 @@ const HomePage = () => {
       location: "Bình Tân, Thành phố Hồ Chí Minh",
     },
   ];
+
+
+  const provinces = [
+    { name: "Hồ Chí Minh", rooms: 4180 },
+    { name: "Hà Nội", rooms: 1473 },
+    { name: "Đà Nẵng", rooms: 821 },
+    { name: "Cần Thơ", rooms: 165 },
+    { name: "Bình Dương", rooms: 105 },
+    { name: "Đồng Nai", rooms: 31 },
+    { name: "Hải Phòng", rooms: 25 },
+    { name: "Long An", rooms: 22 },
+    { name: "Quảng Nam", rooms: 6 },
+    { name: "Thừa Thiên Huế", rooms: 450 },
+    { name: "Khánh Hòa", rooms: 30 },
+    { name: "Bà Rịa - Vũng Tàu", rooms: 4 },
+  ];
+
 
   useEffect(() => {
     fetch("https://api.example.com/locations")
@@ -261,7 +279,17 @@ const HomePage = () => {
 
       <RoomList />
 
-      <
+      <HotListings
+        hotListings={hotListings}
+        title="NHÀ NGUYÊN CĂN CHO THUÊ"
+      />
+
+      <HotListings
+        hotListings={hotListings}
+        title="CĂN HỘ, CHUNG CƯ CHO THUÊ"
+      />
+
+      <ProvinceListings provinces={provinces} />
 
     </div>
   );
