@@ -9,7 +9,7 @@ import {
   VIDEO_CATEGORY,
   BLOG_CATEGORY,
   categoryNameMap
-} from "../data/categories";
+} from "../data/categories";  
 
 const CategoryPage = () => {
   const { type } = useParams();
