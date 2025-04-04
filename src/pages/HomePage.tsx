@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Dropdown, Card } from "react-bootstrap";
 import RoomList from "../components/banner/RoomList";
+import HotListings from "../components/common/HotListings";
 
 const HomePage = () => {
   const [locations, setLocations] = useState([]);
@@ -14,63 +15,63 @@ const HomePage = () => {
 
   const hotListings = [
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà nguyên căn tại D19, Trường ...",
       price: "16 triệu/tháng",
       area: 125,
       location: "Quận 9, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà Trọ 416/23 Dương Quảng Hàm",
       price: "4 triệu/tháng",
       area: 20,
       location: "Gò Vấp, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà trọ đường Mã Lò, Bình Tân",
       price: "3.2 triệu/tháng",
       area: 20,
       location: "Bình Tân, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà nguyên căn tại D19, Trường ...",
       price: "16 triệu/tháng",
       area: 125,
       location: "Quận 9, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà Trọ 416/23 Dương Quảng Hàm",
       price: "4 triệu/tháng",
       area: 20,
       location: "Gò Vấp, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà trọ đường Mã Lò, Bình Tân",
       price: "3.2 triệu/tháng",
       area: 20,
       location: "Bình Tân, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà nguyên căn tại D19, Trường ...",
       price: "16 triệu/tháng",
       area: 125,
       location: "Quận 9, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà Trọ 416/23 Dương Quảng Hàm",
       price: "4 triệu/tháng",
       area: 20,
       location: "Gò Vấp, Thành phố Hồ Chí Minh",
     },
     {
-      image: "https://via.placeholder.com/300",
+      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
       title: "Nhà trọ đường Mã Lò, Bình Tân",
       price: "3.2 triệu/tháng",
       area: 20,
@@ -256,143 +257,12 @@ const HomePage = () => {
       </div>
 
       {/* Lua chọn */}
-      <div className="hot-listings mt-4">
-        <h2 className="text-primary">LỰA CHỌN CHỖ Ở HOT</h2>
-        {Array.from(
-          { length: Math.ceil(hotListings.length / 5) },
-          (_, rowIndex) => (
-            <Row key={rowIndex} className="mb-4">
-              {hotListings
-                .slice(rowIndex * 5, rowIndex * 5 + 5)
-                .map((listing, index) => (
-                  <Col
-                    key={index}
-                    md={2}
-                    lg={2}
-                    xl={2}
-                    className="mb-4"
-                    style={{ width: "20%" }}
-                  >
-                    <Card style={{ height: "100%" }}>
-                      <Card.Img
-                        variant="top"
-                        src={listing.image}
-                        alt={listing.title}
-                        style={{ height: "150px", objectFit: "cover" }}
-                      />
-                      <Card.Body className="d-flex flex-column">
-                        <Card.Title>{listing.title}</Card.Title>
-                        <Card.Text className="flex-grow-1">
-                          <strong>Giá:</strong> {listing.price} <br />
-                          <strong>Diện tích:</strong> {listing.area}m² <br />
-                          <strong>Địa chỉ:</strong> {listing.location}
-                        </Card.Text>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-            </Row>
-          )
-        )}
-        <div className="mt-3">
-          <Button variant="primary">
-            <i className="fas fa-arrow-right"></i> Xem tất cả
-          </Button>
-        </div>
-      </div>
+      <HotListings hotListings={hotListings}/>
 
       <RoomList />
-      {/* Nha nguyen can */}
-      <div className="hot-listings mt-4">
-        <h2 className="text-primary">NHÀ NGUYÊN CĂN CHO THUÊ</h2>
-        {Array.from(
-          { length: Math.ceil(hotListings.length / 5) },
-          (_, rowIndex) => (
-            <Row key={rowIndex} className="mb-4">
-              {hotListings
-                .slice(rowIndex * 5, rowIndex * 5 + 5)
-                .map((listing, index) => (
-                  <Col
-                    key={index}
-                    md={2}
-                    lg={2}
-                    xl={2}
-                    className="mb-4"
-                    style={{ width: "20%" }}
-                  >
-                    <Card style={{ height: "100%" }}>
-                      <Card.Img
-                        variant="top"
-                        src={listing.image}
-                        alt={listing.title}
-                        style={{ height: "150px", objectFit: "cover" }}
-                      />
-                      <Card.Body className="d-flex flex-column">
-                        <Card.Title>{listing.title}</Card.Title>
-                        <Card.Text className="flex-grow-1">
-                          <strong>Giá:</strong> {listing.price} <br />
-                          <strong>Diện tích:</strong> {listing.area}m² <br />
-                          <strong>Địa chỉ:</strong> {listing.location}
-                        </Card.Text>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-            </Row>
-          )
-        )}
-        <div className="mt-3">
-          <Button variant="primary">
-            <i className="fas fa-arrow-right"></i> Xem tất cả
-          </Button>
-        </div>
-      </div>
 
-      {/* Can ho, chung cu cho thue */}
-      <div className="hot-listings mt-4">
-        <h2 className="text-primary">CĂN HỘ, CHUNG CƯ CHO THUÊ</h2>
-        {Array.from(
-          { length: Math.ceil(hotListings.length / 5) },
-          (_, rowIndex) => (
-            <Row key={rowIndex} className="mb-4">
-              {hotListings
-                .slice(rowIndex * 5, rowIndex * 5 + 5)
-                .map((listing, index) => (
-                  <Col
-                    key={index}
-                    md={2}
-                    lg={2}
-                    xl={2}
-                    className="mb-4"
-                    style={{ width: "20%" }}
-                  >
-                    <Card style={{ height: "100%" }}>
-                      <Card.Img
-                        variant="top"
-                        src={listing.image}
-                        alt={listing.title}
-                        style={{ height: "150px", objectFit: "cover" }}
-                      />
-                      <Card.Body className="d-flex flex-column">
-                        <Card.Title>{listing.title}</Card.Title>
-                        <Card.Text className="flex-grow-1">
-                          <strong>Giá:</strong> {listing.price} <br />
-                          <strong>Diện tích:</strong> {listing.area}m² <br />
-                          <strong>Địa chỉ:</strong> {listing.location}
-                        </Card.Text>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-            </Row>
-          )
-        )}
-        <div className="mt-3">
-          <Button variant="primary">
-            <i className="fas fa-arrow-right"></i> Xem tất cả
-          </Button>
-        </div>
-      </div>
+      <
+
     </div>
   );
 };
