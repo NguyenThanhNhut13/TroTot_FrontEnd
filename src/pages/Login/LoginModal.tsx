@@ -1,47 +1,143 @@
-import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+'use client'
+
+import React, { useState, useContext } from 'react'
+import { Modal, Button as BsButton, Form } from 'react-bootstrap'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { UAParser } from 'ua-parser-js'
+import { useMutation } from '@tanstack/react-query'
+
+import authApi from '../../apis/auth.api'
+import { schema, Schema } from '../../utils/rules'
+import { isAxiosUnprocessableEntityError } from '../../utils/utils'
+import { ErrorResponse } from '../../types/utils.type'
+import { AppContext } from '../../contexts/app.context'
+
+type FormData = Pick<Schema, 'username' | 'password'>
+const loginSchema = schema.pick(['username', 'password'])
 
 interface LoginModalProps {
-  show: boolean;
-  handleClose: () => void;
+  show: boolean
+  handleClose: () => void
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
+  const { setIsAuthenticated, setProfile } = useContext(AppContext)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors }
+  } = useForm<FormData>({
+    resolver: yupResolver(loginSchema)
+  })
+
+  const parser = new UAParser()
+  const deviceType = parser.getDevice().type || 'Laptop'
+  const osName = parser.getOS().name || 'Unknown OS'
+
+  const loginMutation = useMutation({
+    mutationFn: (body: Omit<FormData, 'confirm_password'>) => authApi.login(body)
+  })
+
+  const onSubmit = handleSubmit((data) => {
+    setIsLoading(true)
+    const requestBody = {
+      username: data.username,
+      password: data.password,
+      deviceId: `${deviceType} - ${osName}`
+    }
+
+    loginMutation.mutate(requestBody, {
+      onSuccess: (data) => {
+        setIsAuthenticated(true)
+        setProfile(data.data.data.user)
+        handleClose()
+        window.location.reload()
+      },
+      onError: (error) => {
+        if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
+          const formError = error.response?.data.data
+          if (formError) {
+            Object.keys(formError).forEach((key) => {
+              setError(key as keyof FormData, {
+                message: formError[key as keyof FormData],
+                type: 'Server'
+              })
+            })
+          }
+        }
+      }
+    })
+  })
+
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Chào mừng bạn đến với Trọ Mới</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3">
+        <Form noValidate onSubmit={onSubmit}>
+          <Form.Group className='mb-3'>
             <Form.Label>Email hoặc Số điện thoại</Form.Label>
-            <Form.Control type="text" name="username" id="username" placeholder="Nhập email hoặc số điện thoại" />
+            <Form.Control
+              type='text'
+              {...register('username')}
+              isInvalid={!!errors.username}
+              placeholder='Nhập email hoặc số điện thoại'
+            />
+            <Form.Control.Feedback type='invalid'>
+              {errors.username?.message}
+            </Form.Control.Feedback>
           </Form.Group>
-          <Form.Group className="mb-3">
+
+          <Form.Group className='mb-3'>
             <Form.Label>Mật khẩu</Form.Label>
-            <Form.Control type="password" name="password" id="password" placeholder="Nhập mật khẩu" />
+            <Form.Control
+              type='password'
+              {...register('password')}
+              isInvalid={!!errors.password}
+              placeholder='Nhập mật khẩu'
+            />
+            <Form.Control.Feedback type='invalid'>
+              {errors.password?.message}
+            </Form.Control.Feedback>
           </Form.Group>
-          <div className="text-end">
-            <a href="#" className="text-primary">Quên mật khẩu?</a>
+
+          <div className='text-end'>
+            <a href='#' className='text-primary'>
+              Quên mật khẩu?
+            </a>
           </div>
-          <Button variant="danger" id="btn-login" className="w-100 mt-3">Đăng nhập</Button>
+
+          <BsButton
+            variant='danger'
+            id='btn-login'
+            className='w-100 mt-3'
+            type='submit'
+            disabled={isLoading}
+          >
+            {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          </BsButton>
         </Form>
-        <div className="text-center mt-3">
-          Chưa có tài khoản? <a href="#" className="text-primary">Đăng ký ngay</a>
+
+        <div className='text-center mt-3'>
+          Chưa có tài khoản? <a href='#' className='text-primary'>Đăng ký ngay</a>
         </div>
-        <div className="text-center mt-3">Hoặc đăng ký bằng</div>
-                <div className="d-flex justify-content-center mt-2">
-                  <Button variant="light" className="me-2">
-                    <i className="fab fa-google text-danger"></i> G
-                  </Button>
-                  <Button variant="light">
-                    <i className="fab fa-facebook text-primary"></i> F
-                  </Button>
-                </div>
+        <div className='text-center mt-3'>Hoặc đăng ký bằng</div>
+        <div className='d-flex justify-content-center mt-2'>
+          <BsButton variant='light' className='me-2' onClick={() => {}}>
+            <i className='fab fa-google text-danger'></i> G
+          </BsButton>
+          <BsButton variant='light'>
+            <i className='fab fa-facebook text-primary'></i> F
+          </BsButton>
+        </div>
       </Modal.Body>
     </Modal>
-  );
-};
+  )
+}
 
-export default LoginModal;
+export default LoginModal
