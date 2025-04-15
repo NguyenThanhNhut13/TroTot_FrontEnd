@@ -55,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.16",
     "@types/react-slick": "^0.23.13"
   }
 }
