@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import CategoryPage from "./pages/CategoryPage";
+import HomePage from "./pages/MainPage/HomePage";
+import CategoryPage from "./pages/Navigation/CategoryPage";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
-import './App.css';
+import "./App.css";
 
 function App() {
   return (

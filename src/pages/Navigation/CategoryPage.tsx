@@ -1,6 +1,6 @@
-import { useParams , Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Post, mockPosts } from "../data/mockPosts";
+import { Post, mockPosts } from "../../data/mockPosts";
 import CategorySharedPage from "./CategorySharedPage";
 import VideoReviewPage from "./VideoReviewPage";
 import BlogPage from "./BlogPage";
@@ -8,8 +8,8 @@ import {
   SHARED_CATEGORIES,
   VIDEO_CATEGORY,
   BLOG_CATEGORY,
-  categoryNameMap
-} from "../data/categories";  
+  categoryNameMap,
+} from "../../data/categories";
 
 const CategoryPage = () => {
   const { type } = useParams();
@@ -17,7 +17,7 @@ const CategoryPage = () => {
 
   useEffect(() => {
     if (type) {
-      const filtered = mockPosts.filter(p => p.category === type);
+      const filtered = mockPosts.filter((p) => p.category === type);
       setPosts(filtered);
     }
   }, [type]);
@@ -30,7 +30,8 @@ const CategoryPage = () => {
     <div>
       {/* ✅ Breadcrumb */}
       <p className="text-muted mb-3">
-        <Link to="/">Trang chủ</Link> / <Link to="/category">Danh mục</Link> / <strong>{categoryName}</strong>
+        <Link to="/">Trang chủ</Link> / <Link to="/category">Danh mục</Link> /{" "}
+        <strong>{categoryName}</strong>
       </p>
 
       {/* ✅ Giao diện tùy loại */}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Dropdown, Card } from "react-bootstrap";
-import RoomList from "../components/banner/RoomList";
-import HotListings from "../components/common/HotListings";
-import ProvinceListings from "../components/common/ProvinceListings ";
+import RoomList from "../../components/banner/RoomList";
+import HotListings from "../../components/common/HotListings";
+import ProvinceListings from "../../components/common/ProvinceListings ";
 
 const HomePage = () => {
   const [locations, setLocations] = useState([]);
