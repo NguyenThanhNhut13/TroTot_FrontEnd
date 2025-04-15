@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import LoginModal from "../auth/LoginModal";
-import RegisterModal from "../auth/RegisterModal";
+import LoginModal from "../../pages/Login/LoginModal";
+import RegisterModal from "../../pages/Register/RegisterModal";
 
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false);
