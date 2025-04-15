@@ -16,6 +16,8 @@ type RegisterModalProps = {
   handleClose: () => void
 }
 
+/// Define the form data type based on the schema
+
 type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
 const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
 
