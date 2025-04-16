@@ -11,6 +11,7 @@ import { loginSchema, LoginSchema } from "../../utils/rules";
 import { isAxiosUnprocessableEntityError } from "../../utils/utils";
 import { ErrorResponse } from "../../types/utils.type";
 import { AppContext } from "../../contexts/app.context";
+import userApi from "../../apis/user.api";
 
 type FormData = Pick<LoginSchema, "credential" | "password">;
 const loginSchemaPick = loginSchema.pick(["credential", "password"]);
@@ -34,23 +35,32 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
   });
 
   const loginMutation = useMutation({
-  mutationFn: (body: FormData) => authApi.login(body),
-});
-
+    mutationFn: (body: FormData) => authApi.login(body),
+  });
 
   const onSubmit = handleSubmit((data) => {
     setIsLoading(true);
     const requestBody = {
       credential: data.credential,
-  password: data.password,
+      password: data.password,
     };
 
     loginMutation.mutate(requestBody, {
-      onSuccess: (data) => {
-        setIsAuthenticated(true);
-        setProfile(data.data.data.user);
+      onSuccess: async (data) => {
+       // Gọi API lấy profile (accessToken đã tự gắn ở interceptor)
+       const timer = setTimeout(async () => {
+        try {
+          const profileRes = await userApi.getProfile()
+          console.log('Profile:', profileRes.data)
+          window.location.reload();
+
+        } catch (err) {
+          console.error(err)
+        }
+      }, 3000)
+
+        setIsAuthenticated(true)
         handleClose();
-        window.location.reload();
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
