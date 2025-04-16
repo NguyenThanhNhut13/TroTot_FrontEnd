@@ -28,7 +28,7 @@ export const schema = yup.object({
     .email("Email không đúng định dạng")
     .min(5, "Độ dài từ 5 - 160 ký tự")
     .max(160, "Độ dài từ 5 - 160 ký tự"),
-fullname: yup
+fullName: yup
   .string()
   .required('Họ tên là bắt buộc')
   .max(160, 'Họ tên tối đa 160 ký tự'),
@@ -66,37 +66,10 @@ fullname: yup
 });
 
 export const userSchema = yup.object({
-  displayName: schema.fields["displayName"] as yup.StringSchema<
-    string | undefined,
-    yup.AnyObject,
-    undefined,
-    ""
-  >,
-  bio: yup.string().max(160, "Độ dài tối đa là 160 ký tự"),
-  email: schema.fields["email"] as yup.StringSchema<
-    string | undefined,
-    yup.AnyObject,
-    undefined,
-    ""
-  >,
-  avatar: yup.string().max(1000, "Độ dài tối đa là 1000 ký tự"),
-  nickname: yup.string().max(160, "Độ dài tối đa là 160 ký tự"),
-  dob: yup.date().max(new Date(), "Ngày sinh không hợp lệ"),
-  oldPassword: schema.fields["password"] as yup.StringSchema<
-    string | undefined,
-    yup.AnyObject,
-    undefined,
-    ""
-  >,
-  newPassword: schema.fields["password"] as yup.StringSchema<
-    string | undefined,
-    yup.AnyObject,
-    undefined,
-    ""
-  >,
-  confirm_password: handleConfirmPasswordYup(
-    "new_password"
-  ) as yup.StringSchema<string | undefined, yup.AnyObject, undefined, "">,
+  id: yup.string().required("ID là bắt buộc"),
+  fullName: yup.string().max(255, "Tên đầy đủ không được vượt quá 255 ký tự").required("Tên đầy đủ là bắt buộc"),
+  address: yup.string().max(500, "Địa chỉ không được vượt quá 500 ký tự").required("Địa chỉ là bắt buộc"),
+  dob: yup.date().max(new Date(), "Ngày sinh không hợp lệ").required("Ngày sinh là bắt buộc"),
 });
 
 export const loginSchema = yup.object({
