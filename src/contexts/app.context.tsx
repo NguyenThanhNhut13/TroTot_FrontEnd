@@ -18,7 +18,6 @@ export const getInitialAppContext: () => AppContextInterface = () => ({
   profile: getProfileFromLS(),
   setProfile: () => null,
   extendedPurchases: [],
-  setExtendedPurchases: () => null,
   reset: () => null,
 });
 
@@ -50,8 +49,6 @@ export const AppProvider = ({
         setIsAuthenticated,
         profile,
         setProfile,
-        // extendedPurchases,
-        // setExtendedPurchases,
         reset,
       }}
     >

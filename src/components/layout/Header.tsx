@@ -1,33 +1,38 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Navbar, Nav, Button, Container, Dropdown } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import LoginModal from '../../pages/Login/LoginModal'
 import RegisterModal from '../../pages/Register/RegisterModal'
+import authApi from '../../apis/auth.api'
+import { useMutation } from '@tanstack/react-query'
+import { AppContext } from '../../contexts/app.context'
+import { ref } from 'yup';
 
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
-  const [userProfile, setUserProfile] = useState<{ displayName: string } | null>(null)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    const profileStr = localStorage.getItem('profile')
-    if (profileStr) {
-      try {
-        const parsedProfile = JSON.parse(profileStr)
-        setUserProfile(parsedProfile)
-      } catch (error) {
-        console.error('Lỗi khi parse localStorage.profile:', error)
-      }
+  const {setIsAuthenticated, setProfile, profile} = useContext(AppContext)
+  const logoutMutation = useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: () => {
+      setIsAuthenticated(false)
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      setProfile(null)
+      navigate('/')
     }
-  }, [showLogin]) // Mỗi khi modal login đóng, check lại localStorage
-
+  })
+  
+  // Khi gọi logout:
   const handleLogout = () => {
-    localStorage.removeItem('profile')
-    localStorage.removeItem('authToken')
-    setUserProfile(null)
-    navigate('/')
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (refreshToken) {
+      logoutMutation.mutate({ refreshToken })
+    }
   }
+  
 
   return (
     <>
@@ -58,10 +63,10 @@ const Header = () => {
             </Nav>
 
             <Nav>
-              {userProfile ? (
+              {profile?.fullName ? (
                 <Dropdown>
                   <Dropdown.Toggle variant="link" className="text-white">
-                    {userProfile.displayName}
+                    {profile.fullName}
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
                     <Dropdown.Item onClick={handleLogout}>Đăng xuất</Dropdown.Item>

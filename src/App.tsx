@@ -5,19 +5,12 @@ import CategoryPage from "./pages/Navigation/CategoryPage";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import "./App.css";
+import useRouteElement from "./useRouteElement";
 
 function App() {
+  const routeElement = useRouteElement();
   return (
-    <Router>
-      <Header />
-      <div className="container mt-4">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/category/:type" element={<CategoryPage />} />
-        </Routes>
-      </div>
-      <Footer />
-    </Router>
+      <div className="container mt-4">{routeElement}</div>
   );
 }
 

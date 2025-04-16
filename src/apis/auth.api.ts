@@ -10,7 +10,7 @@ export const URL_REFRESH_TOKEN = 'api/v1/auth/refresh'
 export const URL_VERIFY_OTP = 'api/v1/auth/verify-otp'
 
 const authApi = {
-  registerAccount(body: { credential: string; fullname: String; password: string ; confirmPassword: string }) {
+  registerAccount(body: { credential: string; fullName: String; password: string ; confirmPassword: string }) {
     return http.post<AuthResponse>(URL_REGISTER, body)
   },
   login(body: { credential: string; password: string }) {
@@ -18,7 +18,8 @@ const authApi = {
   },
   logout(body: { refreshToken: string }) {
     return http.post<AuthResponse>(URL_LOGOUT, body)
-  },
+  }
+  ,
   refreshToken(body: {accessToken: String; refreshToken: String}) {
     return http.post<AuthResponse>(URL_REFRESH_TOKEN, body)
   },
