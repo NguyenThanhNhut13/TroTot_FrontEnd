@@ -4,8 +4,14 @@ import RoomList from "../../components/banner/RoomList";
 import HotListings from "../../components/common/HotListings";
 import ProvinceListings from "../../components/common/ProvinceListings ";
 
+interface Location {
+  id: number;
+  name: string;
+}
+
+
 const HomePage = () => {
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("Chọn Tỉnh/TP...");
   const [selectedDistrict, setSelectedDistrict] = useState("Quận/Huyện...");
@@ -96,11 +102,15 @@ const HomePage = () => {
   ];
 
   useEffect(() => {
-    fetch("https://api.example.com/locations")
-      .then((response) => response.json())
-      .then((data) => setLocations(data))
-      .catch((error) => console.error("Error fetching locations:", error));
+    const mockData = [
+      { id: 1, name: "Hồ Chí Minh" },
+      { id: 2, name: "Hà Nội" },
+      { id: 3, name: "Đà Nẵng" },
+    ];
+    setLocations(mockData);
   }, []);
+  
+  
 
   return (
     <div>
