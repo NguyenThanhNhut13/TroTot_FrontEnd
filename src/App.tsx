@@ -10,7 +10,7 @@ import useRouteElement from "./useRouteElement";
 function App() {
   const routeElement = useRouteElement();
   return (
-      <div className="container mt-4">{routeElement}</div>
+      <div>{routeElement}</div>
   );
 }
 

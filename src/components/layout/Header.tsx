@@ -31,6 +31,7 @@ const Header = () => {
     if (refreshToken) {
       logoutMutation.mutate({ refreshToken })
     }
+    window.location.reload()
   }
   
 
