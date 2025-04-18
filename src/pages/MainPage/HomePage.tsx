@@ -11,7 +11,6 @@ interface Location {
   name: string;
 }
 
-
 const HomePage = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -21,72 +20,6 @@ const HomePage = () => {
   const [selectedPrice, setSelectedPrice] = useState("Tất cả mức giá");
   const [selectedArea, setSelectedArea] = useState("Tất cả diện tích");
   const [selectedCategory, setSelectedCategory] = useState("tat-ca");
-
-  const hotListings = [
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà nguyên căn tại D19, Trường ...",
-      price: "16 triệu/tháng",
-      area: 125,
-      location: "Quận 9, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà Trọ 416/23 Dương Quảng Hàm",
-      price: "4 triệu/tháng",
-      area: 20,
-      location: "Gò Vấp, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà trọ đường Mã Lò, Bình Tân",
-      price: "3.2 triệu/tháng",
-      area: 20,
-      location: "Bình Tân, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà nguyên căn tại D19, Trường ...",
-      price: "16 triệu/tháng",
-      area: 125,
-      location: "Quận 9, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà Trọ 416/23 Dương Quảng Hàm",
-      price: "4 triệu/tháng",
-      area: 20,
-      location: "Gò Vấp, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà trọ đường Mã Lò, Bình Tân",
-      price: "3.2 triệu/tháng",
-      area: 20,
-      location: "Bình Tân, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà nguyên căn tại D19, Trường ...",
-      price: "16 triệu/tháng",
-      area: 125,
-      location: "Quận 9, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà Trọ 416/23 Dương Quảng Hàm",
-      price: "4 triệu/tháng",
-      area: 20,
-      location: "Gò Vấp, Thành phố Hồ Chí Minh",
-    },
-    {
-      image: "https://i.ibb.co/Vp3gJmb2/hotlisting.jpg",
-      title: "Nhà trọ đường Mã Lò, Bình Tân",
-      price: "3.2 triệu/tháng",
-      area: 20,
-      location: "Bình Tân, Thành phố Hồ Chí Minh",
-    },
-  ];
 
   const provinces = [
     { name: "Hồ Chí Minh", rooms: 4180 },
@@ -111,8 +44,6 @@ const HomePage = () => {
     ];
     setLocations(mockData);
   }, []);
-  
-  
 
   return (
     <div>
@@ -285,14 +216,14 @@ const HomePage = () => {
       </div>
 
       {/* Lua chọn */}
-      <HotListings hotListings={hotListings} />
+      <HotListings roomType="APARTMENT" title="LỰA CHỌN CHỖ Ở HOT"/>
 
       <RoomList />
 
-      <HotListings hotListings={hotListings} title="NHÀ NGUYÊN CĂN CHO THUÊ" />
+      <HotListings roomType="WHOLE_HOUSE" title="NHÀ NGUYÊN CĂN CHO THUÊ" />
 
       <HotListings
-        hotListings={hotListings}
+        roomType="BOARDING_HOUSE"
         title="CĂN HỘ, CHUNG CƯ CHO THUÊ"
       />
 

@@ -1,17 +1,23 @@
-import { GetRoomsResponse } from '../types/room.type'
-import http from '../utils/http'
+import { GetRoomsResponse } from "../types/room.type";
+import http from "../utils/http";
 
-export const URL_GET_ROOMS = 'api/v1/rooms'
+export const URL_GET_ROOMS = "api/v1/rooms";
 
 const roomApi = {
-  getRooms(params: {
-    page?: number
-    size?: number
-    sort?: string
-  }) {
-    return http.get<GetRoomsResponse>(URL_GET_ROOMS, { params }) // roomApi.getRooms({ page: 0, size: 10, sort: 'createdAt,desc' })
+  getRooms(
+    params: {
+      page?: number;
+      size?: number;
+      sort?: string;
+      roomType?: 'APARTMENT' | 'WHOLE_HOUSE' | 'BOARDING_HOUSE';
+    } = {}
+  ) {
+    const { page = 0, size = 2, sort = "createdAt,desc", roomType } = params;
 
-  }
-}
+    return http.get<GetRoomsResponse>(URL_GET_ROOMS, {
+      params: { page, size, sort, roomType },
+    });
+  },
+};
 
-export default roomApi
+export default roomApi;
