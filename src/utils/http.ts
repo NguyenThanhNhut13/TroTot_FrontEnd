@@ -51,8 +51,6 @@ export class Http {
     });
     this.instance.interceptors.request.use(
       (config) => {
-        console.log("this.accessToken sau  login", getAccessTokenFromLS());
-        console.log("this.refreshToken sau login", getRefreshTokenFromLS());
         if (this.accessToken && config.headers) {
           config.headers.Authorization = `Bearer ${getAccessTokenFromLS()}`;
 
@@ -72,8 +70,6 @@ export class Http {
           const data = response.data as AuthResponse;
           this.accessToken = data.data.accessToken;
           this.refreshToken = data.data.refreshToken;
-          console.log("this.accessToken trong login", this.accessToken);
-          console.log("this.refreshToken trong login", this.refreshToken);
           setAccessTokenToLS(this.accessToken);
           setRefreshTokenToLS(this.refreshToken);
         } else if (

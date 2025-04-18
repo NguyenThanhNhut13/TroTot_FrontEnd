@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Dropdown, Card } from "react-bootstrap";
 import RoomList from "../../components/banner/RoomList";
-import HotListings from "../../components/common/HotListings";
+import HotListings from "../ProductList/HotListings";
 import ProvinceListings from "../../components/common/ProvinceListings ";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
