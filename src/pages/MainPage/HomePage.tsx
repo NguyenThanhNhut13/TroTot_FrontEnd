@@ -55,7 +55,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div>
+    <div >
       <div
         className="banner position-relative"
         style={{

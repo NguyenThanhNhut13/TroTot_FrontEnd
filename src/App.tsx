@@ -10,7 +10,7 @@ import useRouteElement from "./useRouteElement";
 function App() {
   const routeElement = useRouteElement();
   return (
-      <div>{routeElement}</div>
+      <div style={{ backgroundColor: "#f4f4f4" }}>{routeElement}</div>
   );
 }
 
