@@ -37,6 +37,7 @@ export type RoomImage = {
     posterName: string;
     posterPhone: string;
     images: RoomImage[];
+    imageUrls: string[]; 
     roomType: 'APARTMENT' | 'WHOLE_HOUSE' | 'BOARDING_HOUSE';
     amenities: Amenity[];
     surroundingAreas: SurroundingArea[];
