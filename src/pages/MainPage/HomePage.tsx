@@ -60,6 +60,8 @@ const HomePage = () => {
         className="banner position-relative"
         style={{
           background: "linear-gradient(to right, #00052e, #010c3a, #1a237e)",
+          backgroundImage: "url('https://tromoi.com/frontend/home/images/banner_default.jpg')",
+          backgroundSize: "cover",
           padding: "50px 0 20px",
           overflow: "hidden",
         }}
@@ -67,28 +69,16 @@ const HomePage = () => {
         <Container>
           <Row className="align-items-center">
             <Col md={7} className="text-white">
-              <h1 className="display-4 fw-bold mb-3">TÌM NHANH, KIẾM DỄ</h1>
-              <h1 className="display-4 fw-bold mb-4">TRỌ MỚI TOÀN QUỐC</h1>
-              <p className="mb-5">
-                Trang thông tin và cho thuê phòng trọ nhanh chóng, hiệu quả với
-                <br />
+              <h1 className="fw-bold" style={{ fontSize: "3rem", lineHeight: 1.2 }}>
+                TÌM NHANH, KIẾM DỄ
+              </h1>
+              <h1 className="fw-bold mb-4" style={{ fontSize: "3rem", lineHeight: 1.2 }}>
+                TRỌ MỚI TOÀN QUỐC
+              </h1>
+              <p className="mb-4" style={{ fontSize: "1.1rem" }}>
+                Trang thông tin và cho thuê phòng trọ nhanh chóng, hiệu quả với<br />
                 hơn 500 tin đăng mới và 30.000 lượt xem mỗi ngày
               </p>
-            </Col>
-            <Col md={5} className="text-center position-relative" style={{ minHeight: "300px" }}>
-              <img
-                src="https://tromoi.com/frontend/home/images/banner_default.jpg"
-                alt="House"
-                style={{
-                  width: "100%", 
-                  height: "100%",
-                  objectFit: "cover",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  borderRadius: "8px"
-                }}
-              />
             </Col>
           </Row>
 
