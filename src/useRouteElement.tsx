@@ -3,8 +3,10 @@ import { useRoutes } from 'react-router-dom'
 import HomePage from './pages/MainPage/HomePage'
 import CategoryPage from './pages/Navigation/CategoryPage'
 import HomeLayOut from './pages/MainPage/HomeLayOut'
-import PostRoomPage from './pages/CategoriesPage/PostRoomPage' // thêm import cho trang đăng tin
-import RoomPostForm from './pages/CategoriesPage/RoomPostForm' // thêm import cho trang đăng tin
+import PostRoomPage from './pages/RoomPostPage/PostRoomPage' // thêm import cho trang đăng tin
+import RoomPostForm from './pages/RoomPostPage/RoomPostForm' // thêm import cho trang đăng tin
+import DepositPage from './pages/PayPage/DepositPage'
+
 
 export default function useRouteElement() {
   const routeElement = useRoutes([
@@ -27,6 +29,10 @@ export default function useRouteElement() {
         {
           path:'/post-room/:type',
           element: <RoomPostForm /> 
+        },
+        {
+          path:'/deposit',
+          element: <DepositPage /> // thêm đường dẫn mới cho trang đăng tin
         }
       ]
     }

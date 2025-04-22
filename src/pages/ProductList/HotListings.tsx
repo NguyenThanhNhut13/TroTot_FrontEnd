@@ -35,6 +35,7 @@ const HotListings: React.FC<HotListingsProps> = ({
       try {
         setLoading(true);
         const res = await roomApi.getRooms({ page, size, sort, roomType });
+        console.log("Fetched rooms:", res.data.data.content);
         const rooms = res.data.data.content;
 
         const mapped: Listing[] = rooms.map((room: Room) => ({
