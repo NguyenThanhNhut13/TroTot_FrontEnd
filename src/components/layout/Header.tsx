@@ -29,6 +29,7 @@ const Header = () => {
       localStorage.removeItem("refreshToken");
       setProfile(null);
       navigate("/");
+      window.location.reload();
     },
   });
 
@@ -37,9 +38,6 @@ const Header = () => {
     if (refreshToken) {
       logoutMutation.mutate({ refreshToken });
     }
-    setTimeout(() => {
-      window.location.reload();
-    }, 5000);
   };
 
   return (
@@ -54,9 +52,9 @@ const Header = () => {
               className="d-inline-block align-top"
             />
 
-            <span className="fw-bold fs-4" style={{ color: "#103272" }}>
+            {/* <span className="fw-bold fs-4" style={{ color: "#103272" }}>
               TRỌ MỚI
-            </span>
+            </span> */}
           </Navbar.Brand>
 
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
