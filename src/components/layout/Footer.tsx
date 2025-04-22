@@ -7,150 +7,208 @@ import {
   FaYoutube,
   FaMapMarkerAlt,
   FaArrowUp,
+  FaApple,
+  FaGooglePlay,
 } from "react-icons/fa";
 import { SiZalo } from "react-icons/si";
+import { Container, Row, Col } from "react-bootstrap";
 
 const Footer = () => {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <footer className="bg-light text-dark mt-5 pt-5 border-top position-relative">
-      <div className="container">
-        <div className="row gy-4">
-          {/* Cột 1: Logo + App */}
-          <div className="col-md-3 text-center text-md-start">
-            <img
-              src="https://i.postimg.cc/jd8xtGKZ/tr-mi.jpg"
-              alt="Trọ Mới"
-              className="mb-2"
-              style={{ height: 100, width: 120 }}
-            />
-            <p>
+    <footer className="bg-white text-dark pt-5">
+      <Container>
+        <Row className="mb-5">
+          {/* Column 1: Logo and App */}
+          <Col lg={3} md={6} className="mb-4 mb-lg-0">
+            <div className="mb-4">
+              <img
+                src="https://tromoi.com/logo_mobile.png"
+                alt="Trọ Mới"
+                className="img-fluid"
+                style={{ height: "85px" }}
+              />
+            </div>
+            <p className="mb-4">
               Thành viên của{" "}
-              <a href="https://aaa.vn" className="text-primary">
+              <a href="#" className="text-decoration-none">
                 ohi.vn
               </a>
             </p>
-            
-            <p className="fw-bold text-primary mt-3 mb-1">
+            <div className="d-flex mb-3">
+              <img
+                src="https://tromoi.com/frontend/home/images/ohi/logo-ohi-didi.png"
+                alt="ohi.didi"
+                height="30"
+                className="me-3"
+              />
+              <img
+                src="https://tromoi.com/frontend/home/images/ohi/logo-phong-kham-tot.png"
+                alt="phong kham tot"
+                height="30"
+                className="me-3"
+              />
+              <img
+                src="https://tromoi.com/frontend/home/images/ohi/logo-nha-dep-dat-tot.png"
+                alt="nha dep dat tot"
+                height="30"
+                className="me-3"
+              />
+              <img
+                src="https://tromoi.com/frontend/home/images/ohi/logo-mat-bang-moi.png"
+                alt="mat bang moi"
+                height="30"
+              />
+            </div>
+            <h6 className="text-primary fw-bold mt-4 mb-3">
               TẢI APP TRỌ MỚI HOST NGAY
-            </p>
-          </div>
+            </h6>
+            <div className="d-flex mb-3">
+              <div className="me-3">
+                <img 
+                  src="https://tromoi.com/frontend/home/images/qrcode_app.png" 
+                  alt="QR Code"
+                  style={{ width: '100px' }}
+                  className="img-fluid"
+                />
+              </div>
+              <div className="d-flex flex-column">
+                <a href="#" className="mb-2">
+                  <img 
+                    src="https://tromoi.com/frontend/home/images/app-store-badge.svg" 
+                    alt="App Store" 
+                    style={{ height: '40px' }}
+                  />
+                </a>
+                <a href="#">
+                  <img 
+                    src="https://tromoi.com/frontend/home/images/google-play-badge.svg" 
+                    alt="Google Play" 
+                    style={{ height: '40px' }}
+                  />
+                </a>
+              </div>
+            </div>
+          </Col>
 
-          {/* Cột 2: Thông tin */}
-          <div className="col-md-3">
-            <h6 className="text-primary fw-bold">THÔNG TIN</h6>
+          {/* Column 2: Information */}
+          <Col lg={3} md={6} className="mb-4 mb-lg-0">
+            <h5 className="text-primary fw-bold mb-4">THÔNG TIN</h5>
             <ul className="list-unstyled">
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Điều khoản & Cam kết
-                </button>
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Quy chế hoạt động
-                </button>
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Giải quyết khiếu nại
-                </button>
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Chính sách bảo mật
-                </button>
+                </a>
               </li>
             </ul>
-          </div>
+          </Col>
 
-          {/* Cột 3: Hệ thống */}
-          <div className="col-md-3">
-            <h6 className="text-primary fw-bold">HỆ THỐNG</h6>
+          {/* Column 3: System */}
+          <Col lg={3} md={6} className="mb-4 mb-lg-0">
+            <h5 className="text-primary fw-bold mb-4">HỆ THỐNG</h5>
             <ul className="list-unstyled">
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
-                  Hệ thống phòng trọ
-                </button>
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
+                  Dành cho chủ trọ
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Bảng phí
-                </button>
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Gói hội viên
-                </button>
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Hướng dẫn
-                </button>
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
-                  Thanh toán VNPAY
-                </button>
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
+                  Hướng dẫn thanh toán VNPAY
+                </a>
               </li>
-              <li>
-                <button className="btn btn-link text-decoration-none text-dark p-0">
+              <li className="mb-2">
+                <a href="#" className="text-decoration-none text-dark">
                   Liên hệ
-                </button>
+                </a>
               </li>
             </ul>
-          </div>
+          </Col>
 
-          {/* Cột 4: Liên hệ */}
-          <div className="col-md-3">
-            <h6 className="text-primary fw-bold">KẾT NỐI VỚI CHÚNG TÔI</h6>
+          {/* Column 4: Contact */}
+          <Col lg={3} md={6}>
+            <h5 className="text-primary fw-bold mb-4">KẾT NỐI VỚI CHÚNG TÔI</h5>
             <ul className="list-unstyled">
-              <li>
-                <FaPhone /> 033.266.1579 - 035.866.1579
+              <li className="mb-2 d-flex align-items-center">
+                <FaPhone className="text-primary me-2" />{" "}
+                <span>033.266.1579 - 035.866.1579</span>
               </li>
-              <li>
-                <SiZalo /> 0332661579
+              <li className="mb-2 d-flex align-items-center">
+                <SiZalo className="text-primary me-2" /> <span>0332661579</span>
               </li>
-              <li>
-                <FaEnvelope /> info@tromoi.com
+              <li className="mb-2 d-flex align-items-center">
+                <FaEnvelope className="text-primary me-2" />{" "}
+                <span>info@tromoi.com</span>
               </li>
-              <li>
-                <FaFacebook /> tromoitoanquoc - tromoihue
+              <li className="mb-2 d-flex align-items-center">
+                <FaFacebook className="text-primary me-2" />{" "}
+                <span>tromoitoanquoc - tromoihue</span>
               </li>
-              <li>
-                <FaTiktok /> tromoi.com - @tromoi.hcm
+              <li className="mb-2 d-flex align-items-center">
+                <FaTiktok className="text-primary me-2" />{" "}
+                <span>@tromoi.com - @tromoi.hcm</span>
               </li>
-              <li>
-                <FaYoutube /> @tromoi
+              <li className="mb-2 d-flex align-items-center">
+                <FaYoutube className="text-primary me-2" /> <span>@tromoi</span>
               </li>
-              <li>
-                <FaMapMarkerAlt /> VP HCM: 19 Đường Số 23, Q6, TP HCM
+              <li className="mb-2 d-flex align-items-center">
+                <FaMapMarkerAlt className="text-primary me-2" />{" "}
+                <span>VP Huế: 4/16 Đoàn Hữu Trưng, TP. Huế</span>
               </li>
-              <li>
-                <FaMapMarkerAlt /> VP HCM: 19 Đường Số 23, Q6, TP HCM
+              <li className="mb-2 d-flex align-items-center">
+                <FaMapMarkerAlt className="text-primary me-2" />{" "}
+                <span>VP HCM: 19 Đường Số 23, Phường 10, Quận 6, TP. HCM</span>
               </li>
             </ul>
-          </div>
-        </div>
+          </Col>
+        </Row>
+      </Container>
 
-        {/* Copyright */}
-        <div
-          className="text-center border-top pt-3 mt-4 d-flex justify-content-center align-items-center"
-          style={{
-            fontSize: 15,
-            backgroundColor: "blue", 
-            color: "white", 
-            height: "60px", 
-          }}
-        >
-          <h4>&copy; 2025 Tromoi. All rights reserved.</h4>
-        </div>
+      {/* Copyright Section */}
+      <div className="py-3 bg-primary text-white">
+        <Container>
+          <div className="d-flex justify-content-center align-items-center">
+            <p className="m-0">Copyright © 2015 - 2025 OHI Co.Ltd</p>
+          </div>
+        </Container>
       </div>
 
-      {/* Nút cuộn lên đầu trang */}
+      {/* Scroll to top button */}
       <button
-        className="btn btn-light shadow rounded-circle position-fixed bottom-0 end-0 m-4"
+        className="btn btn-primary rounded-circle position-fixed bottom-0 end-0 m-4 shadow"
         onClick={scrollToTop}
+        style={{ width: "45px", height: "45px" }}
         aria-label="Scroll to top"
       >
         <FaArrowUp />
