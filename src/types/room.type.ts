@@ -47,6 +47,8 @@ export type RoomImage = {
     numberOfBedrooms: number;
     createdAt: string;
     updatedAt: string;
+    district: string;
+    province: string;
   };
   
   export type PaginatedRoomResponse = {
