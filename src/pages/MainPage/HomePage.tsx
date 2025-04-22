@@ -104,6 +104,8 @@ const HomePage = () => {
                         selectedCategory === "tat-ca" ? "#ffffff" : "#0046a8",
                       padding: "0 60px",
                       borderRadius: "8px 8px 0 0",
+                      outline: "none",
+                      boxShadow: "none",
                     }}
                   >
                     Tất cả
@@ -124,6 +126,8 @@ const HomePage = () => {
                       marginLeft: "2px",
                       padding: "0 60px",
                       borderRadius: "8px 8px 0 0",
+                      outline: "none",
+                      boxShadow: "none",
                     }}
                   >
                     Nhà trọ, phòng trọ
@@ -144,6 +148,8 @@ const HomePage = () => {
                       marginLeft: "2px",
                       padding: "0 60px",
                       borderRadius: "8px 8px 0 0",
+                      outline: "none",
+                      boxShadow: "none",
                     }}
                   >
                     Nhà nguyên căn
@@ -164,6 +170,8 @@ const HomePage = () => {
                       marginLeft: "2px",
                       padding: "0 60px",
                       borderRadius: "8px 8px 0 0",
+                      outline: "none",
+                      boxShadow: "none",
                     }}
                   >
                     Căn hộ
@@ -202,7 +210,6 @@ const HomePage = () => {
                             <FaMap color="#0046a8" />
                           </span>
                           <span>Địa điểm</span>
-                          <span>▼</span>
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="w-100 p-0">
                           <div>
@@ -273,7 +280,6 @@ const HomePage = () => {
                             <FaDollarSign color="#0046a8" />
                           </span>
                           <span>Mức giá</span>
-                          <span>▼</span>
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="w-100 p-3">
                           <div className="mb-3">
@@ -369,7 +375,6 @@ const HomePage = () => {
                             <span style={{ color: "#0046a8" }}>m²</span>
                           </span>
                           <span>Diện tích</span>
-                          <span>▼</span>
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="w-100 p-3">
                           <Form.Check
