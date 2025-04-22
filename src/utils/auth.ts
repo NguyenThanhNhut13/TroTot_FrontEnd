@@ -32,7 +32,7 @@ export const getProfileFromLS = () => {
   }
 }
 
-export const setProfileToLS = (profile: User | null) => {
+export const setProfileToLS = (profile: User ) => {
   if (profile) {
     localStorage.setItem('profile', JSON.stringify(profile))
   } else {

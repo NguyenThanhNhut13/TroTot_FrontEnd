@@ -1,8 +1,6 @@
-import { createContext, useState } from "react";
-// import { ExtendedPurchase } from 'src/types/purchase.type'
-import { User } from "../types/user.type"
-import { getAccessTokenFromLS, getProfileFromLS } from "../utils/auth";
-
+import { createContext, useState, useEffect } from "react";
+import { User } from "../types/user.type";
+import { getAccessTokenFromLS, getProfileFromLS, clearLS } from "../utils/auth";
 
 interface AppContextInterface {
   isAuthenticated: boolean;
@@ -13,12 +11,10 @@ interface AppContextInterface {
 }
 
 export const getInitialAppContext: () => AppContextInterface = () => ({
-  isAuthenticated: Boolean(getAccessTokenFromLS()),
+  isAuthenticated: Boolean(getAccessTokenFromLS()) && Boolean(getProfileFromLS()),
   setIsAuthenticated: () => null,
   profile: getProfileFromLS(),
   setProfile: () => null,
-  extendedPurchases: [],
-  setExtendedPurchases: () => null,
   reset: () => null,
 });
 
@@ -38,9 +34,19 @@ export const AppProvider = ({
   );
   const [profile, setProfile] = useState<User | null>(defaultValue.profile);
 
+  // Đồng bộ isAuthenticated với profile
+  useEffect(() => {
+    if (!profile) {
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [profile]);
+
   const reset = () => {
     setIsAuthenticated(false);
     setProfile(null);
+    clearLS(); // Xóa local storage khi đăng xuất
   };
 
   return (
@@ -50,8 +56,6 @@ export const AppProvider = ({
         setIsAuthenticated,
         profile,
         setProfile,
-        // extendedPurchases,
-        // setExtendedPurchases,
         reset,
       }}
     >

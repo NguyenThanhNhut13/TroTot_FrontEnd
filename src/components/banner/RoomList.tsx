@@ -47,6 +47,13 @@ const rooms = [
   },
 ];
 
+const CustomArrow = ({ className, onClick }: any) => (
+  <div className={className} onClick={onClick} style={{ zIndex: 2 }}>
+    <span style={{ fontSize: '2rem' }}>{className?.includes("next") ? "›" : "‹"}</span>
+  </div>
+);
+
+
 const RoomList: React.FC = () => {
   const settings = {
     dots: false, // Không hiển thị chấm tròn
@@ -54,14 +61,16 @@ const RoomList: React.FC = () => {
     speed: 500,
     slidesToShow: 3, // Hiển thị 3 card mỗi lần
     slidesToScroll: 1, // Cuộn từng card một
-    nextArrow: <button className="custom-arrow next">&#10095;</button>, // Mũi tên phải
-    prevArrow: <button className="custom-arrow prev">&#10094;</button>, // Mũi tên trái
+    nextArrow: <CustomArrow />,
+prevArrow: <CustomArrow />,
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 3 } }, // Tablet lớn
       { breakpoint: 768, settings: { slidesToShow: 2 } }, // Tablet nhỏ
       { breakpoint: 576, settings: { slidesToShow: 1 } }, // Mobile
     ],
   };
+
+  
 
   return (
     <div className="room-list-container">
