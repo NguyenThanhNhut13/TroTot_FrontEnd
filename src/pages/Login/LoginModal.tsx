@@ -5,6 +5,7 @@ import { Modal, Button as BsButton, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
+import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from "react-icons/fa";
 
 import authApi from "../../apis/auth.api";
 import { loginSchema, LoginSchema } from "../../utils/rules";
@@ -24,6 +25,7 @@ interface LoginModalProps {
 const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
   const { setIsAuthenticated, setProfile } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -47,19 +49,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
 
     loginMutation.mutate(requestBody, {
       onSuccess: async (data) => {
-       // Gọi API lấy profile (accessToken đã tự gắn ở interceptor)
-       const timer = setTimeout(async () => {
-        try {
-          const profileRes = await userApi.getProfile()
-          console.log('Profile:', profileRes.data)
-          window.location.reload();
+        const timer = setTimeout(async () => {
+          try {
+            const profileRes = await userApi.getProfile();
+            console.log("Profile:", profileRes.data);
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+          }
+        }, 3000);
 
-        } catch (err) {
-          console.error(err)
-        }
-      }, 3000)
-
-        setIsAuthenticated(true)
+        setIsAuthenticated(true);
         handleClose();
       },
       onError: (error) => {
@@ -74,75 +74,119 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
             });
           }
         }
+        setIsLoading(false);
       },
     });
   });
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Chào mừng bạn đến với Trọ Mới</Modal.Title>
+      <Modal.Header closeButton className="border-0">
+        <Modal.Title className="d-none">Chào mừng bạn đến với Trọ Mới</Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body className="px-4 pt-0 pb-4">
+        <div className="text-center mb-4">
+          <img
+            src="https://tromoi.com/favicon.png"
+            alt="Trợ Mới Logo"
+            style={{ width: "80px", height: "80px" }}
+            className="mb-3"
+          />
+          <h4 className="fw-bold mb-4">Chào mừng bạn đến với Trợ Mới</h4>
+        </div>
+
         <Form noValidate onSubmit={onSubmit}>
           <Form.Group className="mb-3">
-            <Form.Label>Email hoặc Số điện thoại</Form.Label>
             <Form.Control
               type="text"
               {...register("credential")}
               isInvalid={!!errors.credential}
-              placeholder="Nhập email hoặc số điện thoại"
+              placeholder="Email hoặc Số điện thoại"
+              className="py-3 bg-light"
             />
             <Form.Control.Feedback type="invalid">
               {errors.credential?.message}
             </Form.Control.Feedback>
           </Form.Group>
-          
 
-          <Form.Group className="mb-3">
-            <Form.Label>Mật khẩu</Form.Label>
+          <Form.Group className="mb-3 position-relative">
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               {...register("password")}
               isInvalid={!!errors.password}
-              placeholder="Nhập mật khẩu"
+              placeholder="Mật khẩu"
+              className="py-3 bg-light"
             />
+            <div
+              className="position-absolute end-0 top-50 translate-middle-y pe-3"
+              style={{ cursor: "pointer" }}
+              onClick={togglePasswordVisibility}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </div>
             <Form.Control.Feedback type="invalid">
               {errors.password?.message}
             </Form.Control.Feedback>
           </Form.Group>
 
-          <div className="text-end">
-            <a href="#" className="text-primary">
+          <div className="text-end mb-3">
+            <a href="#" className="text-decoration-none" style={{ color: "#0066cc" }}>
               Quên mật khẩu?
             </a>
           </div>
 
           <BsButton
-            variant="danger"
+            variant="primary"
             id="btn-login"
-            className="w-100 mt-3"
+            className="w-100 py-3"
             type="submit"
             disabled={isLoading}
+            style={{ backgroundColor: "#ff5500", borderColor: "#ff5500" }}
           >
             {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
           </BsButton>
         </Form>
 
-        <div className="text-center mt-3">
-          Chưa có tài khoản?{" "}
-          <a href="#" className="text-primary">
+        <div className="text-center mt-3 mb-3">
+          <span>Chưa có tài khoản? </span>
+          <a href="#" className="text-decoration-none fw-semibold" style={{ color: "#0066cc" }}>
             Đăng ký ngay
           </a>
         </div>
-        <div className="text-center mt-3">Hoặc đăng ký bằng</div>
-        <div className="d-flex justify-content-center mt-2">
-          <BsButton variant="light" className="me-2" onClick={() => {}}>
-            <i className="fab fa-google text-danger"></i> G
-          </BsButton>
-          <BsButton variant="light">
-            <i className="fab fa-facebook text-primary"></i> F
-          </BsButton>
+
+        <div className="d-flex align-items-center my-3">
+          <div className="flex-grow-1 border-bottom"></div>
+          <div className="px-3 text-secondary">Hoặc đăng nhập bằng</div>
+          <div className="flex-grow-1 border-bottom"></div>
+        </div>
+
+        <div className="d-flex justify-content-center gap-3 mt-3">
+          <div
+            className="d-flex justify-content-center align-items-center rounded-circle"
+            style={{
+              width: "40px",
+              height: "40px",
+              backgroundColor: "#dc3545",
+              cursor: "pointer",
+            }}
+          >
+            <FaGoogle color="white" />
+          </div>
+          <div
+            className="d-flex justify-content-center align-items-center rounded-circle"
+            style={{
+              width: "40px",
+              height: "40px",
+              backgroundColor: "#1877f2",
+              cursor: "pointer",
+            }}
+          >
+            <FaFacebook color="white" />
+          </div>
         </div>
       </Modal.Body>
     </Modal>
