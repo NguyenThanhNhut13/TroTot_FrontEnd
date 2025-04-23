@@ -227,7 +227,6 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       const response = await roomApi.searchRooms(searchRoomParams);
 
       if (response.data && response.data.data && response.data.data.content) {
-
         const transformedListings = response.data.data.content.map(
           (item: Room) => ({
             id: item.id,
