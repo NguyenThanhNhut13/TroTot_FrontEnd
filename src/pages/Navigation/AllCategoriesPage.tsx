@@ -23,7 +23,9 @@ import roomApi from "../../apis/room.api.";
 import { Listing } from "./CategorySharedPage";
 
 const AllCategoriesPage = () => {
-  const [activeTab, setActiveTab] = useState<"BOARDING_HOUSE" | "WHOLE_HOUSE" | "APARTMENT" | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "BOARDING_HOUSE" | "WHOLE_HOUSE" | "APARTMENT" | null
+  >(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +37,9 @@ const AllCategoriesPage = () => {
   // API data states
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [targetAudiences, setTargetAudiences] = useState<TargetAudience[]>([]);
-  const [surroundingAreas, setSurroundingAreas] = useState<SurroundingArea[]>([]);
+  const [surroundingAreas, setSurroundingAreas] = useState<SurroundingArea[]>(
+    []
+  );
 
   // Initialize selectedFilters
   const [selectedFilters, setSelectedFilters] = useState({
@@ -77,21 +81,33 @@ const AllCategoriesPage = () => {
         // Fetch amenities
         const amenitiesResponse = await roomApi.getAmenities();
         if (amenitiesResponse.data && amenitiesResponse.data.data) {
-          localStorage.setItem(`amenities`, JSON.stringify(amenitiesResponse.data.data));
+          localStorage.setItem(
+            `amenities`,
+            JSON.stringify(amenitiesResponse.data.data)
+          );
           setAmenities(amenitiesResponse.data.data);
         }
 
         // Fetch target audiences
         const targetAudiencesResponse = await roomApi.getTargetAudiences();
         if (targetAudiencesResponse.data && targetAudiencesResponse.data.data) {
-          localStorage.setItem(`targetAudiences`, JSON.stringify(targetAudiencesResponse.data.data));
+          localStorage.setItem(
+            `targetAudiences`,
+            JSON.stringify(targetAudiencesResponse.data.data)
+          );
           setTargetAudiences(targetAudiencesResponse.data.data);
         }
 
         // Fetch surrounding areas
         const surroundingAreasResponse = await roomApi.getSurroundingAreas();
-        if (surroundingAreasResponse.data && surroundingAreasResponse.data.data) {
-          localStorage.setItem(`surroundingAreas`, JSON.stringify(surroundingAreasResponse.data.data));
+        if (
+          surroundingAreasResponse.data &&
+          surroundingAreasResponse.data.data
+        ) {
+          localStorage.setItem(
+            `surroundingAreas`,
+            JSON.stringify(surroundingAreasResponse.data.data)
+          );
           setSurroundingAreas(surroundingAreasResponse.data.data);
         }
       } catch (error) {
@@ -106,7 +122,7 @@ const AllCategoriesPage = () => {
 
   // Fetch search params and perform search
   useEffect(() => {
-    const params = localStorage.getItem('searchParams');
+    const params = localStorage.getItem("searchParams");
     if (params) {
       try {
         const parsedParams = JSON.parse(params);
@@ -122,9 +138,11 @@ const AllCategoriesPage = () => {
   }, []);
 
   // Handle tab change
-  const handleTabChange = (roomType: "BOARDING_HOUSE" | "WHOLE_HOUSE" | "APARTMENT" | null) => {
+  const handleTabChange = (
+    roomType: "BOARDING_HOUSE" | "WHOLE_HOUSE" | "APARTMENT" | null
+  ) => {
     setActiveTab(roomType);
-    
+
     if (searchParams) {
       // Add roomType to searchParams and search again
       const newParams = { ...searchParams, roomType };
@@ -143,51 +161,52 @@ const AllCategoriesPage = () => {
         page: 0,
         size: 10,
       };
-      
+
       // Add roomType if provided
       if (params.roomType) {
         searchRoomParams.roomType = params.roomType;
       }
-      
+
       // Add other params if they exist
       if (params.query) {
         searchRoomParams.street = params.query;
       }
-      
+
       if (params.province) {
         searchRoomParams.city = params.province;
       }
-      
+
       if (params.district) {
         searchRoomParams.district = params.district;
       }
-      
+
       if (params.minPrice !== undefined) {
         searchRoomParams.minPrice = params.minPrice;
       }
-      
+
       if (params.maxPrice !== undefined) {
         searchRoomParams.maxPrice = params.maxPrice;
       }
-      
+
       if (params.areaRange) {
         searchRoomParams.areaRange = params.areaRange;
       }
-      
+
       // Call search API
       const response = await roomApi.searchRooms(searchRoomParams);
-      
+
       if (response.data && response.data.data && response.data.data.content) {
-        // Transform API response to match Listing format
-        const transformedListings = response.data.data.content.map((item: Room) => ({
-          image: item.imageUrls[0] || 'https://via.placeholder.com/300x200',
-          title: item.title,
-          price: (item.price / 1000000).toFixed(1), // Convert to millions
-          area: item.area,
-          location: `${item.district}, ${item.province}`,
-          type: item.roomType,
-        }));
-        
+        const transformedListings = response.data.data.content.map(
+          (item: Room) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            area: item.area,
+            image: item.imageUrls[0],
+            location: `${item.district}, ${item.province}`,
+          })
+        );
+
         setListings(transformedListings);
         setFilteredListings(transformedListings);
         setTotalCount(response.data.data.totalElements);
@@ -270,9 +289,24 @@ const AllCategoriesPage = () => {
     if (filters.area.length > 0) {
       result = result.filter((listing) => {
         if (filters.area.includes("under20") && listing.area < 20) return true;
-        if (filters.area.includes("20-40") && listing.area >= 20 && listing.area < 40) return true;
-        if (filters.area.includes("40-60") && listing.area >= 40 && listing.area < 60) return true;
-        if (filters.area.includes("60-80") && listing.area >= 60 && listing.area < 80) return true;
+        if (
+          filters.area.includes("20-40") &&
+          listing.area >= 20 &&
+          listing.area < 40
+        )
+          return true;
+        if (
+          filters.area.includes("40-60") &&
+          listing.area >= 40 &&
+          listing.area < 60
+        )
+          return true;
+        if (
+          filters.area.includes("60-80") &&
+          listing.area >= 60 &&
+          listing.area < 80
+        )
+          return true;
         if (filters.area.includes("above80") && listing.area >= 80) return true;
         return false;
       });
@@ -331,22 +365,38 @@ const AllCategoriesPage = () => {
                   aria-labelledby="categoryDropdown"
                 >
                   <li>
-                    <a className="dropdown-item" href="#" onClick={() => handleTabChange(null)}>
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => handleTabChange(null)}
+                    >
                       Tất cả loại phòng
                     </a>
                   </li>
                   <li>
-                    <a className="dropdown-item" href="#" onClick={() => handleTabChange("BOARDING_HOUSE")}>
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => handleTabChange("BOARDING_HOUSE")}
+                    >
                       Nhà trọ, phòng trọ
                     </a>
                   </li>
                   <li>
-                    <a className="dropdown-item" href="#" onClick={() => handleTabChange("WHOLE_HOUSE")}>
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => handleTabChange("WHOLE_HOUSE")}
+                    >
                       Nhà nguyên căn
                     </a>
                   </li>
                   <li>
-                    <a className="dropdown-item" href="#" onClick={() => handleTabChange("APARTMENT")}>
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => handleTabChange("APARTMENT")}
+                    >
                       Căn hộ, chung cư
                     </a>
                   </li>
@@ -463,54 +513,27 @@ const AllCategoriesPage = () => {
             <strong>Kết quả tìm kiếm cho: </strong>
             {searchParams.query && <span>"{searchParams.query}" </span>}
             {searchParams.province && <span>tại {searchParams.province} </span>}
-            {searchParams.minPrice && <span>từ {searchParams.minPrice/1000000} triệu </span>}
-            {searchParams.maxPrice && <span>đến {searchParams.maxPrice/1000000} triệu </span>}
-            {searchParams.areaRange && <span>diện tích {searchParams.areaRange}m² </span>}
-            <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => {
-              localStorage.removeItem('searchParams');
-              setSearchParams(null);
-              performSearch({});
-            }}>
+            {searchParams.minPrice && (
+              <span>từ {searchParams.minPrice / 1000000} triệu </span>
+            )}
+            {searchParams.maxPrice && (
+              <span>đến {searchParams.maxPrice / 1000000} triệu </span>
+            )}
+            {searchParams.areaRange && (
+              <span>diện tích {searchParams.areaRange}m² </span>
+            )}
+            <button
+              className="btn btn-sm btn-outline-secondary ms-2"
+              onClick={() => {
+                localStorage.removeItem("searchParams");
+                setSearchParams(null);
+                performSearch({});
+              }}
+            >
               Xóa bộ lọc
             </button>
           </div>
         )}
-
-        {/* Filter tabs */}
-        <Nav variant="tabs" className="mb-4">
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === null} 
-              onClick={() => handleTabChange(null)}
-            >
-              Tất cả
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "BOARDING_HOUSE"} 
-              onClick={() => handleTabChange("BOARDING_HOUSE")}
-            >
-              Nhà trọ, phòng trọ
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "WHOLE_HOUSE"} 
-              onClick={() => handleTabChange("WHOLE_HOUSE")}
-            >
-              Nhà nguyên căn
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link 
-              active={activeTab === "APARTMENT"} 
-              onClick={() => handleTabChange("APARTMENT")}
-            >
-              Căn hộ, chung cư
-            </Nav.Link>
-          </Nav.Item>
-        </Nav>
 
         <div className="d-flex flex-nowrap">
           {/* Left sidebar - Filters */}
@@ -553,8 +576,12 @@ const AllCategoriesPage = () => {
                       id={`amenity-${amenity.id}`}
                       label={amenity.name}
                       className="mb-2"
-                      checked={selectedFilters.amenities.includes(amenity.id.toString())}
-                      onChange={() => toggleAmenityFilter(amenity.id.toString())}
+                      checked={selectedFilters.amenities.includes(
+                        amenity.id.toString()
+                      )}
+                      onChange={() =>
+                        toggleAmenityFilter(amenity.id.toString())
+                      }
                     />
                   ))
                 )}
@@ -573,8 +600,12 @@ const AllCategoriesPage = () => {
                       id={`audience-${audience.id}`}
                       label={audience.name}
                       className="mb-2"
-                      checked={selectedFilters.targetAudiences.includes(audience.id.toString())}
-                      onChange={() => toggleTargetAudienceFilter(audience.id.toString())}
+                      checked={selectedFilters.targetAudiences.includes(
+                        audience.id.toString()
+                      )}
+                      onChange={() =>
+                        toggleTargetAudienceFilter(audience.id.toString())
+                      }
                     />
                   ))
                 )}
@@ -593,8 +624,12 @@ const AllCategoriesPage = () => {
                       id={`surrounding-${area.id}`}
                       label={area.name}
                       className="mb-2"
-                      checked={selectedFilters.surroundingAreas.includes(area.id.toString())}
-                      onChange={() => toggleSurroundingAreaFilter(area.id.toString())}
+                      checked={selectedFilters.surroundingAreas.includes(
+                        area.id.toString()
+                      )}
+                      onChange={() =>
+                        toggleSurroundingAreaFilter(area.id.toString())
+                      }
                     />
                   ))
                 )}
@@ -619,75 +654,80 @@ const AllCategoriesPage = () => {
             {/* Listing results */}
             {!isSearching && filteredListings.length === 0 && (
               <div className="alert alert-warning">
-                Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu chí khác.
+                Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu
+                chí khác.
               </div>
             )}
 
-            {!isSearching && filteredListings.map((listing, index) => (
-              <Card key={index} className="mb-3 border-0 shadow-sm">
-                <div className="position-relative">
-                  {/* HOT label */}
-                  <div
-                    className="position-absolute bg-danger text-white px-2 py-1"
-                    style={{ top: "10px", left: "0" }}
-                  >
-                    HOT
+            {!isSearching &&
+              filteredListings.map((listing, index) => (
+                <Card key={index} className="mb-3 border-0 shadow-sm">
+                  <div className="position-relative">
+                    {/* HOT label */}
+                    <div
+                      className="position-absolute bg-danger text-white px-2 py-1"
+                      style={{ top: "10px", left: "0" }}
+                    >
+                      HOT
+                    </div>
+
+                    <Row className="g-0">
+                      {/* Left - Image */}
+                      <Col md={4}>
+                        <Card.Img
+                          src={listing.image}
+                          alt={listing.title}
+                          style={{ height: "100%", objectFit: "cover" }}
+                        />
+                      </Col>
+
+                      {/* Right - Content */}
+                      <Col md={8}>
+                        <Card.Body>
+                          <div className="d-flex justify-content-between">
+                            <Card.Title className="fw-bold mb-2">
+                              {listing.title}
+                            </Card.Title>
+                            <FaHeart
+                              className="text-muted"
+                              style={{ cursor: "pointer" }}
+                            />
+                          </div>
+
+                          <Card.Text className="text-danger fw-bold mb-2">
+                            {listing.price} triệu/tháng
+                          </Card.Text>
+
+                          <div className="d-flex mb-2">
+                            <span className="me-3">{listing.area}m²</span>
+                            <span className="badge bg-info text-white me-2">
+                              {(listing as any).type === "BOARDING_HOUSE"
+                                ? "Phòng trọ"
+                                : (listing as any).type === "WHOLE_HOUSE"
+                                ? "Nhà nguyên căn"
+                                : "Căn hộ"}
+                            </span>
+                          </div>
+
+                          <div className="d-flex align-items-center text-muted mb-2">
+                            <FaMapMarkerAlt className="me-1" />
+                            {listing.location}
+                          </div>
+
+                          <Link
+                            to={`/phong-tro/${index}`}
+                            className="text-decoration-none"
+                          >
+                            <Button variant="primary" className="mt-1">
+                              Xem chi tiết
+                            </Button>
+                          </Link>
+                        </Card.Body>
+                      </Col>
+                    </Row>
                   </div>
-
-                  <Row className="g-0">
-                    {/* Left - Image */}
-                    <Col md={4}>
-                      <Card.Img
-                        src={listing.image}
-                        alt={listing.title}
-                        style={{ height: "100%", objectFit: "cover" }}
-                      />
-                    </Col>
-
-                    {/* Right - Content */}
-                    <Col md={8}>
-                      <Card.Body>
-                        <div className="d-flex justify-content-between">
-                          <Card.Title className="fw-bold mb-2">
-                            {listing.title}
-                          </Card.Title>
-                          <FaHeart
-                            className="text-muted"
-                            style={{ cursor: "pointer" }}
-                          />
-                        </div>
-
-                        <Card.Text className="text-danger fw-bold mb-2">
-                          {parseFloat(listing.price).toLocaleString()} triệu/tháng
-                        </Card.Text>
-
-                        <div className="d-flex mb-2">
-                          <span className="me-3">{listing.area}m²</span>
-                          <span className="badge bg-info text-white me-2">
-                            {(listing as any).type === "BOARDING_HOUSE" ? "Phòng trọ" : 
-                             (listing as any).type === "WHOLE_HOUSE" ? "Nhà nguyên căn" : "Căn hộ"}
-                          </span>
-                        </div>
-
-                        <div className="d-flex align-items-center text-muted mb-2">
-                          <FaMapMarkerAlt className="me-1" />
-                          {listing.location}
-                        </div>
-
-                        <Link
-                          to={`/phong-tro/${index}`}
-                          className="text-decoration-none"
-                        >
-                          <Button variant="primary" className="mt-1">
-                            Xem chi tiết
-                          </Button>
-                        </Link>
-                      </Card.Body>
-                    </Col>
-                  </Row>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
 
             {/* Pagination */}
             {filteredListings.length > 0 && (

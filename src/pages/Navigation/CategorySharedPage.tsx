@@ -22,10 +22,11 @@ import {
 import roomApi from "../../apis/room.api.";
 
 export interface Listing {
-  image: string;
+  id: number;
   title: string;
-  price: string;
+  price: number;
   area: number;
+  image: string;
   location: string;
 }
 
@@ -49,7 +50,6 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [searchParams, setSearchParams] = useState<any>(null);
-
 
   const [selectedFilters, setSelectedFilters] = useState(() => {
     const savedFilters = localStorage.getItem(`filters_${roomType}`);
@@ -227,13 +227,14 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       const response = await roomApi.searchRooms(searchRoomParams);
 
       if (response.data && response.data.data && response.data.data.content) {
-        // Transform API response to match Listing format
+
         const transformedListings = response.data.data.content.map(
           (item: Room) => ({
-            image: item.imageUrls[0] || "https://via.placeholder.com/300x200",
+            id: item.id,
             title: item.title,
-            price: (item.price / 1000000).toFixed(1), // Convert to millions
+            price: item.price,
             area: item.area,
+            image: item.imageUrls[0],
             location: `${item.district}, ${item.province}`,
           })
         );
@@ -557,7 +558,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                 setSearchParams(null);
                 // Reset to original listings
                 setFilteredListings(listings);
-                window.location.reload(); 
+                window.location.reload();
               }}
             >
               Xóa bộ lọc
@@ -725,9 +726,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                           </div>
 
                           <Card.Text className="text-danger fw-bold mb-2">
-                            {parseFloat(
-                              listing.price.replace(/[^\d.]/g, "")
-                            ).toLocaleString()}{" "}
+                            {listing.price}
                             triệu/tháng
                           </Card.Text>
 

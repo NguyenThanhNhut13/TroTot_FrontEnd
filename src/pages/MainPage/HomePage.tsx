@@ -225,7 +225,7 @@ const HomePage = () => {
     const roomType = getRoomTypeFromCategory();
     const areaRangeParam = getAreaRangeParam();
     const { minPrice, maxPrice } = getPriceRangeParam();
-    
+
     const searchParams = {
       query: searchQuery,
       province: selectedProvince,
@@ -563,7 +563,7 @@ const HomePage = () => {
                                 <i className="bi bi-arrow-repeat me-1"></i> Đặt
                                 lại
                               </Button>
-                              <Button variant="primary">Tìm ngay</Button>
+                              <Button onClick={handleSearch} variant="primary">Tìm ngay</Button>
                             </div>
                           </div>
                         </div>
@@ -662,7 +662,7 @@ const HomePage = () => {
                               <i className="bi bi-arrow-repeat me-1"></i> Đặt
                               lại
                             </Button>
-                            <Button variant="primary">Tìm ngay</Button>
+                            <Button onClick={handleSearch} variant="primary">Tìm ngay</Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
@@ -715,7 +715,7 @@ const HomePage = () => {
                               <i className="bi bi-arrow-repeat me-1"></i> Đặt
                               lại
                             </Button>
-                            <Button variant="primary">Tìm ngay</Button>
+                            <Button onClick={handleSearch} variant="primary">Tìm ngay</Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
