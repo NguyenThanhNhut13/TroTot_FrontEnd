@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent,useContext } from "react";
 import { Form, Button, Row, Col, Tabs, Tab } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,6 +6,8 @@ import Sidebar from "../MainPage/Sidebar";
 import roomApi from "../../apis/room.api.";
 import { Amenity, TargetAudience, SurroundingArea } from "../../types/room.type";
 import "../../assets/styles/PostRoom.css"; 
+import { AppContext } from "../../contexts/app.context";
+
 
 // Define interface for form data
 interface FormData {
@@ -67,6 +69,7 @@ const RoomPostForm = () => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
   const [currentTab, setCurrentTab] = useState("general");
+  const { profile } = useContext(AppContext);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     selfManaged: "",
@@ -952,14 +955,14 @@ const RoomPostForm = () => {
                   <Form.Control
                     type="text"
                     name="posterName"
-                    value={formData.posterName}
+                    value={profile?.fullName || formData.posterName}
                     onChange={handleInputChange}
                     placeholder="Họ tên"
                     isInvalid={!!errors.posterName}
                     style={{ width: "100%", height: "40px" }}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.posterName}
+                    {profile?.fullName}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>

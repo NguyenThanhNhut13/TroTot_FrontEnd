@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useContext } from 'react'
 import { Navbar, Nav, Button, Container, Dropdown } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import LoginModal from '../../pages/Login/LoginModal'
@@ -6,14 +6,15 @@ import RegisterModal from '../../pages/Register/RegisterModal'
 import authApi from '../../apis/auth.api'
 import { useMutation } from '@tanstack/react-query'
 import { AppContext } from '../../contexts/app.context'
-import { ref } from 'yup';
+import { toast } from 'react-toastify'
 
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const navigate = useNavigate()
 
-  const {setIsAuthenticated, setProfile, profile} = useContext(AppContext)
+  const { setIsAuthenticated, setProfile, profile } = useContext(AppContext)
+
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
     onSuccess: () => {
@@ -24,8 +25,7 @@ const Header = () => {
       navigate('/')
     }
   })
-  
-  // Khi gọi logout:
+
   const handleLogout = () => {
     const refreshToken = localStorage.getItem('refreshToken')
     if (refreshToken) {
@@ -35,7 +35,18 @@ const Header = () => {
       window.location.reload()
     }, 5000)
   }
-  
+
+  // Hàm kiểm tra đăng nhập trước khi cho đăng trọ
+  const handlePostRoomClick = () => {
+    if (!profile) {
+      toast.error("Vui lòng đăng nhập để đăng tin!", {
+        position: "top-right",
+        autoClose: 3000
+      })
+      return
+    }
+    navigate('/post-room')
+  }
 
   return (
     <>
@@ -97,7 +108,7 @@ const Header = () => {
               <Button
                 variant="warning"
                 className="ms-3"
-                onClick={() => navigate('/post-room')}
+                onClick={handlePostRoomClick}
               >
                 Đăng trọ ngay
               </Button>
