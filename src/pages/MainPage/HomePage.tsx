@@ -14,48 +14,103 @@ import ProvinceListings from "../../components/common/ProvinceListings ";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { FaDollarSign, FaMap, FaSearch, FaRulerCombined } from "react-icons/fa";
-
-interface Location {
-  id: number;
-  name: string;
-}
+import addressAPI from "../../apis/address.api";
+import { District, Province, Ward } from "../../types/address.type";
 
 const HomePage = () => {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("Chọn Tỉnh/TP...");
-  const [selectedDistrict, setSelectedDistrict] = useState("Quận/Huyện...");
-  const [selectedStreet, setSelectedStreet] = useState("Đường phố...");
-  const [selectedPrice, setSelectedPrice] = useState("Tất cả mức giá");
-  const [selectedArea, setSelectedArea] = useState("Tất cả diện tích");
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+
+  const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
+  const [selectedWard, setSelectedWard] = useState<Ward | null>(null);
+
   const [selectedCategory, setSelectedCategory] = useState("tat-ca");
+  const [loading, setLoading] = useState(false);
 
-  const provinces = [
-    { name: "Hồ Chí Minh", rooms: 4180 },
-    { name: "Hà Nội", rooms: 1473 },
-    { name: "Đà Nẵng", rooms: 821 },
-    { name: "Cần Thơ", rooms: 165 },
-    { name: "Bình Dương", rooms: 105 },
-    { name: "Đồng Nai", rooms: 31 },
-    { name: "Hải Phòng", rooms: 25 },
-    { name: "Long An", rooms: 22 },
-    { name: "Quảng Nam", rooms: 6 },
-    { name: "Thừa Thiên Huế", rooms: 450 },
-    { name: "Khánh Hòa", rooms: 30 },
-    { name: "Bà Rịa - Vũng Tàu", rooms: 4 },
-  ];
-
+  // Fetch provinces on component mount
   useEffect(() => {
-    const mockData = [
-      { id: 1, name: "Hồ Chí Minh" },
-      { id: 2, name: "Hà Nội" },
-      { id: 3, name: "Đà Nẵng" },
-    ];
-    setLocations(mockData);
+    const fetchProvinces = async () => {
+      try {
+        setLoading(true);
+        const response = await addressAPI.getProvinces();
+        if (response.data && response.data.data) {
+          setProvinces(response.data.data.data);
+          console.log("Province", provinces)
+        }
+      } catch (error) {
+        console.error("Error fetching provinces:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProvinces();
   }, []);
 
+  // Fetch districts when province changes
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      if (!selectedProvince) {
+        setDistricts([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await addressAPI.getDistricts(selectedProvince.code);
+        if (response.data && response.data.data) {
+          setDistricts(response.data.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDistricts();
+    // Reset dependent fields
+    setSelectedWard(null);
+    setWards([]);
+  }, [selectedProvince]);
+
+  // Fetch wards when district changes
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (!selectedDistrict) {
+        setWards([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await addressAPI.getWards(selectedDistrict.code);
+        if (response.data && response.data.data) {
+          setWards(response.data.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching wards:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWards();
+    // Reset dependent field
+    setSelectedWard("");
+  }, [selectedDistrict]);
+
+  // Reset location selections
+  const resetLocationSelections = () => {
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
+  };
+
   return (
-    <div >
+    <div>
       <div
         className="banner position-relative"
         style={{
@@ -219,11 +274,14 @@ const HomePage = () => {
                                 setSelectedProvince(e.target.value)
                               }
                               className="border-0 border-bottom rounded-0"
+                              disabled={loading}
                             >
-                              <option>Chọn Tỉnh/TP...</option>
-                              <option>Hồ Chí Minh</option>
-                              <option>Hà Nội</option>
-                              <option>Đà Nẵng</option>
+                              <option value="">Chọn Tỉnh/TP...</option>
+                              {Array.isArray(provinces) && provinces.map((province) => (
+                                <option key={province.id} value={province.code}>
+                                  {province.name}
+                                </option>
+                              ))}
                             </Form.Select>
 
                             <Form.Select
@@ -232,35 +290,35 @@ const HomePage = () => {
                                 setSelectedDistrict(e.target.value)
                               }
                               className="border-0 border-bottom rounded-0"
+                              disabled={!selectedProvince || loading}
                             >
-                              <option>Quận/Huyện...</option>
-                              <option>Quận 1</option>
-                              <option>Quận 2</option>
-                              <option>Quận 3</option>
+                              <option value="">Quận/Huyện...</option>
+                              {districts.map((district) => (
+                                <option key={district.id} value={district.code}>
+                                  {district.name_with_type}
+                                </option>
+                              ))}
                             </Form.Select>
 
                             <Form.Select
-                              value={selectedStreet}
-                              onChange={(e) =>
-                                setSelectedStreet(e.target.value)
-                              }
+                              value={selectedWard}
+                              onChange={(e) => setSelectedWard(e.target.value)}
                               className="border-0 border-bottom rounded-0"
+                              disabled={!selectedDistrict || loading}
                             >
-                              <option>Đường phố...</option>
-                              <option>Nguyễn Huệ</option>
-                              <option>Lê Lợi</option>
-                              <option>Đồng Khởi</option>
+                              <option value="">Phường/Xã...</option>
+                              {wards.map((ward) => (
+                                <option key={ward.id} value={ward.code}>
+                                  {ward.name_with_type}
+                                </option>
+                              ))}
                             </Form.Select>
 
                             <div className="d-flex justify-content-between p-2">
                               <Button
                                 variant="link"
                                 className="text-decoration-none"
-                                onClick={() => {
-                                  setSelectedProvince("Chọn Tỉnh/TP...");
-                                  setSelectedDistrict("Quận/Huyện...");
-                                  setSelectedStreet("Đường phố...");
-                                }}
+                                onClick={resetLocationSelections}
                               >
                                 <i className="fas fa-redo"></i> Đặt lại
                               </Button>

@@ -86,6 +86,22 @@ export type RoomImage = {
     numberOfBedrooms: number;
   };
 
-
+// Search params interface
+export interface RoomSearchParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  street?: string;
+  district?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  areaRange?: string;
+  roomType?: "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE";
+  amenities?: string | string[];
+  environment?: string | string[];
+  targetAudience?: string | string[];
+  hasVideoReview?: boolean;
+}
   
   export type GetRoomsResponse = SuccessResponse<PaginatedRoomResponse>;

@@ -1,15 +1,12 @@
 import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
+import { Province } from "../../types/address.type";
 
 // Định nghĩa kiểu cho props
 interface ProvinceListingsProps {
   provinces: Province[];
 }
 
-interface Province {
-  name: string;
-  rooms: number;
-}
 
 const ProvinceListings: React.FC<ProvinceListingsProps> = ({ provinces }) => {
   // Create pairs of provinces for 2-column layout
@@ -34,7 +31,7 @@ const ProvinceListings: React.FC<ProvinceListingsProps> = ({ provinces }) => {
               <Col md={3} sm={6} key={`province-${rowIndex}-${colIndex}`} className="mb-4">
                 <div className="d-flex flex-column">
                   <h5 className="fw-bold text-dark mb-1">{province.name}</h5>
-                  <p className="text-muted m-0" style={{ fontSize: '0.9rem' }}>{province.rooms} phòng trọ</p>
+                  <p className="text-muted m-0" style={{ fontSize: '0.9rem' }}>{province.code} phòng trọ</p>
                 </div>
               </Col>
             ))}
