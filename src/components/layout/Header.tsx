@@ -46,6 +46,7 @@ const Header = () => {
         position: "top-right",
         autoClose: 3000
       })
+      setShowLogin(true)
       return
     }
     navigate('/post-room')
@@ -140,15 +141,15 @@ const Header = () => {
                     <span>{profile.fullName}</span>
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="py-2 px-2">
-                    <Dropdown.Item as={Link} to="/profile" className="py-3">
+                    <Dropdown.Item as={Link} to="/personal-info" className="py-3">
                       <i className="far fa-user text-primary me-2"></i> Thông
                       tin cá nhân
                     </Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/account" className="py-3">
+                    <Dropdown.Item as={Link} to="/account-info" className="py-3">
                       <i className="far fa-id-card text-primary me-2"></i> Thông
                       tin tài khoản
                     </Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/landlord" className="py-3">
+                    <Dropdown.Item as={Link} to="/profile" className="py-3">
                       <i className="fas fa-home text-primary me-2"></i> Dành cho
                       chủ trọ
                     </Dropdown.Item>

@@ -6,6 +6,9 @@ import HomeLayOut from './pages/MainPage/HomeLayOut'
 import PostRoomPage from './pages/RoomPostPage/PostRoomPage' // thêm import cho trang đăng tin
 import RoomPostForm from './pages/RoomPostPage/RoomPostForm' // thêm import cho trang đăng tin
 import DepositPage from './pages/PayPage/DepositPage'
+import PersonalInfoPage from './pages/AdminPage/PersonalInfoPage'
+import AccountInfoPage from './pages/AdminPage/AccountInfoPage'
+import GeneralStatsPage from './pages/AdminPage/GeneralStatsPage'
 
 
 export default function useRouteElement() {
@@ -33,7 +36,20 @@ export default function useRouteElement() {
         {
           path:'/deposit',
           element: <DepositPage /> // thêm đường dẫn mới cho trang đăng tin
+        },
+        {
+          path:'/personal-info',
+          element: <PersonalInfoPage /> // thêm đường dẫn mới cho trang đăng tin
+        },
+        {
+          path:'/account-info',
+          element: <AccountInfoPage /> // thêm đường dẫn mới cho trang đăng tin
+        },
+        {
+          path:'/profile',
+          element: <GeneralStatsPage /> // thêm đường dẫn mới cho trang đăng tin
         }
+
       ]
     }
   ])

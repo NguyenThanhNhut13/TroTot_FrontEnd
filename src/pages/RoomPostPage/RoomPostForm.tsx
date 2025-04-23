@@ -350,7 +350,7 @@ const RoomPostForm = () => {
       const response = await roomApi.createRoom(formDataToSend);
 
       // Xử lý phản hồi từ API
-      if (response.data.success) {
+      if (response.data.message === "OK") {
         toast.success("Đăng tin phòng trọ thành công!", {
           position: "top-right",
           autoClose: 3000,
