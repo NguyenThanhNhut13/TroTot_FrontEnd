@@ -1,44 +1,56 @@
-import React, { useState, useEffect, useContext } from "react";
-import {
-  Navbar,
-  Nav,
-  Button,
-  Container,
-  Dropdown,
-  Badge,
-} from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
-import LoginModal from "../../pages/Login/LoginModal";
-import RegisterModal from "../../pages/Register/RegisterModal";
-import authApi from "../../apis/auth.api";
-import { useMutation } from "@tanstack/react-query";
-import { AppContext } from "../../contexts/app.context";
-import { FaBell, FaHeart } from "react-icons/fa";
+import React, { useState, useContext } from 'react'
+import { Navbar, Nav, Button, Container, Dropdown } from 'react-bootstrap'
+import { Link, useNavigate } from 'react-router-dom'
+import LoginModal from '../../pages/Login/LoginModal'
+import RegisterModal from '../../pages/Register/RegisterModal'
+import authApi from '../../apis/auth.api'
+import { useMutation } from '@tanstack/react-query'
+import { AppContext } from '../../contexts/app.context'
+import { toast } from 'react-toastify'
+import { FaBell, FaHeart } from 'react-icons/fa'
+import Badge from 'react-bootstrap/Badge'
+
 
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const navigate = useNavigate();
 
-  const { setIsAuthenticated, setProfile, profile } = useContext(AppContext);
+  const { setIsAuthenticated, setProfile, profile } = useContext(AppContext)
+
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
     onSuccess: () => {
-      setIsAuthenticated(false);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      setProfile(null);
-      navigate("/");
-      window.location.reload();
-    },
-  });
+      setIsAuthenticated(false)
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      setProfile(null)
+      navigate('/')
+    }
+  })
 
   const handleLogout = () => {
     const refreshToken = localStorage.getItem("refreshToken");
     if (refreshToken) {
       logoutMutation.mutate({ refreshToken });
     }
-  };
+    setTimeout(() => {
+      window.location.reload()
+    }, 5000)
+  }
+
+  // Hàm kiểm tra đăng nhập trước khi cho đăng trọ
+  const handlePostRoomClick = () => {
+    if (!profile) {
+      toast.error("Vui lòng đăng nhập để đăng tin!", {
+        position: "top-right",
+        autoClose: 3000
+      })
+      setShowLogin(true)
+      return
+    }
+    navigate('/post-room')
+  }
 
   return (
     <>
@@ -129,15 +141,15 @@ const Header = () => {
                     <span>{profile.fullName}</span>
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="py-2 px-2">
-                    <Dropdown.Item as={Link} to="/profile" className="py-3">
+                    <Dropdown.Item as={Link} to="/personal-info" className="py-3">
                       <i className="far fa-user text-primary me-2"></i> Thông
                       tin cá nhân
                     </Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/account" className="py-3">
+                    <Dropdown.Item as={Link} to="/account-info" className="py-3">
                       <i className="far fa-id-card text-primary me-2"></i> Thông
                       tin tài khoản
                     </Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/landlord" className="py-3">
+                    <Dropdown.Item as={Link} to="/profile" className="py-3">
                       <i className="fas fa-home text-primary me-2"></i> Dành cho
                       chủ trọ
                     </Dropdown.Item>
@@ -169,8 +181,7 @@ const Header = () => {
               <Button
                 variant="primary"
                 className="ms-3"
-                onClick={() => navigate("/post-room")}
-                style={{ backgroundColor: "#00B4F1", borderColor: "#00B4F1" }}
+                onClick={handlePostRoomClick}
               >
                 <i className="fa fa-paper-plane me-1"></i> Đăng tin ngay
               </Button>

@@ -5,9 +5,9 @@ import {
   FaFacebook,
   FaTiktok,
   FaYoutube,
-  FaMapMarkerAlt,
   FaArrowUp,
-} from "react-icons/fa";
+  FaMapLocation,
+} from "react-icons/fa6";
 import { SiZalo } from "react-icons/si";
 
 const Footer = () => {
@@ -124,10 +124,10 @@ const Footer = () => {
                 <FaYoutube /> @tromoi
               </li>
               <li>
-                <FaMapMarkerAlt /> VP HCM: 19 Đường Số 23, Q6, TP HCM
+                <FaMapLocation /> VP HCM: 19 Đường Số 23, Q6, TP HCM
               </li>
               <li>
-                <FaMapMarkerAlt /> VP HCM: 19 Đường Số 23, Q6, TP HCM
+                <FaMapLocation /> VP HCM: 19 Đường Số 23, Q6, TP HCM
               </li>
             </ul>
           </div>

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../MainPage/Sidebar";
 import "../../assets/styles/PostRoom.css"; 
 
+
 interface RoomType {
   icon: string;
   title: string;
