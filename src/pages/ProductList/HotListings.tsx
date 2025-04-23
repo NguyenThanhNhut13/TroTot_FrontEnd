@@ -23,7 +23,7 @@ interface HotListingsProps {
 const HotListings: React.FC<HotListingsProps> = ({
   title = "LỰA CHỌN CHỖ Ở HOT",
   page = 0,
-  size = 6,
+  size = 25,
   sort = "createdAt,desc",
   roomType,
 }) => {

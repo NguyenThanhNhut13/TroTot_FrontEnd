@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import omit from "lodash/omit";
 
 import { schema, Schema } from "../../utils/rules";
@@ -36,8 +37,10 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const [showOtpModal, setShowOtpModal] = useState(false)
-  const [currentCredential, setCurrentCredential] = useState('')
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [currentCredential, setCurrentCredential] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -53,12 +56,14 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, handleClose }) => {
   });
 
   const onSubmit = handleSubmit((data) => {
+    setIsLoading(true);
     registerAccountMutation.mutate(data, {
       onSuccess: (_, variables) => {
         console.log("✅ Mutation success, variables:", variables);
         setCurrentCredential(variables.credential); //Dung cho xac thuc OTP
         setShowOtpModal(true);
         setIsAuthenticated(true);
+        setIsLoading(false);
       },
       onError: (error) => {
         console.error("Register error:", error);
@@ -68,45 +73,42 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, handleClose }) => {
             Object.keys(formError).forEach((key) => {
               setError(key as keyof FormData, {
                 message: formError[key as keyof FormData],
-                type: "Server"
+                type: "Server",
               });
             });
           }
         }
-      }
+        setIsLoading(false);
+      },
     });
-    
   });
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   return (
     <>
       <Modal show={show && !showOtpModal} onHide={handleClose} centered>
-
-        <Modal.Header closeButton>
-          <Modal.Title>Đăng ký tài khoản mới</Modal.Title>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <div className="w-100 text-center">
+            <Modal.Title className="fw-bold">Đăng ký tài khoản mới</Modal.Title>
+          </div>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="px-4">
           <Form onSubmit={onSubmit} noValidate>
             <Form.Group className="mb-3">
-              <Form.Label>Email hoặc SĐT</Form.Label>
+              <Form.Label>Họ và Tên</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Nhập vào Email hoặc Số điện thoại"
-                {...register("credential")}
-                isInvalid={!!errors.credential}
-              />
-              <Form.Control.Feedback type="invalid">
-                {errors.credential?.message}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Họ tên</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Nhập họ tên"
+                placeholder="Nhập vào Họ và Tên"
                 {...register("fullName")}
                 isInvalid={!!errors.fullName}
+                className="py-2 bg-light"
               />
               <Form.Control.Feedback type="invalid">
                 {errors.fullName?.message}
@@ -114,26 +116,56 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, handleClose }) => {
             </Form.Group>
 
             <Form.Group className="mb-3">
+              <Form.Label>Email / Số điện thoại</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Nhập vào Email hoặc Số điện thoại"
+                {...register("credential")}
+                isInvalid={!!errors.credential}
+                className="py-2 bg-light"
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.credential?.message}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group className="mb-3 position-relative">
               <Form.Label>Mật khẩu</Form.Label>
               <Form.Control
-                type="password"
-                placeholder="Nhập mật khẩu"
+                type={showPassword ? "text" : "password"}
+                placeholder="Nhập vào mật khẩu"
                 {...register("password")}
                 isInvalid={!!errors.password}
+                className="py-2 bg-light"
               />
+              <div
+                className="position-absolute end-0 top-50 translate-middle-y pe-3"
+                style={{ cursor: "pointer", marginTop: "11px" }}
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </div>
               <Form.Control.Feedback type="invalid">
                 {errors.password?.message}
               </Form.Control.Feedback>
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-4 position-relative">
               <Form.Label>Xác nhận mật khẩu</Form.Label>
               <Form.Control
-                type="password"
-                placeholder="Nhập lại mật khẩu"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Nhập vào mật khẩu"
                 {...register("confirmPassword")}
                 isInvalid={!!errors.confirmPassword}
+                className="py-2 bg-light"
               />
+              <div
+                className="position-absolute end-0 top-50 translate-middle-y pe-3"
+                style={{ cursor: "pointer", marginTop: "11px" }}
+                onClick={toggleConfirmPasswordVisibility}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </div>
               <Form.Control.Feedback type="invalid">
                 {errors.confirmPassword?.message}
               </Form.Control.Feedback>
@@ -142,44 +174,39 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, handleClose }) => {
             <Button
               type="submit"
               variant="primary"
-              className="w-100"
+              className="w-100 py-2 mb-3"
               disabled={isLoading}
+              style={{ backgroundColor: "#0046a8", borderColor: "#0046a8" }}
             >
               {isLoading ? "Đang xử lý..." : "Đăng ký"}
             </Button>
           </Form>
 
-          <div className="text-center mt-3">
+          <div className="text-center" style={{ fontSize: "0.9rem" }}>
             Bằng cách tiếp tục, bạn đồng ý với{" "}
-            <a href="#" className="text-primary">
+            <a
+              href="#"
+              style={{ color: "#0046a8", textDecoration: "none" }}
+            >
               Điều khoản & Cam kết
             </a>{" "}
-            và{" "}
-            <a href="#" className="text-primary">
+            của Trợ Mới và xác nhận rằng bạn đã đọc{" "}
+            <a
+              href="#"
+              style={{ color: "#0046a8", textDecoration: "none" }}
+            >
               Chính sách bảo mật
             </a>{" "}
-            của Trọ Mới.
-          </div>
-
-          <div className="text-center mt-3">Hoặc đăng ký bằng</div>
-          <div className="d-flex justify-content-center mt-2">
-            <Button
-              variant="light"
-              className="me-2"
-              onClick={() => {}}
-              disabled
-            >
-              <i className="fab fa-google text-danger"></i> G
-            </Button>
-            <Button variant="light" disabled>
-              <i className="fab fa-facebook text-primary"></i> F
-            </Button>
+            của chúng tôi.
           </div>
         </Modal.Body>
       </Modal>
       <OTPModal
         show={showOtpModal}
-        handleClose={() => {setShowOtpModal(false); handleClose()}}
+        handleClose={() => {
+          setShowOtpModal(false);
+          handleClose();
+        }}
         credential={currentCredential}
       />
     </>
