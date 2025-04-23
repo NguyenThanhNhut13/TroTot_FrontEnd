@@ -8,7 +8,7 @@ import {
   Card,
   Container,
 } from "react-bootstrap";
-import RoomList from "../../components/banner/RoomList";
+import RoomList from "../../components/slider/RoomList";
 import HotListings from "../ProductList/HotListings";
 import ProvinceListings from "../../components/common/ProvinceListings ";
 import Header from "../../components/layout/Header";
@@ -22,9 +22,14 @@ const HomePage = () => {
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
 
-  const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
-  const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
-  const [selectedWard, setSelectedWard] = useState<Ward | null>(null);
+  const [selectedProvince, setSelectedProvince] = useState<string>("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedWard, setSelectedWard] = useState<string>("");
+
+  const [priceRange, setPriceRange] = useState("all");
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+  const [areaRange, setAreaRange] = useState("all");
 
   const [selectedCategory, setSelectedCategory] = useState("tat-ca");
   const [loading, setLoading] = useState(false);
@@ -35,9 +40,8 @@ const HomePage = () => {
       try {
         setLoading(true);
         const response = await addressAPI.getProvinces();
-        if (response.data && response.data.data) {
-          setProvinces(response.data.data.data);
-          console.log("Province", provinces)
+        if (response.data && response.data.data && response.data.data.data) {
+          setProvinces(response.data.data.data as Province[]);
         }
       } catch (error) {
         console.error("Error fetching provinces:", error);
@@ -59,9 +63,9 @@ const HomePage = () => {
 
       try {
         setLoading(true);
-        const response = await addressAPI.getDistricts(selectedProvince.code);
-        if (response.data && response.data.data) {
-          setDistricts(response.data.data.data);
+        const response = await addressAPI.getDistricts(selectedProvince);
+        if (response.data && response.data.data && response.data.data.data) {
+          setDistricts(response.data.data.data as District[]);
         }
       } catch (error) {
         console.error("Error fetching districts:", error);
@@ -72,7 +76,8 @@ const HomePage = () => {
 
     fetchDistricts();
     // Reset dependent fields
-    setSelectedWard(null);
+    setSelectedDistrict("");
+    setSelectedWard("");
     setWards([]);
   }, [selectedProvince]);
 
@@ -86,9 +91,9 @@ const HomePage = () => {
 
       try {
         setLoading(true);
-        const response = await addressAPI.getWards(selectedDistrict.code);
-        if (response.data && response.data.data) {
-          setWards(response.data.data.data);
+        const response = await addressAPI.getWards(selectedDistrict);
+        if (response.data && response.data.data && response.data.data.data) {
+          setWards(response.data.data.data as Ward[]);
         }
       } catch (error) {
         console.error("Error fetching wards:", error);
@@ -109,6 +114,44 @@ const HomePage = () => {
     setSelectedWard("");
   };
 
+  // Handle price filter selection
+  const handlePriceRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPriceRange(e.target.id);
+  };
+
+  // Handle area filter selection
+  const handleAreaRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAreaRange(e.target.id);
+  };
+
+  // Reset price filters
+  const resetPriceFilters = () => {
+    setPriceRange("all");
+    setMinPriceInput("");
+    setMaxPriceInput("");
+  };
+
+  // Reset area filters
+  const resetAreaFilters = () => {
+    setAreaRange("all");
+  };
+
+  // Apply price filters
+  const applyPriceFilters = () => {
+    console.log("Applying price filters:", {
+      priceRange,
+      minPrice: minPriceInput,
+      maxPrice: maxPriceInput,
+    });
+    // Here you would implement logic to filter based on price
+  };
+
+  // Apply area filters
+  const applyAreaFilters = () => {
+    console.log("Applying area filters:", areaRange);
+    // Here you would implement logic to filter based on area
+  };
+
   return (
     <div>
       <div
@@ -124,7 +167,7 @@ const HomePage = () => {
       >
         <Container>
           <Row className="align-items-center">
-            <Col md={7} className="text-white">
+            <Col md={7} className="text-white px-4">
               <h1
                 className="fw-bold"
                 style={{ fontSize: "3rem", lineHeight: 1.2 }}
@@ -244,6 +287,7 @@ const HomePage = () => {
                     borderRadius: "0 0 8px 8px",
                   }}
                 >
+                  {/* Input: Ban muon tim tro o dau */}
                   <div className="flex-grow-1 px-1">
                     <div className="input-group rounded-3 overflow-hidden">
                       <span className="input-group-text bg-white border-0">
@@ -256,7 +300,7 @@ const HomePage = () => {
                       />
                     </div>
                   </div>
-
+                  {/* Dia diem */}
                   <div className="flex-grow-1 px-1">
                     <div className="input-group rounded-3 overflow-hidden">
                       <Dropdown className="w-100">
@@ -277,11 +321,15 @@ const HomePage = () => {
                               disabled={loading}
                             >
                               <option value="">Chọn Tỉnh/TP...</option>
-                              {Array.isArray(provinces) && provinces.map((province) => (
-                                <option key={province.id} value={province.code}>
-                                  {province.name}
-                                </option>
-                              ))}
+                              {Array.isArray(provinces) &&
+                                provinces.map((province) => (
+                                  <option
+                                    key={province.id}
+                                    value={province.code}
+                                  >
+                                    {province.name_with_type}
+                                  </option>
+                                ))}
                             </Form.Select>
 
                             <Form.Select
@@ -329,7 +377,7 @@ const HomePage = () => {
                       </Dropdown>
                     </div>
                   </div>
-
+                  {/* Muc gia */}
                   <div className="flex-grow-1 px-1">
                     <div className="input-group rounded-3 overflow-hidden">
                       <Dropdown className="w-100">
@@ -347,6 +395,10 @@ const HomePage = () => {
                                   type="text"
                                   placeholder="Từ"
                                   className="rounded"
+                                  value={minPriceInput}
+                                  onChange={(e) =>
+                                    setMinPriceInput(e.target.value)
+                                  }
                                 />
                               </div>
                               <div className="px-2">→</div>
@@ -355,58 +407,75 @@ const HomePage = () => {
                                   type="text"
                                   placeholder="Đến"
                                   className="rounded"
+                                  value={maxPriceInput}
+                                  onChange={(e) =>
+                                    setMaxPriceInput(e.target.value)
+                                  }
                                 />
                               </div>
                             </div>
 
                             <Form.Check
                               type="radio"
-                              id="price-all"
+                              id="all"
                               name="price-range"
                               label="Tất cả mức giá"
-                              defaultChecked
+                              checked={priceRange === "all"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                             <Form.Check
                               type="radio"
-                              id="price-under-1m"
+                              id="under-1m"
                               name="price-range"
                               label="Dưới 1 triệu"
+                              checked={priceRange === "under-1m"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                             <Form.Check
                               type="radio"
-                              id="price-1-10m"
+                              id="1-10m"
                               name="price-range"
                               label="1 - 10 triệu"
+                              checked={priceRange === "1-10m"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                             <Form.Check
                               type="radio"
-                              id="price-10-30m"
+                              id="10-30m"
                               name="price-range"
                               label="10 - 30 triệu"
+                              checked={priceRange === "10-30m"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                             <Form.Check
                               type="radio"
-                              id="price-30-50m"
+                              id="30-50m"
                               name="price-range"
                               label="30 - 50 triệu"
+                              checked={priceRange === "30-50m"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                             <Form.Check
                               type="radio"
-                              id="price-50m-plus"
+                              id="50m-plus"
                               name="price-range"
                               label="Trên 50 triệu"
+                              checked={priceRange === "50m-plus"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                             <Form.Check
                               type="radio"
-                              id="price-100m-plus"
+                              id="100m-plus"
                               name="price-range"
                               label="Trên 100 triệu"
+                              checked={priceRange === "100m-plus"}
+                              onChange={handlePriceRangeChange}
                               className="mb-2"
                             />
                           </div>
@@ -415,16 +484,23 @@ const HomePage = () => {
                             <Button
                               variant="link"
                               className="text-decoration-none"
+                              onClick={resetPriceFilters}
                             >
                               <i className="fas fa-redo"></i> Đặt lại
                             </Button>
-                            <Button variant="primary">Tìm ngay</Button>
+                            <Button
+                              variant="primary"
+                              onClick={applyPriceFilters}
+                            >
+                              Tìm ngay
+                            </Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
                     </div>
                   </div>
 
+                  {/* Dien tich */}
                   <div className="flex-grow-1 px-1">
                     <div className="input-group rounded-3 overflow-hidden">
                       <Dropdown className="w-100">
@@ -437,37 +513,56 @@ const HomePage = () => {
                         <Dropdown.Menu className="w-100 p-3">
                           <Form.Check
                             type="radio"
-                            id="area-under-20"
+                            id="all-area"
+                            name="area-range"
+                            label="Tất cả diện tích"
+                            checked={areaRange === "all-area"}
+                            onChange={handleAreaRangeChange}
+                            className="mb-2"
+                          />
+                          <Form.Check
+                            type="radio"
+                            id="under-20"
                             name="area-range"
                             label="Dưới 20 m²"
+                            checked={areaRange === "under-20"}
+                            onChange={handleAreaRangeChange}
                             className="mb-2"
                           />
                           <Form.Check
                             type="radio"
-                            id="area-20-40"
+                            id="20-40"
                             name="area-range"
                             label="20m² - 40 m²"
+                            checked={areaRange === "20-40"}
+                            onChange={handleAreaRangeChange}
                             className="mb-2"
                           />
                           <Form.Check
                             type="radio"
-                            id="area-40-60"
+                            id="40-60"
                             name="area-range"
                             label="40m² - 60 m²"
+                            checked={areaRange === "40-60"}
+                            onChange={handleAreaRangeChange}
                             className="mb-2"
                           />
                           <Form.Check
                             type="radio"
-                            id="area-60-80"
+                            id="60-80"
                             name="area-range"
                             label="60m² - 80 m²"
+                            checked={areaRange === "60-80"}
+                            onChange={handleAreaRangeChange}
                             className="mb-2"
                           />
                           <Form.Check
                             type="radio"
-                            id="area-80-plus"
+                            id="80-plus"
                             name="area-range"
                             label="Trên 80 m²"
+                            checked={areaRange === "80-plus"}
+                            onChange={handleAreaRangeChange}
                             className="mb-2"
                           />
 
@@ -475,16 +570,22 @@ const HomePage = () => {
                             <Button
                               variant="link"
                               className="text-decoration-none"
+                              onClick={resetAreaFilters}
                             >
                               <i className="fas fa-redo"></i> Đặt lại
                             </Button>
-                            <Button variant="primary">Tìm ngay</Button>
+                            <Button
+                              variant="primary"
+                              onClick={applyAreaFilters}
+                            >
+                              Tìm ngay
+                            </Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
                     </div>
                   </div>
-
+                  {/* Button tim kiem */}
                   <div className="flex-shrink-0 px-1">
                     <Button
                       variant="danger"
