@@ -50,7 +50,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchParams, setSearchParams] = useState<any>(null);
 
-  // Initialize selectedFilters from localStorage
+
   const [selectedFilters, setSelectedFilters] = useState(() => {
     const savedFilters = localStorage.getItem(`filters_${roomType}`);
     if (savedFilters) {
@@ -194,7 +194,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     try {
       const searchRoomParams: RoomSearchParams = {
         page: 0,
-        size: 10,
+        size: 25,
         roomType: roomType,
       };
 
@@ -557,6 +557,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                 setSearchParams(null);
                 // Reset to original listings
                 setFilteredListings(listings);
+                window.location.reload(); 
               }}
             >
               Xóa bộ lọc

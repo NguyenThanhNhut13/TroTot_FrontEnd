@@ -10,11 +10,13 @@ import {
   categoryNameMap,
 } from "../../data/categories";
 
-const roomType: ("APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE")[] = [
-  "APARTMENT",
-  "WHOLE_HOUSE",
-  "BOARDING_HOUSE",
-];
+// category -> roomType mapping
+const CATEGORY_TO_ROOM_TYPE: Record<string, "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE"> = {
+  "can-ho-chung-cu": "APARTMENT",
+  "nha-nguyen-can": "WHOLE_HOUSE",
+  "nha-tro-phong-tro": "BOARDING_HOUSE",
+};
+
 var i = 0;
 
 const CategoryPage = () => {
@@ -36,7 +38,7 @@ const CategoryPage = () => {
       {type === "tat-ca" && <AllCategoriesPage />}
 
       {SHARED_CATEGORIES.includes(type) && type !== "tat-ca" && (
-        <CategorySharedPage title={categoryName} roomType={roomType[i++]} />
+        <CategorySharedPage title={categoryName} roomType={CATEGORY_TO_ROOM_TYPE[type]} />
       )}
 
       {type === VIDEO_CATEGORY && <VideoReviewPage />}

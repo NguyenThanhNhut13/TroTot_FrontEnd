@@ -225,8 +225,7 @@ const HomePage = () => {
     const roomType = getRoomTypeFromCategory();
     const areaRangeParam = getAreaRangeParam();
     const { minPrice, maxPrice } = getPriceRangeParam();
-
-    // Tạo đối tượng searchParams để lưu vào localStorage
+    
     const searchParams = {
       query: searchQuery,
       province: selectedProvince,
