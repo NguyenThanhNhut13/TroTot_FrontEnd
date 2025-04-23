@@ -18,6 +18,8 @@ import addressAPI from "../../apis/address.api";
 import { District, Province, Ward } from "../../types/address.type";
 
 const HomePage = () => {
+  const [selectedCategory, setSelectedCategory] = useState("tat-ca");
+
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
@@ -31,17 +33,27 @@ const HomePage = () => {
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [areaRange, setAreaRange] = useState("all");
 
-  const [selectedCategory, setSelectedCategory] = useState("tat-ca");
   const [loading, setLoading] = useState(false);
 
   // Fetch provinces on component mount
   useEffect(() => {
     const fetchProvinces = async () => {
+      if (localStorage.getItem("provinces")) {
+        const cachedProvinces = localStorage.getItem("provinces");
+        if (cachedProvinces) {
+          setProvinces(JSON.parse(cachedProvinces) as Province[]);
+          return;
+        }
+      }
       try {
         setLoading(true);
         const response = await addressAPI.getProvinces();
         if (response.data && response.data.data && response.data.data.data) {
           setProvinces(response.data.data.data as Province[]);
+          localStorage.setItem(
+            "provinces",
+            JSON.stringify(response.data.data.data as Province[])
+          );
         }
       } catch (error) {
         console.error("Error fetching provinces:", error);
@@ -162,10 +174,13 @@ const HomePage = () => {
             "url('https://tromoi.com/frontend/home/images/banner_default.jpg')",
           backgroundSize: "cover",
           padding: "50px 0 20px",
-          overflow: "hidden",
+          overflow: "visible",
+          position: "relative",
+          zIndex: 2,
         }}
       >
         <Container>
+          {/* QC 01 */}
           <Row className="align-items-center">
             <Col md={7} className="text-white px-4">
               <h1
@@ -187,7 +202,9 @@ const HomePage = () => {
               </p>
             </Col>
           </Row>
+
           <div className="">
+            {/* Filter Section */}
             <Row className="mb-0 ">
               <Col>
                 <div className="d-flex bg-transparent">
@@ -277,20 +294,23 @@ const HomePage = () => {
                 </div>
               </Col>
             </Row>
-
-            <Row className="g-0">
+            {/* Filter Inputs */}
+            <Row className="g-0 position-relative" style={{ zIndex: 1000 }}>
               <Col>
                 <div
-                  className="d-flex p-2 align-items-center"
+                  className="d-flex p-2 align-items-stretch"
                   style={{
                     backgroundColor: "#0046a8",
                     borderRadius: "0 0 8px 8px",
                   }}
                 >
                   {/* Input: Ban muon tim tro o dau */}
-                  <div className="flex-grow-1 px-1">
-                    <div className="input-group rounded-3 overflow-hidden">
-                      <span className="input-group-text bg-white border-0">
+                  <div
+                    className="flex-grow-1 px-1"
+                    style={{ maxWidth: "270px" }}
+                  >
+                    <div className="input-group rounded-3 overflow-hidden h-100">
+                      <span className="input-group-text bg-white border-0 h-100 d-flex align-items-center">
                         <FaSearch color="#0046a8" />
                       </span>
                       <Form.Control
@@ -301,93 +321,160 @@ const HomePage = () => {
                     </div>
                   </div>
                   {/* Dia diem */}
-                  <div className="flex-grow-1 px-1">
-                    <div className="input-group rounded-3 overflow-hidden">
-                      <Dropdown className="w-100">
-                        <Dropdown.Toggle className="bg-white text-secondary border-0 w-100 text-start d-flex align-items-center justify-content-between">
-                          <span className="input-group-text bg-white border-0">
-                            <FaMap color="#0046a8" />
-                          </span>
-                          <span>Địa điểm</span>
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu className="w-100 p-0">
-                          <div>
-                            <Form.Select
-                              value={selectedProvince}
-                              onChange={(e) =>
-                                setSelectedProvince(e.target.value)
-                              }
-                              className="border-0 border-bottom rounded-0"
-                              disabled={loading}
-                            >
-                              <option value="">Chọn Tỉnh/TP...</option>
-                              {Array.isArray(provinces) &&
-                                provinces.map((province) => (
+                  <div
+                    className="flex-grow-1 px-1"
+                    style={{ maxWidth: "270px" }}
+                  >
+                    <div className="input-group rounded-3 h-100">
+                      <div className="dropdown w-100 h-100 position-static">
+                        <button
+                          className="btn bg-white text-secondary border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between dropdown-toggle"
+                          type="button"
+                          id="dropdownLocation"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                        >
+                          <div className="d-flex align-items-center">
+                            <span className="input-group-text bg-white border-0 p-0 me-2">
+                              <FaMap color="#0046a8" />
+                            </span>
+                            {selectedWard ? (
+                              <span className="text-truncate">
+                                {(wards.find((w) => w.code === selectedWard)
+                                  ?.name || "") +
+                                  ", " +
+                                  (districts.find(
+                                    (d) => d.code === selectedDistrict
+                                  )?.name || "") +
+                                  ", " +
+                                  (provinces.find(
+                                    (p) => p.code === selectedProvince
+                                  )?.name || "")}
+                              </span>
+                            ) : selectedDistrict ? (
+                              <span className="text-truncate">
+                                {(districts.find(
+                                  (d) => d.code === selectedDistrict
+                                )?.name || "") +
+                                  ", " +
+                                  (provinces.find(
+                                    (p) => p.code === selectedProvince
+                                  )?.name || "")}
+                              </span>
+                            ) : selectedProvince ? (
+                              <span className="text-truncate">
+                                {provinces.find(
+                                  (p) => p.code === selectedProvince
+                                )?.name || ""}
+                              </span>
+                            ) : (
+                              <span>Địa điểm</span>
+                            )}
+                          </div>
+                        </button>
+                        <div
+                          className="dropdown-menu p-0 w-100"
+                          style={{ zIndex: 1050 }}
+                          aria-labelledby="dropdownLocation"
+                        >
+                          <div className="location-form p-0">
+                            <div className="mb-0">
+                              <Form.Select
+                                value={selectedProvince}
+                                onChange={(e) => {
+                                  setSelectedProvince(e.target.value);
+                                  setSelectedDistrict("");
+                                  setSelectedWard("");
+                                }}
+                                className="border-0 border-bottom rounded-0 py-3"
+                                disabled={loading}
+                              >
+                                <option value="">Chọn Tỉnh/TP...</option>
+                                {Array.isArray(provinces) &&
+                                  provinces.map((province) => (
+                                    <option
+                                      key={province.id}
+                                      value={province.code}
+                                    >
+                                      {province.name_with_type}
+                                    </option>
+                                  ))}
+                              </Form.Select>
+                            </div>
+
+                            <div className="mb-0">
+                              <Form.Select
+                                value={selectedDistrict}
+                                onChange={(e) => {
+                                  setSelectedDistrict(e.target.value);
+                                  setSelectedWard("");
+                                }}
+                                className="border-0 border-bottom rounded-0 py-3"
+                                disabled={!selectedProvince || loading}
+                              >
+                                <option value="">Quận/Huyện...</option>
+                                {districts.map((district) => (
                                   <option
-                                    key={province.id}
-                                    value={province.code}
+                                    key={district.id}
+                                    value={district.code}
                                   >
-                                    {province.name_with_type}
+                                    {district.name_with_type}
                                   </option>
                                 ))}
-                            </Form.Select>
+                              </Form.Select>
+                            </div>
 
-                            <Form.Select
-                              value={selectedDistrict}
-                              onChange={(e) =>
-                                setSelectedDistrict(e.target.value)
-                              }
-                              className="border-0 border-bottom rounded-0"
-                              disabled={!selectedProvince || loading}
-                            >
-                              <option value="">Quận/Huyện...</option>
-                              {districts.map((district) => (
-                                <option key={district.id} value={district.code}>
-                                  {district.name_with_type}
-                                </option>
-                              ))}
-                            </Form.Select>
-
-                            <Form.Select
-                              value={selectedWard}
-                              onChange={(e) => setSelectedWard(e.target.value)}
-                              className="border-0 border-bottom rounded-0"
-                              disabled={!selectedDistrict || loading}
-                            >
-                              <option value="">Phường/Xã...</option>
-                              {wards.map((ward) => (
-                                <option key={ward.id} value={ward.code}>
-                                  {ward.name_with_type}
-                                </option>
-                              ))}
-                            </Form.Select>
+                            <div className="mb-0">
+                              <Form.Select
+                                value={selectedWard}
+                                onChange={(e) =>
+                                  setSelectedWard(e.target.value)
+                                }
+                                className="border-0 border-bottom rounded-0 py-3"
+                                disabled={!selectedDistrict || loading}
+                              >
+                                <option value="">Đường phố...</option>
+                                {wards.map((ward) => (
+                                  <option key={ward.id} value={ward.code}>
+                                    {ward.name_with_type}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </div>
 
                             <div className="d-flex justify-content-between p-2">
                               <Button
                                 variant="link"
-                                className="text-decoration-none"
+                                className="text-decoration-none d-flex align-items-center"
                                 onClick={resetLocationSelections}
                               >
-                                <i className="fas fa-redo"></i> Đặt lại
+                                <i className="bi bi-arrow-repeat me-1"></i> Đặt
+                                lại
                               </Button>
                               <Button variant="primary">Tìm ngay</Button>
                             </div>
                           </div>
-                        </Dropdown.Menu>
-                      </Dropdown>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   {/* Muc gia */}
-                  <div className="flex-grow-1 px-1">
-                    <div className="input-group rounded-3 overflow-hidden">
-                      <Dropdown className="w-100">
-                        <Dropdown.Toggle className="bg-white text-secondary border-0 w-100 text-start d-flex align-items-center justify-content-between">
+                  <div
+                    className="flex-grow-1 px-1 position-relative"
+                    style={{ maxWidth: "270px" }}
+                  >
+                    <div className="input-group rounded-3 h-100">
+                      <Dropdown className="w-100 h-100">
+                        <Dropdown.Toggle className="bg-white text-secondary border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between">
                           <span className="input-group-text bg-white border-0">
                             <FaDollarSign color="#0046a8" />
                           </span>
                           <span>Mức giá</span>
                         </Dropdown.Toggle>
-                        <Dropdown.Menu className="w-100 p-3">
+                        <Dropdown.Menu
+                          className="w-100 p-3"
+                          style={{ zIndex: 1050 }}
+                        >
                           <div className="mb-3">
                             <div className="d-flex align-items-center mb-3">
                               <div className="pe-2 flex-grow-1">
@@ -501,16 +588,22 @@ const HomePage = () => {
                   </div>
 
                   {/* Dien tich */}
-                  <div className="flex-grow-1 px-1">
-                    <div className="input-group rounded-3 overflow-hidden">
-                      <Dropdown className="w-100">
-                        <Dropdown.Toggle className="bg-white text-secondary border-0 w-100 text-start d-flex align-items-center justify-content-between">
+                  <div
+                    className="flex-grow-1 px-1 position-relative"
+                    style={{ maxWidth: "270px" }}
+                  >
+                    <div className="input-group rounded-3 h-100">
+                      <Dropdown className="w-100 h-100">
+                        <Dropdown.Toggle className="bg-white text-secondary border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between">
                           <span className="input-group-text bg-white border-0">
                             <span style={{ color: "#0046a8" }}>m²</span>
                           </span>
                           <span>Diện tích</span>
                         </Dropdown.Toggle>
-                        <Dropdown.Menu className="w-100 p-3">
+                        <Dropdown.Menu
+                          className="w-100 p-3"
+                          style={{ zIndex: 1050 }}
+                        >
                           <Form.Check
                             type="radio"
                             id="all-area"
@@ -586,10 +679,10 @@ const HomePage = () => {
                     </div>
                   </div>
                   {/* Button tim kiem */}
-                  <div className="flex-shrink-0 px-1">
+                  <div className="flex-shrink-0 px-1 d-flex align-items-stretch">
                     <Button
                       variant="danger"
-                      className="py-2 px-4 border-0 rounded-3 fw-bold"
+                      className="py-2 px-4 border-0 rounded-3 fw-bold h-100"
                       style={{ backgroundColor: "#ff5a00" }}
                     >
                       <FaSearch className="me-2" /> Tìm kiếm
@@ -603,7 +696,7 @@ const HomePage = () => {
       </div>
 
       {/* Banner Section with Images */}
-      <Container className="mt-4">
+      <Container className="mt-4" style={{ position: "relative", zIndex: 1 }}>
         <Row className="g-3 mb-5">
           <Col md={4}>
             <div className="bg-primary bg-opacity-10 rounded p-2 text-center">
@@ -636,16 +729,12 @@ const HomePage = () => {
       </Container>
 
       <HotListings roomType="APARTMENT" title="LỰA CHỌN CHỖ Ở HOT" />
-
       <RoomList />
-
       <HotListings roomType="WHOLE_HOUSE" title="NHÀ NGUYÊN CĂN CHO THUÊ" />
-
       <HotListings
         roomType="BOARDING_HOUSE"
         title="CĂN HỘ, CHUNG CƯ CHO THUÊ"
       />
-
       <ProvinceListings provinces={provinces} />
     </div>
   );
