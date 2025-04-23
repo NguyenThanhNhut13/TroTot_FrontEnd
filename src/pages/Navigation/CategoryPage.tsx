@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import CategorySharedPage from "./CategorySharedPage";
 import VideoReviewPage from "./VideoReviewPage";
 import BlogPage from "./BlogPage";
+import AllCategoriesPage from "./AllCategoriesPage";
 import {
   SHARED_CATEGORIES,
   VIDEO_CATEGORY,
@@ -32,7 +33,9 @@ const CategoryPage = () => {
       </p>
 
       {/* ✅ Giao diện tùy loại */}
-      {SHARED_CATEGORIES.includes(type) && (
+      {type === "tat-ca" && <AllCategoriesPage />}
+
+      {SHARED_CATEGORIES.includes(type) && type !== "tat-ca" && (
         <CategorySharedPage title={categoryName} roomType={roomType[i++]} />
       )}
 

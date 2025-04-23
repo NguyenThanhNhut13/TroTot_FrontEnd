@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Form,
   Button,
@@ -11,13 +12,12 @@ import {
 import RoomList from "../../components/slider/RoomList";
 import HotListings from "../ProductList/HotListings";
 import ProvinceListings from "../../components/common/ProvinceListings ";
-import Header from "../../components/layout/Header";
-import Footer from "../../components/layout/Footer";
-import { FaDollarSign, FaMap, FaSearch, FaRulerCombined } from "react-icons/fa";
+import { FaDollarSign, FaMap, FaSearch } from "react-icons/fa";
 import addressAPI from "../../apis/address.api";
 import { District, Province, Ward } from "../../types/address.type";
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("tat-ca");
 
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -31,7 +31,9 @@ const HomePage = () => {
   const [priceRange, setPriceRange] = useState("all");
   const [minPriceInput, setMinPriceInput] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
+
   const [areaRange, setAreaRange] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -126,42 +128,127 @@ const HomePage = () => {
     setSelectedWard("");
   };
 
-  // Handle price filter selection
-  const handlePriceRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPriceRange(e.target.id);
-  };
-
-  // Handle area filter selection
   const handleAreaRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAreaRange(e.target.id);
   };
 
-  // Reset price filters
-  const resetPriceFilters = () => {
-    setPriceRange("all");
-    setMinPriceInput("");
-    setMaxPriceInput("");
+  const areaLabelMap: Record<string, string> = {
+    "all-area": "Tất cả diện tích",
+    "under-20": "Dưới 20 m²",
+    "20-40": "20m² - 40 m²",
+    "40-60": "40m² - 60 m²",
+    "60-80": "60m² - 80 m²",
+    "80-plus": "Trên 80 m²",
   };
 
-  // Reset area filters
   const resetAreaFilters = () => {
-    setAreaRange("all");
+    setAreaRange("all-area");
   };
 
-  // Apply price filters
-  const applyPriceFilters = () => {
-    console.log("Applying price filters:", {
-      priceRange,
-      minPrice: minPriceInput,
-      maxPrice: maxPriceInput,
-    });
-    // Here you would implement logic to filter based on price
+  const priceLabelMap: Record<string, string> = {
+    all: "Tất cả mức giá",
+    "under-1m": "Dưới 1 triệu",
+    "1-10m": "1 - 10 triệu",
+    "10-30m": "10 - 30 triệu",
+    "30-50m": "30 - 50 triệu",
+    "50m-plus": "Trên 50 triệu",
+    "100m-plus": "Trên 100 triệu",
   };
 
-  // Apply area filters
-  const applyAreaFilters = () => {
-    console.log("Applying area filters:", areaRange);
-    // Here you would implement logic to filter based on area
+  // Lấy room type từ selected category
+  const getRoomTypeFromCategory = () => {
+    switch (selectedCategory) {
+      case "nha-tro-phong-tro":
+        return "BOARDING_HOUSE";
+      case "nha-nguyen-can":
+        return "WHOLE_HOUSE";
+      case "can-ho-chung-cu":
+        return "APARTMENT";
+      default:
+        return null; // Nếu là "tất cả"
+    }
+  };
+
+  // Chuyển đổi areaRange sang định dạng để lọc
+  const getAreaRangeParam = () => {
+    switch (areaRange) {
+      case "under-20":
+        return "0-20";
+      case "20-40":
+        return "20-40";
+      case "40-60":
+        return "40-60";
+      case "60-80":
+        return "60-80";
+      case "80-plus":
+        return "80-1000";
+      default:
+        return null;
+    }
+  };
+
+  // Chuyển đổi priceRange sang định dạng để lọc
+  const getPriceRangeParam = () => {
+    // Sử dụng minPrice và maxPrice nếu đã nhập
+    if (minPriceInput || maxPriceInput) {
+      return {
+        minPrice: minPriceInput
+          ? parseFloat(minPriceInput) * 1000000
+          : undefined,
+        maxPrice: maxPriceInput
+          ? parseFloat(maxPriceInput) * 1000000
+          : undefined,
+      };
+    }
+
+    // Nếu không, sử dụng priceRange đã chọn
+    switch (priceRange) {
+      case "under-1m":
+        return { minPrice: 0, maxPrice: 1000000 };
+      case "1-10m":
+        return { minPrice: 1000000, maxPrice: 10000000 };
+      case "10-30m":
+        return { minPrice: 10000000, maxPrice: 30000000 };
+      case "30-50m":
+        return { minPrice: 30000000, maxPrice: 50000000 };
+      case "50m-plus":
+        return { minPrice: 50000000, maxPrice: undefined };
+      case "100m-plus":
+        return { minPrice: 100000000, maxPrice: undefined };
+      default:
+        return { minPrice: undefined, maxPrice: undefined };
+    }
+  };
+
+  // Xử lý tìm kiếm
+  const handleSearch = () => {
+    const roomType = getRoomTypeFromCategory();
+    const areaRangeParam = getAreaRangeParam();
+    const { minPrice, maxPrice } = getPriceRangeParam();
+
+    // Tạo đối tượng searchParams để lưu vào localStorage
+    const searchParams = {
+      query: searchQuery,
+      province: selectedProvince,
+      district: selectedDistrict,
+      ward: selectedWard,
+      minPrice,
+      maxPrice,
+      areaRange: areaRangeParam,
+      roomType,
+    };
+
+    // Lưu searchParams vào localStorage
+    localStorage.setItem("searchParams", JSON.stringify(searchParams));
+
+    // Chuyển hướng người dùng đến trang category phù hợp
+    if (roomType) {
+      // Nếu đã chọn một loại phòng cụ thể
+      navigate(`/category/${selectedCategory}`);
+    } else {
+      // Nếu chọn "tất cả"
+      navigate("/category/tat-ca");
+    }
   };
 
   return (
@@ -317,6 +404,8 @@ const HomePage = () => {
                         type="text"
                         placeholder="Bạn muốn tìm trọ ở đâu?"
                         className="border-0 py-2"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
                   </div>
@@ -339,7 +428,15 @@ const HomePage = () => {
                               <FaMap color="#0046a8" />
                             </span>
                             {selectedWard ? (
-                              <span className="text-truncate">
+                              <span
+                                className="text-truncate d-inline-block"
+                                style={{
+                                  maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
                                 {(wards.find((w) => w.code === selectedWard)
                                   ?.name || "") +
                                   ", " +
@@ -352,7 +449,15 @@ const HomePage = () => {
                                   )?.name || "")}
                               </span>
                             ) : selectedDistrict ? (
-                              <span className="text-truncate">
+                              <span
+                                className="text-truncate d-inline-block"
+                                style={{
+                                  maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
                                 {(districts.find(
                                   (d) => d.code === selectedDistrict
                                 )?.name || "") +
@@ -362,7 +467,15 @@ const HomePage = () => {
                                   )?.name || "")}
                               </span>
                             ) : selectedProvince ? (
-                              <span className="text-truncate">
+                              <span
+                                className="text-truncate d-inline-block"
+                                style={{
+                                  maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
                                 {provinces.find(
                                   (p) => p.code === selectedProvince
                                 )?.name || ""}
@@ -469,8 +582,15 @@ const HomePage = () => {
                           <span className="input-group-text bg-white border-0">
                             <FaDollarSign color="#0046a8" />
                           </span>
-                          <span>Mức giá</span>
+                          <span className="text-start w-100">
+                            {minPriceInput || maxPriceInput
+                              ? `Từ ${minPriceInput || "0"} → ${
+                                  maxPriceInput || "∞"
+                                } triệu`
+                              : priceLabelMap[priceRange] || "Mức giá"}
+                          </span>
                         </Dropdown.Toggle>
+
                         <Dropdown.Menu
                           className="w-100 p-3"
                           style={{ zIndex: 1050 }}
@@ -483,9 +603,10 @@ const HomePage = () => {
                                   placeholder="Từ"
                                   className="rounded"
                                   value={minPriceInput}
-                                  onChange={(e) =>
-                                    setMinPriceInput(e.target.value)
-                                  }
+                                  onChange={(e) => {
+                                    setMinPriceInput(e.target.value);
+                                    setPriceRange(""); // reset radio
+                                  }}
                                 />
                               </div>
                               <div className="px-2">→</div>
@@ -495,92 +616,54 @@ const HomePage = () => {
                                   placeholder="Đến"
                                   className="rounded"
                                   value={maxPriceInput}
-                                  onChange={(e) =>
-                                    setMaxPriceInput(e.target.value)
-                                  }
+                                  onChange={(e) => {
+                                    setMaxPriceInput(e.target.value);
+                                    setPriceRange(""); // reset radio
+                                  }}
                                 />
                               </div>
                             </div>
 
-                            <Form.Check
-                              type="radio"
-                              id="all"
-                              name="price-range"
-                              label="Tất cả mức giá"
-                              checked={priceRange === "all"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
-                            <Form.Check
-                              type="radio"
-                              id="under-1m"
-                              name="price-range"
-                              label="Dưới 1 triệu"
-                              checked={priceRange === "under-1m"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
-                            <Form.Check
-                              type="radio"
-                              id="1-10m"
-                              name="price-range"
-                              label="1 - 10 triệu"
-                              checked={priceRange === "1-10m"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
-                            <Form.Check
-                              type="radio"
-                              id="10-30m"
-                              name="price-range"
-                              label="10 - 30 triệu"
-                              checked={priceRange === "10-30m"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
-                            <Form.Check
-                              type="radio"
-                              id="30-50m"
-                              name="price-range"
-                              label="30 - 50 triệu"
-                              checked={priceRange === "30-50m"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
-                            <Form.Check
-                              type="radio"
-                              id="50m-plus"
-                              name="price-range"
-                              label="Trên 50 triệu"
-                              checked={priceRange === "50m-plus"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
-                            <Form.Check
-                              type="radio"
-                              id="100m-plus"
-                              name="price-range"
-                              label="Trên 100 triệu"
-                              checked={priceRange === "100m-plus"}
-                              onChange={handlePriceRangeChange}
-                              className="mb-2"
-                            />
+                            {Object.entries(priceLabelMap).map(
+                              ([key, label]) => (
+                                <Form.Check
+                                  type="radio"
+                                  id={key}
+                                  name="price-range"
+                                  key={key}
+                                  label={
+                                    key === "all" ? (
+                                      <span className="fw-bold">{label}</span>
+                                    ) : (
+                                      label
+                                    )
+                                  }
+                                  checked={priceRange === key}
+                                  onChange={() => {
+                                    setPriceRange(key);
+                                    setMinPriceInput("");
+                                    setMaxPriceInput("");
+                                  }}
+                                  className="mb-2"
+                                />
+                              )
+                            )}
                           </div>
 
-                          <div className="d-flex justify-content-between pt-2 border-top">
+                          <div className="d-flex justify-content-between p-2">
                             <Button
                               variant="link"
-                              className="text-decoration-none"
-                              onClick={resetPriceFilters}
+                              className="text-decoration-none d-flex align-items-center"
+                              onClick={() => {
+                                setMinPriceInput("");
+                                setMaxPriceInput("");
+                                setPriceRange("all");
+                              }}
                             >
-                              <i className="fas fa-redo"></i> Đặt lại
+                              <i className="bi bi-arrow-repeat me-1"></i> Đặt
+                              lại
                             </Button>
-                            <Button
-                              variant="primary"
-                              onClick={applyPriceFilters}
-                            >
-                              Tìm ngay
-                            </Button>
+                            <Button variant="primary">Tìm ngay</Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
@@ -598,81 +681,42 @@ const HomePage = () => {
                           <span className="input-group-text bg-white border-0">
                             <span style={{ color: "#0046a8" }}>m²</span>
                           </span>
-                          <span>Diện tích</span>
+                          <span className="text-start w-100">
+                            {areaLabelMap[areaRange] || "Diện tích"}
+                          </span>
+
+                          <span>▼</span>
                         </Dropdown.Toggle>
+
                         <Dropdown.Menu
                           className="w-100 p-3"
                           style={{ zIndex: 1050 }}
                         >
-                          <Form.Check
-                            type="radio"
-                            id="all-area"
-                            name="area-range"
-                            label="Tất cả diện tích"
-                            checked={areaRange === "all-area"}
-                            onChange={handleAreaRangeChange}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="radio"
-                            id="under-20"
-                            name="area-range"
-                            label="Dưới 20 m²"
-                            checked={areaRange === "under-20"}
-                            onChange={handleAreaRangeChange}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="radio"
-                            id="20-40"
-                            name="area-range"
-                            label="20m² - 40 m²"
-                            checked={areaRange === "20-40"}
-                            onChange={handleAreaRangeChange}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="radio"
-                            id="40-60"
-                            name="area-range"
-                            label="40m² - 60 m²"
-                            checked={areaRange === "40-60"}
-                            onChange={handleAreaRangeChange}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="radio"
-                            id="60-80"
-                            name="area-range"
-                            label="60m² - 80 m²"
-                            checked={areaRange === "60-80"}
-                            onChange={handleAreaRangeChange}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="radio"
-                            id="80-plus"
-                            name="area-range"
-                            label="Trên 80 m²"
-                            checked={areaRange === "80-plus"}
-                            onChange={handleAreaRangeChange}
-                            className="mb-2"
-                          />
+                          {Object.entries(areaLabelMap).map(
+                            ([value, label]) => (
+                              <Form.Check
+                                key={value}
+                                type="radio"
+                                id={value}
+                                name="area-range"
+                                label={label}
+                                checked={areaRange === value}
+                                onChange={handleAreaRangeChange}
+                                className="mb-2"
+                              />
+                            )
+                          )}
 
-                          <div className="d-flex justify-content-between pt-2 border-top mt-2">
+                          <div className="d-flex justify-content-between p-2">
                             <Button
                               variant="link"
-                              className="text-decoration-none"
+                              className="text-decoration-none d-flex align-items-center"
                               onClick={resetAreaFilters}
                             >
-                              <i className="fas fa-redo"></i> Đặt lại
+                              <i className="bi bi-arrow-repeat me-1"></i> Đặt
+                              lại
                             </Button>
-                            <Button
-                              variant="primary"
-                              onClick={applyAreaFilters}
-                            >
-                              Tìm ngay
-                            </Button>
+                            <Button variant="primary">Tìm ngay</Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
@@ -684,6 +728,7 @@ const HomePage = () => {
                       variant="danger"
                       className="py-2 px-4 border-0 rounded-3 fw-bold h-100"
                       style={{ backgroundColor: "#ff5a00" }}
+                      onClick={handleSearch}
                     >
                       <FaSearch className="me-2" /> Tìm kiếm
                     </Button>

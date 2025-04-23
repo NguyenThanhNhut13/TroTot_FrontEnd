@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Button,
@@ -7,12 +7,15 @@ import {
   Form,
   Dropdown,
   InputGroup,
+  Spinner,
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { FaSearch, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import http from "../../utils/http"; // Make sure this import path is correct
 import {
   Amenity,
+  Room,
+  RoomSearchParams,
   SurroundingArea,
   TargetAudience,
 } from "../../types/room.type";
@@ -44,6 +47,8 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchParams, setSearchParams] = useState<any>(null);
 
   // Initialize selectedFilters from localStorage
   const [selectedFilters, setSelectedFilters] = useState(() => {
@@ -160,6 +165,89 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       }
     }
   }, [roomType]);
+
+  // Fetch search params from localStorage on component mount
+  useEffect(() => {
+    const params = localStorage.getItem("searchParams");
+    if (params) {
+      try {
+        const parsedParams = JSON.parse(params);
+        setSearchParams(parsedParams);
+
+        // Nếu có searchParams và roomType trong props trùng khớp hoặc không có roomType trong searchParams
+        if (!parsedParams.roomType || parsedParams.roomType === roomType) {
+          // Perform search with these params
+          performSearch(parsedParams);
+        }
+
+        // Optionally, clear localStorage after using the params
+        // localStorage.removeItem('searchParams');
+      } catch (error) {
+        console.error("Error parsing search params:", error);
+      }
+    }
+  }, [roomType]);
+
+  // Perform search with given params
+  const performSearch = async (params: any) => {
+    setIsSearching(true);
+    try {
+      const searchRoomParams: RoomSearchParams = {
+        page: 0,
+        size: 10,
+        roomType: roomType,
+      };
+
+      // Add search params if they exist
+      if (params.query) {
+        searchRoomParams.street = params.query;
+      }
+
+      if (params.province) {
+        searchRoomParams.city = params.province;
+      }
+
+      if (params.district) {
+        searchRoomParams.district = params.district;
+      }
+
+      if (params.minPrice !== undefined) {
+        searchRoomParams.minPrice = params.minPrice;
+      }
+
+      if (params.maxPrice !== undefined) {
+        searchRoomParams.maxPrice = params.maxPrice;
+      }
+
+      if (params.areaRange) {
+        searchRoomParams.areaRange = params.areaRange;
+      }
+
+      // Gọi API tìm kiếm
+      const response = await roomApi.searchRooms(searchRoomParams);
+
+      if (response.data && response.data.data && response.data.data.content) {
+        // Transform API response to match Listing format
+        const transformedListings = response.data.data.content.map(
+          (item: Room) => ({
+            image: item.imageUrls[0] || "https://via.placeholder.com/300x200",
+            title: item.title,
+            price: (item.price / 1000000).toFixed(1), // Convert to millions
+            area: item.area,
+            location: `${item.district}, ${item.province}`,
+          })
+        );
+
+        setListings(transformedListings);
+        setFilteredListings(transformedListings);
+        setTotalCount(response.data.data.totalElements);
+      }
+    } catch (error) {
+      console.error("Error searching rooms:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -448,6 +536,34 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       </div>
 
       <div className="container mt-4">
+        {searchParams && (
+          <div className="alert alert-info mb-3">
+            <strong>Kết quả tìm kiếm cho: </strong>
+            {searchParams.query && <span>"{searchParams.query}" </span>}
+            {searchParams.province && <span>tại {searchParams.province} </span>}
+            {searchParams.minPrice && (
+              <span>từ {searchParams.minPrice / 1000000} triệu </span>
+            )}
+            {searchParams.maxPrice && (
+              <span>đến {searchParams.maxPrice / 1000000} triệu </span>
+            )}
+            {searchParams.areaRange && (
+              <span>diện tích {searchParams.areaRange}m² </span>
+            )}
+            <button
+              className="btn btn-sm btn-outline-secondary ms-2"
+              onClick={() => {
+                localStorage.removeItem("searchParams");
+                setSearchParams(null);
+                // Reset to original listings
+                setFilteredListings(listings);
+              }}
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        )}
+
         <div className="d-flex flex-nowrap">
           {/* Left sidebar - Filters */}
           <div
@@ -556,71 +672,87 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
               <p className="mb-0">Tổng {totalCount} kết quả</p>
             </div>
 
+            {/* Loading indicator */}
+            {isSearching && (
+              <div className="text-center py-5">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-2">Đang tìm kiếm...</p>
+              </div>
+            )}
+
             {/* Listing results */}
-            {filteredListings.map((listing, index) => (
-              <Card key={index} className="mb-3 border-0 shadow-sm">
-                <div className="position-relative">
-                  {/* HOT label */}
-                  <div
-                    className="position-absolute bg-danger text-white px-2 py-1"
-                    style={{ top: "10px", left: "0" }}
-                  >
-                    HOT
+            {!isSearching && filteredListings.length === 0 && (
+              <div className="alert alert-warning">
+                Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu
+                chí khác.
+              </div>
+            )}
+
+            {!isSearching &&
+              filteredListings.map((listing, index) => (
+                <Card key={index} className="mb-3 border-0 shadow-sm">
+                  <div className="position-relative">
+                    {/* HOT label */}
+                    <div
+                      className="position-absolute bg-danger text-white px-2 py-1"
+                      style={{ top: "10px", left: "0" }}
+                    >
+                      HOT
+                    </div>
+
+                    <Row className="g-0">
+                      {/* Left - Image */}
+                      <Col md={4}>
+                        <Card.Img
+                          src={listing.image}
+                          alt={listing.title}
+                          style={{ height: "100%", objectFit: "cover" }}
+                        />
+                      </Col>
+
+                      {/* Right - Content */}
+                      <Col md={8}>
+                        <Card.Body>
+                          <div className="d-flex justify-content-between">
+                            <Card.Title className="fw-bold mb-2">
+                              {listing.title}
+                            </Card.Title>
+                            <FaHeart
+                              className="text-muted"
+                              style={{ cursor: "pointer" }}
+                            />
+                          </div>
+
+                          <Card.Text className="text-danger fw-bold mb-2">
+                            {parseFloat(
+                              listing.price.replace(/[^\d.]/g, "")
+                            ).toLocaleString()}{" "}
+                            triệu/tháng
+                          </Card.Text>
+
+                          <div className="d-flex mb-2">
+                            <span className="me-3">{listing.area}m²</span>
+                          </div>
+
+                          <div className="d-flex align-items-center text-muted mb-2">
+                            <FaMapMarkerAlt className="me-1" />
+                            {listing.location}
+                          </div>
+
+                          <Link
+                            to={`/phong-tro/${index}`}
+                            className="text-decoration-none"
+                          >
+                            <Button variant="primary" className="mt-1">
+                              Xem chi tiết
+                            </Button>
+                          </Link>
+                        </Card.Body>
+                      </Col>
+                    </Row>
                   </div>
-
-                  <Row className="g-0">
-                    {/* Left - Image */}
-                    <Col md={4}>
-                      <Card.Img
-                        src={listing.image}
-                        alt={listing.title}
-                        style={{ height: "100%", objectFit: "cover" }}
-                      />
-                    </Col>
-
-                    {/* Right - Content */}
-                    <Col md={8}>
-                      <Card.Body>
-                        <div className="d-flex justify-content-between">
-                          <Card.Title className="fw-bold mb-2">
-                            {listing.title}
-                          </Card.Title>
-                          <FaHeart
-                            className="text-muted"
-                            style={{ cursor: "pointer" }}
-                          />
-                        </div>
-
-                        <Card.Text className="text-danger fw-bold mb-2">
-                          {parseFloat(
-                            listing.price.replace(/[^\d.]/g, "")
-                          ).toLocaleString()}{" "}
-                          triệu/tháng
-                        </Card.Text>
-
-                        <div className="d-flex mb-2">
-                          <span className="me-3">{listing.area}m²</span>
-                        </div>
-
-                        <div className="d-flex align-items-center text-muted mb-2">
-                          <FaMapMarkerAlt className="me-1" />
-                          {listing.location}
-                        </div>
-
-                        <Link
-                          to={`/phong-tro/${index}`}
-                          className="text-decoration-none"
-                        >
-                          <Button variant="primary" className="mt-1">
-                            Xem chi tiết
-                          </Button>
-                        </Link>
-                      </Card.Body>
-                    </Col>
-                  </Row>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
 
             {/* Pagination */}
             <div className="d-flex justify-content-center mt-4">
