@@ -34,11 +34,11 @@ const Sidebar = () => {
     <div className="sidebar p-3">
       <div className="text-center mb-3">
         <img
-          src="../../assets/images/anhmau.jpg"
+          src="https://i.postimg.cc/L60YJ5L1/hinh-nen-buon-danbo.jpg"
           alt="Avatar"
           style={{ width: 60, height: 60, borderRadius: "50%" }}
         />
-        <h5 className="mt-2 mb-1">{profile?.fullName || "Ngô Văn Toàn"}</h5>
+        <h5 className="mt-2 mb-1">{profile?.fullName || "Null"}</h5>
         <p className="text-muted" style={{ fontSize: 14 }}>
           ID: #{profile?.id || "29721"}
         </p>

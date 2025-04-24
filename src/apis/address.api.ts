@@ -2,6 +2,9 @@ import { SuccessResponse } from "../types/utils.type";
 import { Province, District, Ward, GetAddressResponse } from "../types/address.type";
 import axios from "axios";
 
+import http from '../utils/http';
+import { Address } from '../types/address.type'
+
 // External API URLs
 export const URL_GET_PROVINCES =
   "provinces/getAll";
@@ -10,6 +13,9 @@ export const URL_GET_DISTRICTS_BY_PROVINCE =
 export const URL_GET_WARDS_BY_DISTRICT =
   "wards/getByDistrict";
 
+export const URL_GET_ADDRESSES = 'api/v1/addresses';
+
+
 // Create a separate axios instance for the external API
 const externalHttp = axios.create({
   baseURL: "https://vn-public-apis.fpo.vn/",
@@ -17,6 +23,7 @@ const externalHttp = axios.create({
     "Content-Type": "application/json",
   },
 });
+
 
 const addressAPI = {
   getProvinces() {
@@ -39,6 +46,33 @@ const addressAPI = {
       params: { districtCode, limit: -1 },
     });
   },
+  getAddresses(params: { street?: string; district?: string; province?: string } = {}) {
+    const { street, district, province } = params;
+    return http.get<SuccessResponse<Address[]>>(`${URL_GET_ADDRESSES}/search`, {
+      params: { street, district, province },
+    });
+  },
+
+  getAllAddresses() {
+    return http.get<SuccessResponse<Address[]>>(URL_GET_ADDRESSES);
+  },
+
+  getAddressById(id: number) {
+    return http.get<SuccessResponse<Address>>(`${URL_GET_ADDRESSES}/${id}`);
+  },
+
+  saveAddress(address: Address) {
+    return http.post<SuccessResponse<Address>>(URL_GET_ADDRESSES, address);
+  },
+
+  updateAddress(id: number, address: Address) {
+    return http.put<SuccessResponse<Address>>(`${URL_GET_ADDRESSES}/${id}`, address);
+  },
+
+  deleteAddress(id: number) {
+    return http.delete<SuccessResponse<void>>(`${URL_GET_ADDRESSES}/${id}`);
+  },
 };
 
 export default addressAPI;
+

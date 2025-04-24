@@ -5,10 +5,10 @@ import {
   FaFacebook,
   FaTiktok,
   FaYoutube,
-  FaMapMarkerAlt,
   FaArrowUp,
   FaApple,
   FaGooglePlay,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { SiZalo } from "react-icons/si";
 import { Container, Row, Col } from "react-bootstrap";

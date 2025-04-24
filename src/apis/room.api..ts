@@ -29,16 +29,18 @@ const roomApi = {
     });
   },
 
+
   saveRoom(room: CreateRoomDTO) {
     return http.post<SuccessResponse<CreateRoomDTO>>(URL_GET_ROOMS, room);
   },
 
-  async createRoom(
-    data: FormData
-  ): Promise<{ data: { success: boolean; message?: string } }> {
-    // Gửi yêu cầu POST với FormData
-    return http.post(URL_GET_ROOMS, data, {
-      headers: { "Content-Type": "multipart/form-data" },
+
+  createRoom(formData: FormData) {
+    return http.post<SuccessResponse<CreateRoomDTO>>(URL_GET_ROOMS, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        // Authorization header is handled by the interceptor
+      },
     });
   },
 

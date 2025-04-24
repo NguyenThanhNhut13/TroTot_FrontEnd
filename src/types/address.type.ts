@@ -1,3 +1,4 @@
+
 import { SuccessResponse } from "./utils.type";
 
 export type Province = {
@@ -43,3 +44,15 @@ export type PaginatedAddressResponse = {
 }
 
 export type GetAddressResponse = SuccessResponse<PaginatedAddressResponse> 
+
+export interface Address {
+    id: number;
+    province: string;
+    district: string;
+    ward: string;
+    street: string;
+    houseNumber: string;
+    latitude: number | null;
+    longitude: number | null;
+  }
+
