@@ -10,6 +10,8 @@ import PersonalInfoPage from './pages/Profile/PersonalInfoPage'
 import AccountInfoPage from './pages/Profile/AccountInfoPage'
 import GeneralStatsPage from './pages/AdminPage/GeneralStatsPage'
 import SavedRoom from './pages/Profile/SavedRoom'
+import Notifications from './pages/Profile/Notifycations'
+import ReviewRoom from './pages/Profile/ReviewRoom'
 
 
 export default function useRouteElement() {
@@ -53,6 +55,15 @@ export default function useRouteElement() {
         {
           path:'/favorites',
           element: <SavedRoom /> // Tro da luu
+        },
+        {
+          path:'/notifications',
+          element: <Notifications /> // Thong bao
+        },
+
+        {
+          path: '/reviews',
+          element: <ReviewRoom /> // Đánh giá phòng
         }
 
       ]
