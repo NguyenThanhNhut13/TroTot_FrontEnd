@@ -157,11 +157,14 @@ export class Http {
     return this.instance
       .post<RefreshTokenReponse>(URL_REFRESH_TOKEN, {
         refreshToken: this.refreshToken,
+        accessToken: this.accessToken,
       })
       .then((res) => {
-        const { accessToken } = res.data.data;
+        const { accessToken, refreshToken } = res.data.data;
         setAccessTokenToLS(accessToken);
+        setRefreshTokenToLS(refreshToken);
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         return accessToken;
       })
       .catch((error) => {
