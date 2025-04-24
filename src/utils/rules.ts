@@ -69,7 +69,10 @@ export const userSchema = yup.object({
   id: yup.string().required("ID là bắt buộc"),
   fullName: yup.string().max(255, "Tên đầy đủ không được vượt quá 255 ký tự").required("Tên đầy đủ là bắt buộc"),
   address: yup.string().max(500, "Địa chỉ không được vượt quá 500 ký tự").required("Địa chỉ là bắt buộc"),
-  dob: yup.date().max(new Date(), "Ngày sinh không hợp lệ").required("Ngày sinh là bắt buộc"),
+  gender: yup.string().oneOf(["MALE", "FEMALE", "OTHER", ""], "Giới tính không hợp lệ").required("Giới tính là bắt buộc"),
+  dob: yup.string().required("Ngày sinh là bắt buộc"),
+  cccd: yup.string().max(12, "CCCD không được vượt quá 12 ký tự").required("CCCD là bắt buộc"),
+
 });
 
 export const loginSchema = yup.object({
@@ -84,6 +87,7 @@ export const loginSchema = yup.object({
     .min(6, "Độ dài từ 6 - 160 ký tự")
     .max(160, "Độ dài từ 6 - 160 ký tự"),
 });
+
 
 export type UserSchema = yup.InferType<typeof userSchema>;
 

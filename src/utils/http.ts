@@ -20,7 +20,7 @@ import {
 } from "../apis/auth.api";
 import { URL_GET_PROFILE } from "../apis/user.api";
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from "./utils";
-import { ErrorResponse } from "../types/utils.type";
+import { ErrorResponse, ResponseOfAccessToken401 } from "../types/utils.type";
 import { UserRespone } from "../types/user.type";
 
 // Post: 1 - 3
@@ -112,26 +112,29 @@ export class Http {
         ) {
           const config = error.response?.config || { headers: {}, url: "" };
           const { url } = config;
-          // Trường hợp Token hết hạn và request đó không phải là của request refresh token
-          // thì chúng ta mới tiến hành gọi refresh token
-          if (isAxiosExpiredTokenError(error) && url !== URL_REFRESH_TOKEN) {
+            // Trường hợp Token hết hạn và request đó không phải là của request refresh token
+            // thì chúng ta mới tiến hành gọi refresh token
+            if ((isAxiosExpiredTokenError(error) || 
+              ((error as AxiosError<ResponseOfAccessToken401>).response?.data?.code === "INVALID_TOKEN" && 
+               (error as AxiosError<ResponseOfAccessToken401>).response?.data?.message === "Invalid or expired token")) && 
+              url !== URL_REFRESH_TOKEN) {
             // Hạn chế gọi 2 lần handleRefreshToken
             this.refreshTokenRequest = this.refreshTokenRequest
               ? this.refreshTokenRequest
               : this.handleRefreshToken().finally(() => {
-                  // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
-                  setTimeout(() => {
-                    this.refreshTokenRequest = null;
-                  }, 10000);
-                });
+                // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
+                setTimeout(() => {
+                this.refreshTokenRequest = null;
+                }, 10000);
+              });
             return this.refreshTokenRequest.then((accessToken) => {
               // Nghĩa là chúng ta tiếp tục gọi lại request cũ vừa bị lỗi
               return this.instance({
-                ...config,
-                headers: { ...config.headers, authorization: accessToken },
+              ...config,
+              headers: { ...config.headers, authorization: `Bearer ${accessToken}` },
               });
             });
-          }
+            }
 
           // Còn những trường hợp như token không đúng
           // không truyền token,

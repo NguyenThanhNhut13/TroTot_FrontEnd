@@ -27,7 +27,7 @@ export default function useRouteElement() {
         },
         {
           path:'/post-room',
-          element: <PostRoomPage /> // thêm đường dẫn mới cho trang đăng tin
+          element: <PostRoomPage /> // thêm đường dẫn mới cho trang Dang tin
         },
         {
           path:'/post-room/:type',
@@ -39,15 +39,15 @@ export default function useRouteElement() {
         },
         {
           path:'/personal-info',
-          element: <PersonalInfoPage /> // thêm đường dẫn mới cho trang đăng tin
+          element: <PersonalInfoPage /> // thêm đường dẫn mới cho trang Thong tin cá nhân
         },
         {
           path:'/account-info',
-          element: <AccountInfoPage /> // thêm đường dẫn mới cho trang đăng tin
+          element: <AccountInfoPage /> // thêm đường dẫn mới cho trang Thong tin tài khoản
         },
         {
           path:'/profile',
-          element: <GeneralStatsPage /> // thêm đường dẫn mới cho trang đăng tin
+          element: <GeneralStatsPage /> // thêm đường dẫn mới cho trang danh cho chủ trọ
         }
 
       ]

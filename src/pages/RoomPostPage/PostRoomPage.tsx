@@ -3,6 +3,7 @@ import { Row, Col, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../MainPage/Sidebar";
 import "../../assets/styles/PostRoom.css"; 
+import { min } from './../../../node_modules/moment/ts3.1-typings/moment.d';
 
 
 interface RoomType {
