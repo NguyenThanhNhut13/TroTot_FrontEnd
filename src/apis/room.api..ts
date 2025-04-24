@@ -10,7 +10,7 @@ import {
 
 export const URL_GET_ROOMS = "api/v1/rooms";
 export const URL_SEARCH_ROOMS = "api/v1/rooms/search";
-
+export const URL_GET_WISH_LIST = "api/v1/users/wish-list";
 
 
 const roomApi = {
@@ -91,6 +91,13 @@ const roomApi = {
 
     return http.get<GetRoomsResponse>(URL_SEARCH_ROOMS, {
       params: formattedParams,
+    });
+  },
+
+  getWishList(params: { page?: number; size?: number } = {}) {
+    const { page = 0, size = 25 } = params;
+    return http.get<GetRoomsResponse>(URL_GET_WISH_LIST, {
+      params: { page, size },
     });
   },
 };

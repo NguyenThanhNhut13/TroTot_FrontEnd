@@ -115,9 +115,10 @@ export class Http {
             // Trường hợp Token hết hạn và request đó không phải là của request refresh token
             // thì chúng ta mới tiến hành gọi refresh token
             if ((isAxiosExpiredTokenError(error) || 
-              ((error as AxiosError<ResponseOfAccessToken401>).response?.data?.code === "INVALID_TOKEN" && 
-               (error as AxiosError<ResponseOfAccessToken401>).response?.data?.message === "Invalid or expired token")) && 
-              url !== URL_REFRESH_TOKEN) {
+              ((error as AxiosError<ResponseOfAccessToken401>).response?.data?.code === "INVALID_TOKEN" || 
+               (error as AxiosError<ResponseOfAccessToken401>).response?.data?.message === "Invalid or expired token")||
+               (error as AxiosError<ResponseOfAccessToken401>).response?.data?.message === "You need to login to access this resource.")
+              ) {
             // Hạn chế gọi 2 lần handleRefreshToken
             this.refreshTokenRequest = this.refreshTokenRequest
               ? this.refreshTokenRequest
@@ -145,7 +146,8 @@ export class Http {
           this.accessToken = "";
           this.refreshToken = "";
           toast.error(
-            error.response?.data.data?.message || error.response?.data.message
+            (error as AxiosError<ErrorResponse<{ message: string }>>).response?.data.data?.message || 
+            (error as AxiosError<ErrorResponse<{ message: string }>>).response?.data.message
           );
           // window.location.reload()
         }

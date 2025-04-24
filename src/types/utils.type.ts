@@ -17,3 +17,9 @@ export interface ResponseOfAccessToken401 {
   message: string;
   code: string;
 };
+
+export interface SuccessResponseOfUpdateCredentials<Data> {
+  message: string;
+  data: Data;
+  success: boolean;
+}

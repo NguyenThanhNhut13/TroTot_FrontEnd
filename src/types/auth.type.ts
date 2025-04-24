@@ -6,3 +6,4 @@ export type AuthResponse = SuccessResponse<{
 }>
 
 export type RefreshTokenReponse = SuccessResponse<{ accessToken: string , refreshToken: string }>
+

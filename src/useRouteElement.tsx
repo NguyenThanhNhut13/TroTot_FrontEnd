@@ -6,9 +6,10 @@ import HomeLayOut from './pages/MainPage/HomeLayOut'
 import PostRoomPage from './pages/RoomPostPage/PostRoomPage' // thêm import cho trang đăng tin
 import RoomPostForm from './pages/RoomPostPage/RoomPostForm' // thêm import cho trang đăng tin
 import DepositPage from './pages/PayPage/DepositPage'
-import PersonalInfoPage from './pages/AdminPage/PersonalInfoPage'
-import AccountInfoPage from './pages/AdminPage/AccountInfoPage'
+import PersonalInfoPage from './pages/Profile/PersonalInfoPage'
+import AccountInfoPage from './pages/Profile/AccountInfoPage'
 import GeneralStatsPage from './pages/AdminPage/GeneralStatsPage'
+import SavedRoom from './pages/Profile/SavedRoom'
 
 
 export default function useRouteElement() {
@@ -48,6 +49,10 @@ export default function useRouteElement() {
         {
           path:'/profile',
           element: <GeneralStatsPage /> // thêm đường dẫn mới cho trang danh cho chủ trọ
+        },
+        {
+          path:'/favorites',
+          element: <SavedRoom /> // Tro da luu
         }
 
       ]
