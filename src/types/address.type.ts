@@ -56,3 +56,7 @@ export interface Address {
     longitude: number | null;
   }
 
+export type Forward = {
+  latitude: number;
+  longitude: number;
+}

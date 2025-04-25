@@ -1,9 +1,10 @@
 import { SuccessResponse } from "../types/utils.type";
-import { Province, District, Ward, GetAddressResponse } from "../types/address.type";
+import { Province, District, Ward, GetAddressResponse, Forward } from "../types/address.type";
 import axios from "axios";
 
 import http from '../utils/http';
 import { Address } from '../types/address.type'
+import { get } from "lodash";
 
 // External API URLs
 export const URL_GET_PROVINCES =
@@ -14,7 +15,7 @@ export const URL_GET_WARDS_BY_DISTRICT =
   "wards/getByDistrict";
 
 export const URL_GET_ADDRESSES = 'api/v1/addresses';
-
+export const URL_GET_MAP_FORWARD = "api/v1/geocode/forward"
 
 // Create a separate axios instance for the external API
 const externalHttp = axios.create({
@@ -72,6 +73,12 @@ const addressAPI = {
   deleteAddress(id: number) {
     return http.delete<SuccessResponse<void>>(`${URL_GET_ADDRESSES}/${id}`);
   },
+
+  getMapForward(address: string) {
+    return http.get<SuccessResponse<Forward>>(URL_GET_MAP_FORWARD, {
+      params: { address }
+    });
+  }
 };
 
 export default addressAPI;

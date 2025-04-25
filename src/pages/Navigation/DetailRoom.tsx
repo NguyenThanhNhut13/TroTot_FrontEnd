@@ -19,18 +19,16 @@ import {
   FaHeart,
   FaRegHeart,
   FaShareAlt,
-  FaBed,
-  FaBath,
-  FaWifi,
-  FaRegClock,
   FaRegCalendarAlt,
   FaUserAlt,
-  FaHome,
   FaAngleRight,
 } from "react-icons/fa";
 import roomApi from "../../apis/room.api.";
 import { RoomGetByID } from "../../types/room.type";
 import { toast } from "react-toastify";
+import RoomMap from "../../components/common/Map/RoomMap";
+import addressAPI from "../../apis/address.api";
+import { get } from "lodash";
 
 export default function DetailRoom() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +38,8 @@ export default function DetailRoom() {
   const [error, setError] = useState<string | null>(null);
   const [showPhone, setShowPhone] = useState<boolean>(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+  const [latitude, setLatitude] = useState(0);
 
   // Fetch room details by ID
   useEffect(() => {
@@ -52,6 +52,7 @@ export default function DetailRoom() {
         if (response?.data?.data) {
           setRoom(response.data.data);
         }
+
       } catch (error) {
         console.error("Error fetching room details:", error);
         setError("Không thể tải thông tin phòng. Vui lòng thử lại sau.");
@@ -125,6 +126,18 @@ export default function DetailRoom() {
       </Container>
     );
   }
+
+  // if (room) {
+  //   const getMapForWard = async () => {
+      
+  //     const reponseForward = await addressAPI.getMapForward(`${ room.address.houseNumber }, ${room.address.street},${room.address.ward}, ${room.address.district},${" "}${room.address.province}`);
+  //     setLongitude(reponseForward.data.data.longitude);
+  //     setLatitude(reponseForward.data.data.latitude);
+  //     console.log(longitude, latitude);
+  //   }
+
+  //   getMapForWard()
+  // }
 
   // Create an array of imageUrls for the carousel
   const imageUrls = room.images.map((image) => image.imageUrl);
@@ -243,7 +256,7 @@ export default function DetailRoom() {
                 <Card.Body className="text-center">
                   <div className="text-primary h5 mb-1">Giá thuê</div>
                   <div className="h3 text-danger fw-bold">
-                    {(room.price)} đ/tháng
+                    {room.price} đ/tháng
                   </div>
                 </Card.Body>
               </Card>
@@ -262,9 +275,7 @@ export default function DetailRoom() {
               <Card className="h-100 bg-light border-0">
                 <Card.Body className="text-center">
                   <div className="text-primary h5 mb-1">Đặt cọc</div>
-                  <div className="h3 fw-bold">
-                    {(room.deposit)} đ
-                  </div>
+                  <div className="h3 fw-bold">{room.deposit} đ</div>
                 </Card.Body>
               </Card>
             </Col>
@@ -334,7 +345,7 @@ export default function DetailRoom() {
                   </tr>
                   <tr>
                     <td>Ngày đăng:</td>
-                    <td>{(room.createdAt)}</td>
+                    <td>{room.createdAt}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -408,13 +419,7 @@ export default function DetailRoom() {
                 }}
               >
                 <div className="text-center text-muted">
-                  <FaMapMarkerAlt size={40} className="text-danger mb-2" />
-                  <h5>Bản đồ sẽ được hiển thị tại đây</h5>
-                  <p>
-                    {room.address.houseNumber}, {room.address.street},{" "}
-                    {room.address.ward}, {room.address.district},{" "}
-                    {room.address.province}
-                  </p>
+                  <RoomMap latitude={10.7958642}  longitude={106.7067786}/>
                 </div>
               </div>
             </Card.Body>
@@ -437,7 +442,7 @@ export default function DetailRoom() {
                   <h5 className="mb-1">{room.posterName}</h5>
                   <div className="small">
                     <FaRegCalendarAlt className="me-1" /> Đã đăng:{" "}
-                    {(room.createdAt)}
+                    {room.createdAt}
                   </div>
                 </div>
               </div>
@@ -511,7 +516,7 @@ export default function DetailRoom() {
                           : "siêu thị"}
                       </div>
                       <div className="small text-danger">
-                        {(room.price - item * 200000)} đ/tháng
+                        {room.price - item * 200000} đ/tháng
                       </div>
                       <div className="d-flex align-items-center">
                         <div className="small text-secondary me-2">
