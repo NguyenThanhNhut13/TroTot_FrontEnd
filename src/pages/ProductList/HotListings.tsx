@@ -4,6 +4,7 @@ import roomApi from "../../apis/room.api."; // update path if needed
 import { Room } from "../../types/room.type"; // kiểu gốc từ API
 
 interface Listing {
+  id: number;
   image: string;
   title: string;
   price: string;
@@ -58,6 +59,7 @@ const HotListings: React.FC<HotListingsProps> = ({
         const rooms = res.data.data.content;
 
         const mapped: Listing[] = rooms.map((room: Room) => ({
+          id: room.id,
           image:
             room.imageUrls[0] ||
             "https://tromoi.com/uploads/guest/o_1h5tpk1fl1i0047413epqpsee3a.jpg",

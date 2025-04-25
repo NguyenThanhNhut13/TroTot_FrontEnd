@@ -10,7 +10,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FaSearch, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
+import { FaSearch, FaMapMarkerAlt, FaHeart, FaMap } from "react-icons/fa";
 import http from "../../utils/http"; // Make sure this import path is correct
 import {
   Amenity,
@@ -20,6 +20,8 @@ import {
   TargetAudience,
 } from "../../types/room.type";
 import roomApi from "../../apis/room.api.";
+import { District, Province, Ward } from "../../types/address.type";
+import addressAPI from "../../apis/address.api";
 
 export interface Listing {
   id: number;
@@ -34,6 +36,16 @@ interface Props {
   title: string;
   roomType: "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE";
 }
+
+const priceLabelMap: Record<string, string> = {
+  all: "Tất cả mức giá",
+  "under-1m": "Dưới 1 triệu",
+  "1-10m": "1 - 10 triệu",
+  "10-30m": "10 - 30 triệu",
+  "30-50m": "30 - 50 triệu",
+  "50m-plus": "Trên 50 triệu",
+  "100m-plus": "Trên 100 triệu",
+};
 
 const CategorySharedPage = ({ title, roomType }: Props) => {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -68,6 +80,20 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     };
   });
 
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+
+  const [selectedProvince, setSelectedProvince] = useState<string>("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedWard, setSelectedWard] = useState<string>("");
+
+  const [priceRange, setPriceRange] = useState("all");
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
   // Save selectedFilters to localStorage when they change
   useEffect(() => {
     localStorage.setItem(
@@ -85,7 +111,6 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     { id: "above80", label: "Trên 80 m2" },
   ];
 
-  // Fetch data from API
   useEffect(() => {
     const amenitiesLS = localStorage.getItem(`amenities`);
     const targetAudiencesLS = localStorage.getItem(`targetAudiences`);
@@ -166,7 +191,6 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     }
   }, [roomType]);
 
-  // Fetch search params from localStorage on component mount
   useEffect(() => {
     const params = localStorage.getItem("searchParams");
     if (params) {
@@ -188,7 +212,319 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     }
   }, [roomType]);
 
-  // Perform search with given params
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      if (localStorage.getItem("provinces")) {
+        const cachedProvinces = localStorage.getItem("provinces");
+        if (cachedProvinces) {
+          setProvinces(JSON.parse(cachedProvinces) as Province[]);
+          return;
+        }
+      }
+      try {
+        setLoading(true);
+        const response = await addressAPI.getProvinces();
+        if (response.data && response.data.data && response.data.data.data) {
+          setProvinces(response.data.data.data as Province[]);
+          localStorage.setItem(
+            "provinces",
+            JSON.stringify(response.data.data.data as Province[])
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching provinces:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProvinces();
+  }, []);
+
+  // Fetch districts when province changes
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      if (!selectedProvince) {
+        setDistricts([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await addressAPI.getDistricts(selectedProvince);
+        if (response.data && response.data.data && response.data.data.data) {
+          setDistricts(response.data.data.data as District[]);
+        }
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDistricts();
+    // Reset dependent fields
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setWards([]);
+  }, [selectedProvince]);
+
+  // Fetch wards when district changes
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (!selectedDistrict) {
+        setWards([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await addressAPI.getWards(selectedDistrict);
+        if (response.data && response.data.data && response.data.data.data) {
+          setWards(response.data.data.data as Ward[]);
+        }
+      } catch (error) {
+        console.error("Error fetching wards:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWards();
+    // Reset dependent field
+    setSelectedWard("");
+  }, [selectedDistrict]);
+
+  const resetLocationSelections = () => {
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
+  };
+
+  const handleSearch = () => {
+    const searchParams: any = {
+      roomType: roomType
+    };
+
+    if (selectedProvince) {
+      const provinceName = provinces.find(p => p.code === selectedProvince)?.name;
+      searchParams.province = provinceName;
+    }
+
+    if (selectedDistrict) {
+      const districtName = districts.find(d => d.code === selectedDistrict)?.name;
+      searchParams.district = districtName;
+    }
+
+    if (selectedWard) {
+      const wardName = wards.find(w => w.code === selectedWard)?.name;
+      searchParams.ward = wardName;
+    }
+
+    if (priceRange && priceRange !== 'all') {
+      switch (priceRange) {
+        case 'under-1m':
+          searchParams.maxPrice = 1000000;
+          break;
+        case '1-10m':
+          searchParams.minPrice = 1000000;
+          searchParams.maxPrice = 10000000;
+          break;
+        case '10-30m':
+          searchParams.minPrice = 10000000;
+          searchParams.maxPrice = 30000000;
+          break;
+        case '30-50m':
+          searchParams.minPrice = 30000000;
+          searchParams.maxPrice = 50000000;
+          break;
+        case '50m-plus':
+          searchParams.minPrice = 50000000;
+          break;
+        case '100m-plus':
+          searchParams.minPrice = 100000000;
+          break;
+      }
+    } else if (minPriceInput || maxPriceInput) {
+      if (minPriceInput) {
+        searchParams.minPrice = parseFloat(minPriceInput) * 1000000;
+      }
+      if (maxPriceInput) {
+        searchParams.maxPrice = parseFloat(maxPriceInput) * 1000000;
+      }
+    }
+
+    if (searchTerm) {
+      searchParams.query = searchTerm;
+    }
+
+    performSearch(searchParams);
+  };
+
+  const resetList = () => {
+    // Reset search states
+    setSearchTerm("");
+    setPriceRange("all");
+    setMinPriceInput("");
+    setMaxPriceInput("");
+    resetLocationSelections();
+    
+    // Reset filters
+    setSelectedFilters({
+      area: [],
+      amenities: [],
+      targetAudiences: [],
+      surroundingAreas: [],
+    });
+    
+    // Reset search parameters
+    setSearchParams(null);
+    localStorage.removeItem("searchParams");
+    
+    // Reload listings from localStorage or perform a fresh search
+    const cachedData = localStorage.getItem(`list${roomType}Pagging`);
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        setListings(parsedData);
+        setFilteredListings(parsedData);
+        setTotalCount(parsedData.length);
+      } catch (error) {
+        console.error("Error parsing cached data:", error);
+        // If cached data fails, perform a basic search
+        performSearch({ roomType });
+      }
+    } else {
+      // If no cache, perform a basic search
+      performSearch({ roomType });
+    }
+  };
+
+  const handleSearchAdvanced = () => {
+    const searchParams: any = {
+      roomType: roomType
+    };
+
+    // Add location parameters
+    if (selectedProvince) {
+      const provinceName = provinces.find(p => p.code === selectedProvince)?.name;
+      searchParams.province = provinceName;
+    }
+
+    if (selectedDistrict) {
+      const districtName = districts.find(d => d.code === selectedDistrict)?.name;
+      searchParams.district = districtName;
+    }
+
+    if (selectedWard) {
+      const wardName = wards.find(w => w.code === selectedWard)?.name;
+      searchParams.ward = wardName;
+    }
+
+    // Add price parameters
+    if (priceRange && priceRange !== 'all') {
+      switch (priceRange) {
+        case 'under-1m':
+          searchParams.maxPrice = 1000000;
+          break;
+        case '1-10m':
+          searchParams.minPrice = 1000000;
+          searchParams.maxPrice = 10000000;
+          break;
+        case '10-30m':
+          searchParams.minPrice = 10000000;
+          searchParams.maxPrice = 30000000;
+          break;
+        case '30-50m':
+          searchParams.minPrice = 30000000;
+          searchParams.maxPrice = 50000000;
+          break;
+        case '50m-plus':
+          searchParams.minPrice = 50000000;
+          break;
+        case '100m-plus':
+          searchParams.minPrice = 100000000;
+          break;
+      }
+    } else if (minPriceInput || maxPriceInput) {
+      if (minPriceInput) {
+        searchParams.minPrice = parseFloat(minPriceInput) * 1000000;
+      }
+      if (maxPriceInput) {
+        searchParams.maxPrice = parseFloat(maxPriceInput) * 1000000;
+      }
+    }
+
+    // Add search term
+    if (searchTerm) {
+      searchParams.query = searchTerm;
+    }
+
+    // Add area filters
+    if (selectedFilters.area.length > 0) {
+      const areaRanges = [];
+      for (const area of selectedFilters.area) {
+        switch (area) {
+          case 'under20':
+            areaRanges.push('0-20');
+            break;
+          case '20-40':
+            areaRanges.push('20-40');
+            break;
+          case '40-60':
+            areaRanges.push('40-60');
+            break;
+          case '60-80':
+            areaRanges.push('60-80');
+            break;
+          case 'above80':
+            areaRanges.push('80-999');
+            break;
+        }
+      }
+      searchParams.areaRange = areaRanges.join(',');
+    }
+
+    // Add amenities
+      if (selectedFilters.amenities.length > 0) {
+        const amenityNames = selectedFilters.amenities.map((id: string) => {
+          const amenity = amenities.find(a => a.id.toString() === id);
+          return amenity ? amenity.name : '';
+        }).filter(Boolean);
+        
+        if (amenityNames.length > 0) {
+          searchParams.amenities = amenityNames.join(',');
+        }
+      }
+  
+      // Add surrounding areas
+      if (selectedFilters.surroundingAreas.length > 0) {
+        const areaNames = selectedFilters.surroundingAreas.map((id: string) => {
+          const area = surroundingAreas.find(a => a.id.toString() === id);
+          return area ? area.name : '';
+        }).filter(Boolean);
+        
+        if (areaNames.length > 0) {
+          searchParams.environment = areaNames.join(',');
+        }
+      }
+  
+      // Add target audiences
+      if (selectedFilters.targetAudiences.length > 0) {
+        const audienceNames = selectedFilters.targetAudiences.map((id: string) => {
+          const audience = targetAudiences.find(a => a.id.toString() === id);
+          return audience ? audience.name : '';
+        }).filter(Boolean);
+      
+      if (audienceNames.length > 0) {
+        searchParams.targetAudience = audienceNames.join(',');
+      }
+    }
+
+    // Perform the search with the constructed parameters
+    performSearch(searchParams);
+  }
+
   const performSearch = async (params: any) => {
     setIsSearching(true);
     try {
@@ -198,7 +534,6 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
         roomType: roomType,
       };
 
-      // Add search params if they exist
       if (params.query) {
         searchRoomParams.street = params.query;
       }
@@ -223,7 +558,6 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
         searchRoomParams.areaRange = params.areaRange;
       }
 
-      // Gọi API tìm kiếm
       const response = await roomApi.searchRooms(searchRoomParams);
 
       if (response.data && response.data.data && response.data.data.content) {
@@ -437,84 +771,241 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
               className="border-start px-3 d-flex align-items-center"
               style={{ height: "45px" }}
             >
-              <div className="dropdown">
-                <button
-                  className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
-                  type="button"
-                  id="locationDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style={{ minWidth: "180px" }}
-                >
-                  <span>Địa điểm</span>
-                </button>
-                <ul
-                  className="dropdown-menu"
-                  aria-labelledby="locationDropdown"
-                >
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Hồ Chí Minh
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Hà Nội
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Đà Nẵng
-                    </a>
-                  </li>
-                </ul>
+              <div
+                className=" px-3 d-flex align-items-center"
+                style={{ height: "45px" }}
+              >
+                <div className="dropdown">
+                  <button
+                    className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
+                    type="button"
+                    id="dropdownLocation"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <div className="d-flex align-items-center">
+                      {selectedWard ? (
+                        <span
+                          className="text-truncate d-inline-block"
+                          style={{
+                            maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {(wards.find((w) => w.code === selectedWard)?.name ||
+                            "") +
+                            ", " +
+                            (districts.find((d) => d.code === selectedDistrict)
+                              ?.name || "") +
+                            ", " +
+                            (provinces.find((p) => p.code === selectedProvince)
+                              ?.name || "")}
+                        </span>
+                      ) : selectedDistrict ? (
+                        <span
+                          className="text-truncate d-inline-block"
+                          style={{
+                            maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {(districts.find((d) => d.code === selectedDistrict)
+                            ?.name || "") +
+                            ", " +
+                            (provinces.find((p) => p.code === selectedProvince)
+                              ?.name || "")}
+                        </span>
+                      ) : selectedProvince ? (
+                        <span
+                          className="text-truncate d-inline-block"
+                          style={{
+                            maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {provinces.find((p) => p.code === selectedProvince)
+                            ?.name || ""}
+                        </span>
+                      ) : (
+                        <span>Địa điểm</span>
+                      )}
+                    </div>
+                  </button>
+                  <div
+                    className="dropdown-menu p-0 w-100"
+                    style={{ zIndex: 1050 }}
+                    aria-labelledby="dropdownLocation"
+                  >
+                    <div className="location-form p-0">
+                      <div className="mb-0">
+                        <Form.Select
+                          value={selectedProvince}
+                          onChange={(e) => {
+                            setSelectedProvince(e.target.value);
+                            setSelectedDistrict("");
+                            setSelectedWard("");
+                          }}
+                          className="border-0 border-bottom rounded-0 py-3"
+                          disabled={loading}
+                        >
+                          <option key="default-province" value="">Chọn Tỉnh/TP...</option>
+                          {Array.isArray(provinces) &&
+                            provinces.map((province) => (
+                              <option key={province.code} value={province.code}>
+                                {province.name_with_type}
+                              </option>
+                            ))}
+                        </Form.Select>
+                      </div>
+
+                      <div className="mb-0">
+                        <Form.Select
+                          value={selectedDistrict}
+                          onChange={(e) => {
+                            setSelectedDistrict(e.target.value);
+                            setSelectedWard("");
+                          }}
+                          className="border-0 border-bottom rounded-0 py-3"
+                          disabled={!selectedProvince || loading}
+                        >
+                          <option value="">Quận/Huyện...</option>
+                          {districts.map((district) => (
+                            <option key={district.code} value={district.code}>
+                              {district.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </div>
+
+                      <div className="mb-0">
+                        <Form.Select
+                          value={selectedWard}
+                          onChange={(e) => setSelectedWard(e.target.value)}
+                          className="border-0 border-bottom rounded-0 py-3"
+                          disabled={!selectedDistrict || loading}
+                        >
+                          <option value="">Đường phố...</option>
+                          {wards.map((ward) => (
+                            <option key={ward.id} value={ward.code}>
+                              {ward.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </div>
+
+                      <div className="d-flex justify-content-between p-2">
+                        <Button
+                          variant="link"
+                          className="text-decoration-none d-flex align-items-center"
+                          onClick={resetLocationSelections}
+                        >
+                          <i className="bi bi-arrow-repeat me-1"></i> Đặt lại
+                        </Button>
+                        <Button onClick={handleSearch} variant="primary">
+                          Tìm ngay
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Price dropdown */}
             <div
               className="border-start px-3 d-flex align-items-center"
-              style={{ height: "45px" }}
+              style={{ height: "45px" , minWidth : "280px" }}
             >
-              <div className="dropdown">
-                <button
-                  className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
-                  type="button"
-                  id="priceDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style={{ minWidth: "180px" }}
-                >
-                  <span>Mức giá</span>
-                </button>
-                <ul className="dropdown-menu" aria-labelledby="priceDropdown">
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Dưới 1 triệu
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      1-3 triệu
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      3-5 triệu
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      5-10 triệu
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Trên 10 triệu
-                    </a>
-                  </li>
-                </ul>
-              </div>
+              <Dropdown className="w-100 h-100">
+                <Dropdown.Toggle className="bg-white border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between" style={{color: "#363940"}}>
+                  <span className="text-start w-100">
+                    {minPriceInput || maxPriceInput
+                      ? `Từ ${minPriceInput || "0"} → ${
+                          maxPriceInput || "∞"
+                        } triệu`
+                      : priceLabelMap[priceRange] || "Mức giá"}
+                  </span>
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu className="w-100 p-3" style={{ zIndex: 1050 }}>
+                  <div className="mb-3">
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="pe-2 flex-grow-1">
+                        <Form.Control
+                          type="text"
+                          placeholder="Từ"
+                          className="rounded"
+                          value={minPriceInput}
+                          onChange={(e) => {
+                            setMinPriceInput(e.target.value);
+                            setPriceRange(""); // reset radio
+                          }}
+                        />
+                      </div>
+                      <div className="px-2">→</div>
+                      <div className="ps-2 flex-grow-1">
+                        <Form.Control
+                          type="text"
+                          placeholder="Đến"
+                          className="rounded"
+                          value={maxPriceInput}
+                          onChange={(e) => {
+                            setMaxPriceInput(e.target.value);
+                            setPriceRange(""); // reset radio
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {Object.entries(priceLabelMap).map(([key, label]) => (
+                      <Form.Check
+                        type="radio"
+                        id={key}
+                        name="price-range"
+                        key={key}
+                        label={
+                          key === "all" ? (
+                            <span className="fw-bold">{label}</span>
+                          ) : (
+                            label
+                          )
+                        }
+                        checked={priceRange === key}
+                        onChange={() => {
+                          setPriceRange(key);
+                          setMinPriceInput("");
+                          setMaxPriceInput("");
+                        }}
+                        className="mb-2"
+                      />
+                    ))}
+                  </div>
+
+                  <div className="d-flex justify-content-between p-2">
+                    <Button
+                      variant="link"
+                      className="text-decoration-none d-flex align-items-center"
+                      onClick={() => {
+                        setMinPriceInput("");
+                        setMaxPriceInput("");
+                        setPriceRange("all");
+                        resetList()
+                      }}
+                    >
+                      <i className="bi bi-arrow-repeat me-1"></i> Đặt lại
+                    </Button>
+                    <Button onClick={handleSearch} variant="primary">
+                      Tìm ngay
+                    </Button>
+                  </div>
+                </Dropdown.Menu>
+              </Dropdown>
             </div>
 
             {/* Search button */}
@@ -527,6 +1018,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                   height: "45px",
                   fontWeight: "500",
                 }}
+                onClick={handleSearch}
               >
                 <FaSearch className="me-2" /> Tìm kiếm
               </button>
@@ -664,6 +1156,13 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                   ))
                 )}
               </div>
+
+                <button
+                  className="btn btn-primary w-100"
+                  onClick={handleSearchAdvanced}
+                >
+                  Tìm kiếm nâng cao
+              </button>
             </div>
           </div>
 
@@ -691,7 +1190,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
 
             {!isSearching &&
               filteredListings.map((listing, index) => (
-                <Card key={index} className="mb-3 border-0 shadow-sm">
+                <Card key={listing.id} className="mb-3 border-0 shadow-sm">
                   <div className="position-relative">
                     {/* HOT label */}
                     <div
@@ -725,8 +1224,8 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                           </div>
 
                           <Card.Text className="text-danger fw-bold mb-2">
-                            {listing.price}
-                            triệu/tháng
+                          {listing.price.toLocaleString()}/tháng
+                            
                           </Card.Text>
 
                           <div className="d-flex mb-2">
@@ -739,7 +1238,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                           </div>
 
                           <Link
-                            to={`/phong-tro/${index}`}
+                            to={`/phong-tro/${listing.id}`}
                             className="text-decoration-none"
                           >
                             <Button variant="primary" className="mt-1">

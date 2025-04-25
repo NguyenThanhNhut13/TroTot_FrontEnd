@@ -12,6 +12,7 @@ import GeneralStatsPage from "./pages/AdminPage/GeneralStatsPage";
 import SavedRoom from "./pages/Profile/SavedRoom";
 import Notifications from "./pages/Profile/Notifycations";
 import ReviewRoom from "./pages/Profile/ReviewRoom";
+import DetailRoom from "./pages/Navigation/DetailRoom";
 
 export default function useRouteElement() {
   const routeElement = useRoutes([
@@ -64,6 +65,10 @@ export default function useRouteElement() {
           path: "/reviews",
           element: <ReviewRoom />, // Đánh giá phòng
         },
+        {
+          path: "/phong-tro/:id",
+          element: <DetailRoom />, // thêm đường dẫn mới cho trang chi tiết phòng
+        }
       ],
     },
   ]);

@@ -1,4 +1,4 @@
-import { GetRoomsResponse, RoomSearchParams } from "../types/room.type";
+import { GetRoomsResponse, RoomGetByID, RoomSearchParams } from "../types/room.type";
 import http from "../utils/http";
 import { SuccessResponse } from "../types/utils.type";
 import {
@@ -11,7 +11,7 @@ import {
 export const URL_GET_ROOMS = "api/v1/rooms";
 export const URL_SEARCH_ROOMS = "api/v1/rooms/search";
 export const URL_GET_WISH_LIST = "api/v1/users/wish-list";
-
+export const URL_GET_ROOM_BY_ID = "api/v1/rooms";
 
 const roomApi = {
   getRooms(
@@ -94,6 +94,10 @@ const roomApi = {
     return http.get<GetRoomsResponse>(URL_GET_WISH_LIST, {
       params: { page, size },
     });
+  },
+
+  getRoomById(id: number) {
+    return http.get<SuccessResponse<RoomGetByID>>(`${URL_GET_ROOMS}/${id}`);
   },
 };
 

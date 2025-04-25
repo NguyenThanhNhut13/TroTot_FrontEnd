@@ -105,3 +105,55 @@ export interface RoomSearchParams {
 }
   
   export type GetRoomsResponse = SuccessResponse<PaginatedRoomResponse>;
+
+
+  export type RoomGetByID = {
+    id: number;
+    userId: number;
+    address: {
+      id: number;
+      province: string;
+      district: string;
+      ward: string;
+      street: string;
+      houseNumber: string;
+      latitude: number;
+      longitude: number;
+    };
+    title: string;
+    description: string;
+    price: number;
+    area: number;
+    selfManaged: boolean;
+    totalRooms: number;
+    maxPeople: number;
+    forGender: "ALL" | "MALE" | "FEMALE";
+    deposit: number;
+    posterName: string;
+    posterPhone: string;
+    images: {
+      id: number;
+      publicId: string;
+      imageUrl: string;
+    }[];
+    roomType: "APARTMENT" | "BOARDING_HOUSE" | "WHOLE_HOUSE";
+    amenities: {
+      id: number;
+      name: string;
+    }[];
+    surroundingAreas: {
+      id: number;
+      name: string;
+    }[];
+    targetAudiences: {
+      id: number;
+      name: string;
+    }[];
+    numberOfLivingRooms: number;
+    numberOfKitchens: number;
+    numberOfBathrooms: number;
+    numberOfBedrooms: number;
+    createdAt: string; // ISO date string
+    updatedAt: string; // ISO date string
+  };
+  

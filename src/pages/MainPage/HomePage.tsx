@@ -503,14 +503,12 @@ const HomePage = () => {
                               >
                                 <option value="">Chọn Tỉnh/TP...</option>
                                 {Array.isArray(provinces) &&
-                                  provinces.map((province) => (
-                                    <option
-                                      key={province.id}
-                                      value={province.code}
-                                    >
+                                  provinces.map((province, index) => (
+                                    <option key={province.code || index} value={province.code}>
                                       {province.name_with_type}
                                     </option>
-                                  ))}
+                                  ))
+                                  }
                               </Form.Select>
                             </div>
 
