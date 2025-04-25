@@ -1,14 +1,33 @@
-import React, { useContext, useState } from "react"; 
+import React, { use, useContext, useEffect, useState } from "react"; 
 import { Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../contexts/app.context";
-import PurchasePostModal from "../RoomPostPage/PurchasePostModal"; 
+import PurchasePostModal from "../RoomPostPage/PurchaseSlot"; 
 import "../../assets/styles/Sidebar.css"; 
+import { number } from "yup";
+import paymentAPI from "../../apis/payment.api";
+import { toast } from "react-toastify";
 
 const Sidebar = () => {
   const { profile } = useContext(AppContext);
   const navigate = useNavigate();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false); // Trạng thái hiển thị modal
+  const [total, setTotal] = useState<number>(0);
+
+
+  useEffect(() => {
+    const userId = profile?.id;
+    if (userId) {
+    const getTotal = async () => {
+      try{
+        const response  = await paymentAPI.getWallet(userId);
+        setTotal(response.data.data.balance);
+      }catch (error) {
+        toast.error("Lỗi khi lấy thông tin ví");
+      }
+    }
+    getTotal()}
+  })
 
   const sidebarItems = [
     { icon: "📊", label: "Thông tin chung", path: "/profile" },
@@ -30,6 +49,14 @@ const Sidebar = () => {
     setShowPurchaseModal(true); // Hiển thị modal
   };
 
+  const formatVND = (value: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
+  };
+  
+
   return (
     <div className="sidebar p-3">
       <div className="text-center mb-3">
@@ -47,7 +74,7 @@ const Sidebar = () => {
       <div className="mb-3 px-2">
         <div className="d-flex justify-content-between">
           <span>TK chính:</span>
-          <span className="text-danger fw-bold">0 đ</span>
+          <span className="text-danger fw-bold">{formatVND(total)}</span>
         </div>
         <div className="d-flex justify-content-between">
           <span>TK khuyến mãi:</span>
@@ -98,6 +125,7 @@ const Sidebar = () => {
 
       {/* Modal mua số lượng tin đăng */}
       <PurchasePostModal
+        total={total}
         show={showPurchaseModal}
         onHide={() => setShowPurchaseModal(false)}
       />

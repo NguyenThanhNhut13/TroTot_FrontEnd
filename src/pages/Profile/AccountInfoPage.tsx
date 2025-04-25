@@ -66,9 +66,7 @@ const AccountInfoPage = () => {
 
       if (response.data.success) {
         setShowOtpModal(true);
-        toast.success(
-          `Mã OTP đã được gửi đến ${value}`
-        );
+        toast.success(`Mã OTP đã được gửi đến ${value}`);
       } else {
         toast.error(
           response.data.message || "Có lỗi xảy ra, vui lòng thử lại sau"
@@ -116,7 +114,6 @@ const AccountInfoPage = () => {
     setShowOtpModal(false);
     setOtp("");
   };
-
 
   return (
     <Container fluid className="p-0">
