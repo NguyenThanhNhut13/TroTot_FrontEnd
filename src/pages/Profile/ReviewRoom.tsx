@@ -1,8 +1,8 @@
-import React from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import Sidebar from '../MainPage/SidebarPersion';
-import { FaPencilAlt } from 'react-icons/fa';
-import './ReviewRoom.css';
+import React from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import Sidebar from "../MainPage/SidebarPersion";
+import { FaPencilAlt } from "react-icons/fa";
+import "./ReviewRoom.css";
 
 export default function ReviewRoom() {
   return (
@@ -21,18 +21,18 @@ export default function ReviewRoom() {
           </p>
 
           <div className="empty-reviews-container text-center py-5">
-            <img 
-              src="/images/empty-review.svg" 
-              alt="No reviews" 
+            <img
+              src="/images/empty-review.svg"
+              alt="No reviews"
               className="empty-review-image mb-4"
-              style={{ maxWidth: '300px' }}
+              style={{ maxWidth: "300px" }}
             />
             <h4 className="fw-bold mb-2">Bạn chưa viết đánh giá nào</h4>
             <p className="text-muted mb-4">
               Hãy chia sẻ trải nghiệm của bạn bằng cách viết đánh giá đầu tiên.
             </p>
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               className="px-4 py-2 d-inline-flex align-items-center"
             >
               <FaPencilAlt className="me-2" />

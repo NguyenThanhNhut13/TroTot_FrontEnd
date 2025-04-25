@@ -777,7 +777,7 @@ const HomePage = () => {
       <HotListings roomType="WHOLE_HOUSE" title="NHÀ NGUYÊN CĂN CHO THUÊ" />
       <HotListings
         roomType="BOARDING_HOUSE"
-        title="CĂN HỘ, CHUNG CƯ CHO THUÊ"
+        title="NHÀ TRỌ, PHÒNG TRỌ"
       />
       <ProvinceListings provinces={provinces} />
     </div>

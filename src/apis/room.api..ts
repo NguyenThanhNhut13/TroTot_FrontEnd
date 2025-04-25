@@ -36,12 +36,7 @@ const roomApi = {
 
 
   createRoom(formData: FormData) {
-    return http.post<SuccessResponse<CreateRoomDTO>>(URL_GET_ROOMS, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        // Authorization header is handled by the interceptor
-      },
-    });
+    return http.post<SuccessResponse<any>>(URL_GET_ROOMS, formData);
   },
 
   getAmenities() {

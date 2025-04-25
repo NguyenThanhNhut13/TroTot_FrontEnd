@@ -5,6 +5,7 @@ import { FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import "./SavedRoom.css";
 import axios from "axios";
 import { toast } from "react-toastify";
+import roomApi from "../../apis/room.api.";
 
 interface Room {
   id: number;
@@ -33,7 +34,7 @@ export default function SavedRoom() {
       price: "3.5 triệu/tháng",
       type: "Nhà trọ, phòng trọ",
       area: 22,
-      imageUrl: "/images/room1.jpg",
+      imageUrl: "",
       district: "Bình Thạnh",
       city: "Thành phố Hồ Chí Minh",
       isHot: true,
@@ -46,7 +47,7 @@ export default function SavedRoom() {
       price: "4 triệu/tháng",
       type: "Nhà trọ, phòng trọ",
       area: 16,
-      imageUrl: "/images/room2.jpg",
+      imageUrl: "",
       district: "Bình Thạnh",
       city: "Thành phố Hồ Chí Minh",
       isHot: true,
@@ -58,7 +59,7 @@ export default function SavedRoom() {
     const fetchSavedRooms = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("api/v1/users/wish-listv");
+        const response = await roomApi.getWishList();
 
         if (response.data && Array.isArray(response.data.data)) {
           // Map API response to Room interface

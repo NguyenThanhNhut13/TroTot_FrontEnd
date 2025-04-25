@@ -23,3 +23,5 @@ export interface SuccessResponseOfUpdateCredentials<Data> {
   data: Data;
   success: boolean;
 }
+
+

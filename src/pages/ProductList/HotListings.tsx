@@ -195,7 +195,14 @@ const HotListings: React.FC<HotListingsProps> = ({
       )}
 
       <div className="mt-3 d-flex justify-content-center">
-        <Button variant="outline-primary" className="px-4">
+        <Button 
+          variant="outline-primary" 
+          className="px-4"
+          href={roomType === 'BOARDING_HOUSE' ? '/category/nha-tro-phong-tro' : 
+            roomType === 'APARTMENT' ? '/category/chung-cu-can-ho' :
+            roomType === 'WHOLE_HOUSE' ? '/category/nha-nguyen-can' :
+           '/category/all'}
+        >
           Xem tất cả <i className="fas fa-arrow-right ms-1"></i>
         </Button>
       </div>

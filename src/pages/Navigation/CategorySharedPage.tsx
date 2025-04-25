@@ -365,7 +365,7 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
   return (
     <div>
       {/* Blue header background with search */}
-      <div className="bg-primary text-white py-4">
+      <div className=" text-white py-4" style={{ backgroundColor: "#0145aa" }}>
         <div className="container">
           <h1 className="fw-bold mb-4">
             {title.toUpperCase()} GIÁ RẺ, MỚI NHẤT

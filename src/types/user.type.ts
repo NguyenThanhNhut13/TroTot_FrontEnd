@@ -7,7 +7,7 @@ export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'DELETED'
 export type AuthProvider = 'LOCAL' | 'GOOGLE' | 'FACEBOOK'
 
 export interface User {
-  id: string 
+  id: number 
   fullName: string
   address: string
   dob: string
@@ -17,7 +17,7 @@ export interface User {
 }
 
 export type UserRespone = SuccessResponse<{
-  id: string 
+  id: number 
   fullName: string
   address: string
   dob: string
