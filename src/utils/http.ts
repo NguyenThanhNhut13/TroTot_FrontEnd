@@ -114,10 +114,7 @@ export class Http {
           const { url } = config;
             // Trường hợp Token hết hạn và request đó không phải là của request refresh token
             // thì chúng ta mới tiến hành gọi refresh token
-            if ((isAxiosExpiredTokenError(error) || 
-              ((error as AxiosError<ResponseOfAccessToken401>).response?.data?.code === "INVALID_TOKEN" || 
-               (error as AxiosError<ResponseOfAccessToken401>).response?.data?.message === "Invalid or expired token")||
-               (error as AxiosError<ResponseOfAccessToken401>).response?.data?.message === "You need to login to access this resource.")
+            if ((isAxiosExpiredTokenError(error) )
               ) {
             // Hạn chế gọi 2 lần handleRefreshToken
             this.refreshTokenRequest = this.refreshTokenRequest
