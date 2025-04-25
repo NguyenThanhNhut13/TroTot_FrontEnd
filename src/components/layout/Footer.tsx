@@ -38,25 +38,25 @@ const Footer = () => {
             </p>
             <div className="d-flex mb-3">
               <img
-                src="https://tromoi.com/frontend/home/images/ohi/logo-ohi-didi.png"
+                src="https://tromoi.com/frontend/home/images/logo_ohdidi.png"
                 alt="ohi.didi"
                 height="30"
                 className="me-3"
               />
               <img
-                src="https://tromoi.com/frontend/home/images/ohi/logo-phong-kham-tot.png"
+                src="	https://tromoi.com/frontend/home/images/logo_phong_kham.png"
                 alt="phong kham tot"
                 height="30"
                 className="me-3"
               />
               <img
-                src="https://tromoi.com/frontend/home/images/ohi/logo-nha-dep-dat-tot.png"
+                src="https://tromoi.com/frontend/home/images/logo_nha_dat.png"
                 alt="nha dep dat tot"
                 height="30"
                 className="me-3"
               />
               <img
-                src="https://tromoi.com/frontend/home/images/ohi/logo-mat-bang-moi.png"
+                src="https://tromoi.com/frontend/home/images/logo_mat_bang.png"
                 alt="mat bang moi"
                 height="30"
               />
@@ -66,26 +66,26 @@ const Footer = () => {
             </h6>
             <div className="d-flex mb-3">
               <div className="me-3">
-                <img 
-                  src="https://tromoi.com/frontend/home/images/qrcode_app.png" 
+                <img
+                  src="https://tromoi.com/frontend/landing/app/images/img_qrcode.png"
                   alt="QR Code"
-                  style={{ width: '100px' }}
+                  style={{ width: "100px" }}
                   className="img-fluid"
                 />
               </div>
               <div className="d-flex flex-column">
                 <a href="#" className="mb-2">
-                  <img 
-                    src="https://tromoi.com/frontend/home/images/app-store-badge.svg" 
-                    alt="App Store" 
-                    style={{ height: '40px' }}
+                  <img
+                    src="https://tromoi.com/frontend/landing/app/images/img_download_appstore.png"
+                    alt="App Store"
+                    style={{ height: "40px" }}
                   />
                 </a>
                 <a href="#">
-                  <img 
-                    src="https://tromoi.com/frontend/home/images/google-play-badge.svg" 
-                    alt="Google Play" 
-                    style={{ height: '40px' }}
+                  <img
+                    src="https://tromoi.com/frontend/landing/app/images/img_download_googleplay.png"
+                    alt="Google Play"
+                    style={{ height: "40px" }}
                   />
                 </a>
               </div>

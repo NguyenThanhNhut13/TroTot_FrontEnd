@@ -41,7 +41,6 @@ const PostRoomPage = () => {
 
   // Hàm xử lý khi nhấn nút "Đăng ngay"
   const handlePostClick = (link: string) => {
-    console.log("Navigating to:", link);
     navigate(link);
   };
 

@@ -1,7 +1,6 @@
 import { SuccessResponse } from "./utils.type";
 
 export type RoomImage = {
-    id: number;
     publicId: string;
     imageUrl: string;
   };

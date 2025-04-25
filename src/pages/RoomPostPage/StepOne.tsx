@@ -5,12 +5,12 @@ import {
   Container,
   Row,
   Col,
-  Alert,
+  Card,
   Spinner,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useForm, SubmitHandler, Resolver } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { formCreateRoom, FormCreateRoomSchema } from "../../utils/rules";
 import { useMutation } from "@tanstack/react-query";
@@ -25,8 +25,21 @@ import {
 import Sidebar from "../MainPage/Sidebar";
 import { District, Province, Ward } from "../../types/address.type";
 import addressAPI from "../../apis/address.api";
+import {
+  FaCamera,
+  FaCloudUploadAlt,
+  FaInfoCircle,
+  FaMapMarkerAlt,
+  FaShower,
+  FaBed,
+  FaUtensils,
+  FaCouch,
+  FaUser,
+  FaUserFriends,
+  FaHome,
+} from "react-icons/fa";
 
-const RoomPostForm = () => {
+const StepOne = () => {
   const navigate = useNavigate();
   const { profile } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
@@ -41,18 +54,6 @@ const RoomPostForm = () => {
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
-  const [streets] = useState<string[]>([
-    "Đường 1A",
-    "Đường 2B",
-    "Đường 3C",
-    "Đường 4D",
-    "Đường 5E",
-    "Đường 6F",
-    "Đường 7G",
-    "Đường 8H",
-    "Đường 9I",
-    "Đường 10J",
-  ]);
 
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
@@ -60,100 +61,167 @@ const RoomPostForm = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  // Set up the form with validation
+  // Set up form with validation
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormCreateRoomSchema>({
     resolver: yupResolver(formCreateRoom) as Resolver<FormCreateRoomSchema>,
-    defaultValues: {
-      userId: Number(profile?.id) || 0,
-      address: {
-        province: "",
-        district: "",
-        ward: "",
-        street: "",
-        houseNumber: "",
-      },
-      title: "",
-      description: "",
-      price: 0,
-      area: 0,
-      selfManaged: false,
-      totalRooms: 1,
-      maxPeople: 1,
-      forGender: "ALL",
-      deposit: 0,
-      posterName: profile?.fullName || "",
-      posterPhone: "",
-      images: [],
-      roomType: "BOARDING_HOUSE",
-      amenities: [],
-      surroundingAreas: [],
-      targetAudiences: [],
-      numberOfLivingRooms: 0,
-      numberOfKitchens: 0,
-      numberOfBathrooms: 0,
-      numberOfBedrooms: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
   });
 
   // Create mutation for room creation
   const createRoomMutation = useMutation({
-    mutationFn: (data: FormCreateRoomSchema) => {
+    mutationFn: (body: FormCreateRoomSchema) => {
       const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (typeof value === "object" && value !== null) {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, String(value));
+      
+      // Convert form data to FormData object
+      Object.entries(body).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'object' && !Array.isArray(value)) {
+            // Handle nested objects like address
+            Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+              if (nestedValue !== undefined && nestedValue !== null) {
+                formData.append(`${key}.${nestedKey}`, String(nestedValue));
+              }
+            });
+          } else if (Array.isArray(value)) {
+            // Handle arrays like amenities, targetAudiences, surroundingAreas, images
+            formData.append(`${key}`, JSON.stringify(value));
+          } else {
+            // Handle primitive values
+            formData.append(key, String(value));
+          }
         }
       });
+      
       return roomApi.createRoom(formData);
     },
   });
 
-  // Fetch required data when component mounts
+  const onSubmit = handleSubmit(async (data) => {
+      setLoading(true);
+      console.log("first")
+      // Set address values
+      data.address.province = selectedProvince;
+      data.address.district = selectedDistrict;
+      data.address.ward = selectedWard;
+
+      // Validate required fields
+      if (
+        !data.address.province ||
+        !data.address.district ||
+        !data.address.ward
+      ) {
+        toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
+        setLoading(false);
+        return;
+      }
+
+      // Validate image upload
+      if (imageFiles.length === 0) {
+        toast.error("Vui lòng tải lên ít nhất một hình ảnh");
+        setLoading(false);
+        return;
+      }
+
+      // Upload images
+      const uploadedImages = await uploadImages();
+      if (!uploadedImages || uploadedImages.length === 0) {
+        toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
+        setLoading(false);
+        return;
+      }
+
+      // Set uploaded images to form data
+      data.images = uploadedImages;
+
+      // Ensure selfManaged is boolean
+      data.selfManaged =
+        typeof data.selfManaged === "string"
+          ? data.selfManaged === "true"
+          : Boolean(data.selfManaged);
+
+      // Submit data
+      createRoomMutation.mutate(data, {
+        onSuccess: async (data) => {
+          
+      toast.success("Đăng tin thành công!");
+      navigate("/post-room");
+        }
+       })
+
+  });
+
+  // Fetch required data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
+        // Try to get data from localStorage first
         const amenitiesLS = localStorage.getItem(`amenities`);
         const targetAudiencesLS = localStorage.getItem(`targetAudiences`);
         const surroundingAreasLS = localStorage.getItem(`surroundingAreas`);
+        const provincesLS = localStorage.getItem("provinces");
 
-        // If all data is available in localStorage, use it and set loading to false
-        if (amenitiesLS && targetAudiencesLS && surroundingAreasLS) {
-          try {
-            setAmenitiesList(JSON.parse(amenitiesLS));
-            setTargetAudiencesList(JSON.parse(targetAudiencesLS));
-            setSurroundingAreasList(JSON.parse(surroundingAreasLS));
-            setLoading(false); // Set loading to false when data is loaded from localStorage
-            return;
-          } catch (error) {
-            console.error("Error parsing cached data:", error);
-            // Continue to API fetch if there's an error with localStorage data
-          }
+        // Check if all data is available in localStorage
+        if (
+          amenitiesLS &&
+          targetAudiencesLS &&
+          surroundingAreasLS &&
+          provincesLS
+        ) {
+          setAmenitiesList(JSON.parse(amenitiesLS));
+          setTargetAudiencesList(JSON.parse(targetAudiencesLS));
+          setSurroundingAreasList(JSON.parse(surroundingAreasLS));
+          setProvinces(JSON.parse(provincesLS));
+          setLoading(false);
+          return;
         }
 
-        // Fetch amenities
-        const amenitiesRes = await roomApi.getAmenities();
-        setAmenitiesList(amenitiesRes.data.data);
+        // Fetch data from API if not available in localStorage
+        const [amenitiesRes, audiencesRes, areasRes, provincesRes] =
+          await Promise.all([
+            roomApi.getAmenities(),
+            roomApi.getTargetAudiences(),
+            roomApi.getSurroundingAreas(),
+            addressAPI.getProvinces(),
+          ]);
 
-        // Fetch target audiences
-        const audiencesRes = await roomApi.getTargetAudiences();
-        setTargetAudiencesList(audiencesRes.data.data);
+        if (amenitiesRes.data?.data) {
+          setAmenitiesList(amenitiesRes.data.data);
+          localStorage.setItem(
+            `amenities`,
+            JSON.stringify(amenitiesRes.data.data)
+          );
+        }
 
-        // Fetch surrounding areas
-        const areasRes = await roomApi.getSurroundingAreas();
-        setSurroundingAreasList(areasRes.data.data);
+        if (audiencesRes.data?.data) {
+          setTargetAudiencesList(audiencesRes.data.data);
+          localStorage.setItem(
+            `targetAudiences`,
+            JSON.stringify(audiencesRes.data.data)
+          );
+        }
+
+        if (areasRes.data?.data) {
+          setSurroundingAreasList(areasRes.data.data);
+          localStorage.setItem(
+            `surroundingAreas`,
+            JSON.stringify(areasRes.data.data)
+          );
+        }
+
+        if (provincesRes.data?.data?.data) {
+          setProvinces(provincesRes.data.data.data);
+          localStorage.setItem(
+            "provinces",
+            JSON.stringify(provincesRes.data.data.data)
+          );
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Không thể tải dữ liệu. Vui lòng thử lại sau.");
@@ -170,36 +238,6 @@ const RoomPostForm = () => {
     };
   }, []);
 
-  // Fetch provinces on component mount
-  useEffect(() => {
-    const fetchProvinces = async () => {
-      if (localStorage.getItem("provinces")) {
-        const cachedProvinces = localStorage.getItem("provinces");
-        if (cachedProvinces) {
-          setProvinces(JSON.parse(cachedProvinces) as Province[]);
-          return;
-        }
-      }
-      try {
-        setLoading(true);
-        const response = await addressAPI.getProvinces();
-        if (response.data && response.data.data && response.data.data.data) {
-          setProvinces(response.data.data.data as Province[]);
-          localStorage.setItem(
-            "provinces",
-            JSON.stringify(response.data.data.data as Province[])
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching provinces:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProvinces();
-  }, []);
-
   // Fetch districts when province changes
   useEffect(() => {
     const fetchDistricts = async () => {
@@ -209,8 +247,9 @@ const RoomPostForm = () => {
       }
 
       try {
+        setLoading(true);
         const response = await addressAPI.getDistricts(selectedProvince);
-        if (response.data && response.data.data && response.data.data.data) {
+        if (response.data?.data?.data) {
           setDistricts(response.data.data.data as District[]);
         }
       } catch (error) {
@@ -221,7 +260,6 @@ const RoomPostForm = () => {
     };
 
     fetchDistricts();
-    // Reset dependent fields
     setSelectedDistrict("");
     setSelectedWard("");
     setWards([]);
@@ -236,8 +274,9 @@ const RoomPostForm = () => {
       }
 
       try {
+        setLoading(true);
         const response = await addressAPI.getWards(selectedDistrict);
-        if (response.data && response.data.data && response.data.data.data) {
+        if (response.data?.data?.data) {
           setWards(response.data.data.data as Ward[]);
         }
       } catch (error) {
@@ -248,10 +287,10 @@ const RoomPostForm = () => {
     };
 
     fetchWards();
-    // Reset dependent field
     setSelectedWard("");
   }, [selectedDistrict]);
-  // Handle checkbox changes
+
+  // Handle checkbox changes for amenities, target audiences, surrounding areas
   const handleCheckboxChange = (
     id: number,
     name: string,
@@ -275,15 +314,15 @@ const RoomPostForm = () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Create array from FileList
-    const fileArray = Array.from(files);
+    // Max 10 images
+    const fileArray = Array.from(files).slice(0, 10);
 
     // Create preview URLs
     const previewUrls = fileArray.map((file) => URL.createObjectURL(file));
 
     // Update state
-    setImageFiles(fileArray);
-    setImagePreviews(previewUrls);
+    setImageFiles((prevFiles) => [...prevFiles, ...fileArray]);
+    setImagePreviews((prevPreviews) => [...prevPreviews, ...previewUrls]);
   };
 
   // Remove selected image
@@ -301,7 +340,7 @@ const RoomPostForm = () => {
     setImageFiles(newFiles);
   };
 
-  // Upload images and return their data
+  // Upload images
   const uploadImages = async () => {
     if (imageFiles.length === 0) return [];
 
@@ -313,18 +352,16 @@ const RoomPostForm = () => {
         const mediaItem = response.data.data;
         uploadedImages = [
           {
-            id: mediaItem.id,
-            publicId: mediaItem.public_id,
-            imageUrl: mediaItem.secure_url,
+            publicId: mediaItem.publicId,
+            imageUrl: mediaItem.imageUrl,
           },
         ];
       } else {
         // Upload multiple files
         const response = await mediaAPI.uploadFiles(imageFiles);
         uploadedImages = response.data.data.map((media) => ({
-          id: media.id,
-          publicId: media.public_id,
-          imageUrl: media.secure_url,
+          publicId: media.publicId,
+          imageUrl: media.imageUrl,
         }));
       }
       return uploadedImages;
@@ -335,657 +372,753 @@ const RoomPostForm = () => {
     }
   };
 
-  // Fix the form submission handler
-  const onSubmit: SubmitHandler<FormCreateRoomSchema> = async (data) => {
-    try {
-      setLoading(true); // Show loading indicator
+  // Form submission handler
 
-      // Set the selected location values
-      setValue("address.province", selectedProvince);
-      setValue("address.district", selectedDistrict);
-      setValue("address.ward", selectedWard);
-
-      // First upload images
-      const uploadedImages = await uploadImages();
-
-      if (!uploadedImages || uploadedImages.length === 0) {
-        toast.error("Vui lòng tải lên ít nhất một hình ảnh");
-        setLoading(false);
-        return;
-      }
-
-      // Create the complete data object with uploaded images
-      const completeData = {
-        ...data,
-        images: uploadedImages,
-        // Ensure selfManaged is boolean, not string
-        selfManaged: data.selfManaged === true,
-      };
-
-      // Call the mutation
-      await createRoomMutation.mutateAsync(completeData);
-
-      toast.success("Đăng tin thành công!");
-      navigate("/post-room");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Đăng tin thất bại. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (loading && !amenitiesList.length) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "80vh" }}
-      >
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
         <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
   return (
-    <Container className="my-4">
-      <Row className="m-0" style={{ minHeight: "100vh" }}>
-        <Col
-          xs={12}
-          md={3}
-          lg={2}
-          className="bg-light p-3 shadow-sm vh-100"
-          style={{ width: "30%" }}
-        >
-          <Sidebar />
-        </Col>
-
-        {/* Main Content */}
-        <Col
-          xs={12}
-          md={9}
-          lg={10}
-          className="p-4 p-md-5"
-          style={{ width: "70%", backgroundColor: "#white" }}
-        >
-          <h2 className="mb-4">Đăng tin phòng trọ</h2>
-
-          <Form
-            onSubmit={handleSubmit(onSubmit)}
+    <div className="bg-light min-vh-100">
+      <Container fluid>
+        <Row>
+          {/* Left Sidebar */}
+          <Col
+            md={4}
+            lg={2}
+            className="px-0 position-fixed bg-white shadow-sm"
+            style={{ minWidth: "320px", left: "88px" }}
           >
-            {/* Hidden fields */}
-            <input
-              type="hidden"
-              {...register("userId")}
-              value={profile?.id || ""}
-            />
-            <input
-              type="hidden"
-              {...register("createdAt")}
-              value={new Date().toISOString()}
-            />
-            <input
-              type="hidden"
-              {...register("updatedAt")}
-              value={new Date().toISOString()}
-            />
+            <Sidebar />
+          </Col>
 
-            {/* Basic Information */}
-            <h4 className="mb-3">Thông tin cơ bản</h4>
-            <Row className="mb-3">
-              <Col md={8}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tên phòng trọ</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Ten phong tro"
-                    isInvalid={!!errors.title}
-                    {...register("title")}
-                  />
-                  {errors.title && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.title.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Loại phòng</Form.Label>
-                  <Form.Select
-                    isInvalid={!!errors.roomType}
-                    {...register("roomType")}
-                  >
-                    <option value="BOARDING_HOUSE">Phòng trọ</option>
-                    <option value="WHOLE_HOUSE">Nhà nguyên căn</option>
-                    <option value="APARTMENT">Căn hộ</option>
-                  </Form.Select>
-                  {errors.roomType && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.roomType.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-3">
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Giá thuê (VNĐ)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Nhập giá thuê"
-                    isInvalid={!!errors.price}
-                    {...register("price", { valueAsNumber: true })}
-                  />
-                  {errors.price && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.price.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Diện tích (m²)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Nhập diện tích"
-                    isInvalid={!!errors.area}
-                    {...register("area", { valueAsNumber: true })}
-                  />
-                  {errors.area && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.area.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tiền đặt cọc (VNĐ)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Nhập tiền đặt cọc"
-                    isInvalid={!!errors.deposit}
-                    {...register("deposit", { valueAsNumber: true })}
-                  />
-                  {errors.deposit && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.deposit.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-3">
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tổng số phòng</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Số phòng"
-                    isInvalid={!!errors.totalRooms}
-                    {...register("totalRooms", { valueAsNumber: true })}
-                  />
-                  {errors.totalRooms && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.totalRooms.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Số người tối đa</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Số người"
-                    isInvalid={!!errors.maxPeople}
-                    {...register("maxPeople", { valueAsNumber: true })}
-                  />
-                  {errors.maxPeople && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.maxPeople.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Đối tượng cho thuê</Form.Label>
-                  <Form.Select
-                    isInvalid={!!errors.forGender}
-                    {...register("forGender")}
-                  >
-                    <option value="ALL">Tất cả</option>
-                    <option value="MALE">Nam</option>
-                    <option value="FEMALE">Nữ</option>
-                    <option value="OTHER">Khác</option>
-                  </Form.Select>
-                  {errors.forGender && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.forGender.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Trọ tự quản</Form.Label>
-                  <Form.Select
-                    isInvalid={!!errors.selfManaged}
-                    {...register("selfManaged")}
-                  >
-                    <option value="false">Không</option>
-                    <option value="true">Có</option>
-                  </Form.Select>
-                  {errors.selfManaged && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.selfManaged.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-3">
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Số phòng khách</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Số phòng khách"
-                    isInvalid={!!errors.numberOfLivingRooms}
-                    {...register("numberOfLivingRooms", {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  {errors.numberOfLivingRooms && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.numberOfLivingRooms.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Số phòng ngủ</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Số phòng ngủ"
-                    isInvalid={!!errors.numberOfBedrooms}
-                    {...register("numberOfBedrooms", { valueAsNumber: true })}
-                  />
-                  {errors.numberOfBedrooms && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.numberOfBedrooms.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Số phòng tắm</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Số phòng tắm"
-                    isInvalid={!!errors.numberOfBathrooms}
-                    {...register("numberOfBathrooms", { valueAsNumber: true })}
-                  />
-                  {errors.numberOfBathrooms && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.numberOfBathrooms.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Số nhà bếp</Form.Label>
-                  <Form.Control
-                    type="number"
-                    placeholder="Số nhà bếp"
-                    isInvalid={!!errors.numberOfKitchens}
-                    {...register("numberOfKitchens", { valueAsNumber: true })}
-                  />
-                  {errors.numberOfKitchens && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.numberOfKitchens.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-4">
-              <Form.Label>Mô tả</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                placeholder="Mô tả chi tiết về phòng trọ"
-                isInvalid={!!errors.description}
-                {...register("description")}
-              />
-              {errors.description && (
-                <Form.Control.Feedback type="invalid">
-                  {errors.description.message}
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-
-            {/* Address */}
-            <h4 className="mb-3">Địa chỉ</h4>
-            <Row className="mb-3">
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tỉnh/Thành phố</Form.Label>
-                  <Form.Select
-                    value={selectedProvince}
-                    onChange={(e) => {
-                      setSelectedProvince(e.target.value);
-                      setSelectedDistrict("");
-                      setSelectedWard("");
-                    }}
-                    disabled={loading}
-                  >
-                    <option value="">Chọn Tỉnh/TP...</option>
-                    {Array.isArray(provinces) &&
-                      provinces.map((province) => (
-                        <option key={province.id} value={province.code}>
-                          {province.name_with_type}
-                        </option>
-                      ))}
-                  </Form.Select>
-                  {errors.address?.province && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.address.province.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Quận/Huyện</Form.Label>
-                  <Form.Select
-                    value={selectedDistrict}
-                    onChange={(e) => {
-                      setSelectedDistrict(e.target.value);
-                      setSelectedWard("");
-                    }}
-                    disabled={!selectedProvince || loading}
-                  >
-                    <option value="">Quận/Huyện...</option>
-                    {districts.map((district) => (
-                      <option key={district.id} value={district.code}>
-                        {district.name_with_type}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {errors.address?.district && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.address.district.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Phường/Xã</Form.Label>
-                  <Form.Select
-                    value={selectedWard}
-                    onChange={(e) => setSelectedWard(e.target.value)}
-                    disabled={!selectedDistrict || loading}
-                  >
-                    <option value="">Đường phố...</option>
-                    {wards.map((ward) => (
-                      <option key={ward.id} value={ward.code}>
-                        {ward.name_with_type}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {errors.address?.ward && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.address.ward.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Đường</Form.Label>
-                  <Form.Select
-                    isInvalid={!!errors.address?.street}
-                    {...register("address.street")}
-                  >
-                    <option value="">Chọn đường</option>
-                    {streets.map((street, index) => (
-                      <option key={index} value={street}>
-                        {street}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {errors.address?.street && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.address.street.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-4">
-              <Form.Label>Số nhà, địa chỉ cụ thể</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Nhập số nhà, địa chỉ cụ thể"
-                isInvalid={!!errors.address?.houseNumber}
-                {...register("address.houseNumber")}
-              />
-              {errors.address?.houseNumber && (
-                <Form.Control.Feedback type="invalid">
-                  {errors.address.houseNumber.message}
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-
-            {/* Amenities */}
-            <h4 className="mb-3">Tiện nghi</h4>
-            <Row className="mb-4">
-              {amenitiesList.map((amenity) => (
-                <Col md={3} key={amenity.id} className="mb-2">
-                  <Form.Check
-                    type="checkbox"
-                    label={amenity.name}
-                    id={`amenity-${amenity.id}`}
-                    onChange={(e) =>
-                      handleCheckboxChange(
-                        amenity.id,
-                        amenity.name,
-                        "amenities",
-                        e.target.checked
-                      )
-                    }
-                  />
-                </Col>
-              ))}
-              {errors.amenities && (
-                <div className="text-danger">{errors.amenities.message}</div>
-              )}
-            </Row>
-
-            {/* Target Audiences */}
-            <h4 className="mb-3">Đối tượng nhà trọ</h4>
-            <Row className="mb-4">
-              {targetAudiencesList.map((audience) => (
-                <Col md={3} key={audience.id} className="mb-2">
-                  <Form.Check
-                    type="checkbox"
-                    label={audience.name}
-                    id={`audience-${audience.id}`}
-                    onChange={(e) =>
-                      handleCheckboxChange(
-                        audience.id,
-                        audience.name,
-                        "targetAudiences",
-                        e.target.checked
-                      )
-                    }
-                  />
-                </Col>
-              ))}
-              {errors.targetAudiences && (
-                <div className="text-danger">
-                  {errors.targetAudiences.message}
-                </div>
-              )}
-            </Row>
-
-            {/* Surrounding Areas */}
-            <h4 className="mb-3">Môi trường xung quanh</h4>
-            <Row className="mb-4">
-              {surroundingAreasList.map((area) => (
-                <Col md={3} key={area.id} className="mb-2">
-                  <Form.Check
-                    type="checkbox"
-                    label={area.name}
-                    id={`area-${area.id}`}
-                    onChange={(e) =>
-                      handleCheckboxChange(
-                        area.id,
-                        area.name,
-                        "surroundingAreas",
-                        e.target.checked
-                      )
-                    }
-                  />
-                </Col>
-              ))}
-              {errors.surroundingAreas && (
-                <div className="text-danger">
-                  {errors.surroundingAreas.message}
-                </div>
-              )}
-            </Row>
-
-            {/* Images */}
-            <h4 className="mb-3">Hình ảnh</h4>
+          {/* Main Content */}
+          <Col md={8} lg={10} className="ms-auto position-relative" style={{ right: "-86px" }}>
             <div className="mb-4">
-              <div className="mb-3">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                  id="images-input"
-                />
-                <Button
-                  variant="outline-primary"
-                  onClick={() =>
-                    document.getElementById("images-input")?.click()
-                  }
-                >
-                  Chọn hình ảnh
-                </Button>
-                <small className="text-muted ms-2">
-                  Tối đa 5 hình ảnh, mỗi hình tối đa 5MB
-                </small>
-              </div>
+              <h2 className="mb-1">Đăng tin mới</h2>
+              <p className="text-muted">
+                Điền đầy đủ thông tin để đăng tin cho thuê phòng trọ
+              </p>
+            </div>
 
-              {imagePreviews.length > 0 && (
-                <Row>
-                  {imagePreviews.map((preview, index) => (
-                    <Col md={3} key={index} className="position-relative mb-3">
-                      <img
-                        src={preview}
-                        alt={`Preview ${index}`}
-                        className="img-thumbnail"
-                        style={{
-                          width: "100%",
-                          height: "150px",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        className="position-absolute"
-                        style={{ top: "5px", right: "20px" }}
-                        onClick={() => handleRemoveImage(index)}
-                      >
-                        ×
-                      </Button>
+            <Form onSubmit={onSubmit} noValidate>
+              {/* Basic Information Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FaInfoCircle className="me-2" /> Thông tin cơ bản
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <Row className="mb-3">
+                    <Col md={8}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Tiêu đề</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập tiêu đề tin đăng"
+                          className={errors.title ? "is-invalid" : ""}
+                          {...register("title")}
+                        />
+                        {errors.title && (
+                          <div className="invalid-feedback">
+                            {errors.title.message}
+                          </div>
+                        )}
+                      </Form.Group>
                     </Col>
-                  ))}
-                </Row>
-              )}
-              {errors.images && (
-                <div className="text-danger">{errors.images.message}</div>
-              )}
-            </div>
 
-            {/* Contact Information */}
-            <h4 className="mb-3">Thông tin liên hệ</h4>
-            <Row className="mb-4">
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tên người liên hệ</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Nhập tên người liên hệ"
-                    isInvalid={!!errors.posterName}
-                    {...register("posterName")}
-                  />
-                  {errors.posterName && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.posterName.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Số điện thoại</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Nhập số điện thoại"
-                    isInvalid={!!errors.posterPhone}
-                    {...register("posterPhone")}
-                  />
-                  {errors.posterPhone && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.posterPhone.message}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Loại phòng</Form.Label>
+                        <Form.Select
+                          className={errors.roomType ? "is-invalid" : ""}
+                          {...register("roomType")}
+                        >
+                          <option value="BOARDING_HOUSE">Phòng trọ</option>
+                          <option value="WHOLE_HOUSE">Nhà nguyên căn</option>
+                          <option value="APARTMENT">Căn hộ</option>
+                        </Form.Select>
+                        {errors.roomType && (
+                          <div className="invalid-feedback">
+                            {errors.roomType.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
 
-            <div className="d-flex justify-content-center mt-4">
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Spinner animation="border" size="sm" className="me-2" />
-                    Đang xử lý...
-                  </>
-                ) : (
-                  "Đăng tin"
-                )}
-              </Button>
-            </div>
-          </Form>
-        </Col>
-      </Row>
-      {/* Sidebar */}
-    </Container>
+                  <Row className="mb-4">
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Giá thuê (VNĐ/tháng)
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Nhập giá thuê"
+                          className={errors.price ? "is-invalid" : ""}
+                          {...register("price", { valueAsNumber: true })}
+                        />
+                        {errors.price && (
+                          <div className="invalid-feedback">
+                            {errors.price.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Diện tích (m²)
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Nhập diện tích"
+                          className={errors.area ? "is-invalid" : ""}
+                          {...register("area", { valueAsNumber: true })}
+                        />
+                        {errors.area && (
+                          <div className="invalid-feedback">
+                            {errors.area.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Đặt cọc (VNĐ)
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Nhập số tiền đặt cọc"
+                          className={errors.deposit ? "is-invalid" : ""}
+                          {...register("deposit", { valueAsNumber: true })}
+                        />
+                        {errors.deposit && (
+                          <div className="invalid-feedback">
+                            {errors.deposit.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-bold">Mô tả chi tiết</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={5}
+                      placeholder="Mô tả chi tiết về phòng trọ, tiện ích, điều kiện, quy định..."
+                      className={errors.description ? "is-invalid" : ""}
+                      {...register("description")}
+                    />
+                    {errors.description && (
+                      <div className="invalid-feedback">
+                        {errors.description.message}
+                      </div>
+                    )}
+                    <Form.Text className="text-muted">
+                      Mô tả càng chi tiết, cơ hội tìm được người thuê càng cao
+                    </Form.Text>
+                  </Form.Group>
+                </Card.Body>
+              </Card>
+
+              {/* Room Details Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FaHome className="me-2" /> Thông tin phòng
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <Row className="mb-4">
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Tổng số phòng
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Nhập số phòng"
+                          className={errors.totalRooms ? "is-invalid" : ""}
+                          {...register("totalRooms", { valueAsNumber: true })}
+                        />
+                        {errors.totalRooms && (
+                          <div className="invalid-feedback">
+                            {errors.totalRooms.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Số người tối đa
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Nhập số người ở tối đa"
+                          className={errors.maxPeople ? "is-invalid" : ""}
+                          {...register("maxPeople", { valueAsNumber: true })}
+                        />
+                        {errors.maxPeople && (
+                          <div className="invalid-feedback">
+                            {errors.maxPeople.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Đối tượng thuê
+                        </Form.Label>
+                        <Form.Select
+                          className={errors.forGender ? "is-invalid" : ""}
+                          {...register("forGender")}
+                        >
+                          <option value="ALL">Tất cả</option>
+                          <option value="MALE">Nam</option>
+                          <option value="FEMALE">Nữ</option>
+                        </Form.Select>
+                        {errors.forGender && (
+                          <div className="invalid-feedback">
+                            {errors.forGender.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Chủ trọ quản lý
+                        </Form.Label>
+                        <Form.Select
+                          className={errors.selfManaged ? "is-invalid" : ""}
+                          {...register("selfManaged")}
+                        >
+                          <option value="false">Không</option>
+                          <option value="true">Có</option>
+                        </Form.Select>
+                        {errors.selfManaged && (
+                          <div className="invalid-feedback">
+                            {errors.selfManaged.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold d-flex align-items-center">
+                          <FaCouch className="me-2 text-primary" /> Phòng khách
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Số phòng khách"
+                          className={
+                            errors.numberOfLivingRooms ? "is-invalid" : ""
+                          }
+                          {...register("numberOfLivingRooms", {
+                            valueAsNumber: true,
+                          })}
+                        />
+                        {errors.numberOfLivingRooms && (
+                          <div className="invalid-feedback">
+                            {errors.numberOfLivingRooms.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold d-flex align-items-center">
+                          <FaBed className="me-2 text-primary" /> Phòng ngủ
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Số phòng ngủ"
+                          className={
+                            errors.numberOfBedrooms ? "is-invalid" : ""
+                          }
+                          {...register("numberOfBedrooms", {
+                            valueAsNumber: true,
+                          })}
+                        />
+                        {errors.numberOfBedrooms && (
+                          <div className="invalid-feedback">
+                            {errors.numberOfBedrooms.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold d-flex align-items-center">
+                          <FaShower className="me-2 text-primary" /> Phòng tắm
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Số phòng tắm"
+                          className={
+                            errors.numberOfBathrooms ? "is-invalid" : ""
+                          }
+                          {...register("numberOfBathrooms", {
+                            valueAsNumber: true,
+                          })}
+                        />
+                        {errors.numberOfBathrooms && (
+                          <div className="invalid-feedback">
+                            {errors.numberOfBathrooms.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold d-flex align-items-center">
+                          <FaUtensils className="me-2 text-primary" /> Nhà bếp
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="Số nhà bếp"
+                          className={
+                            errors.numberOfKitchens ? "is-invalid" : ""
+                          }
+                          {...register("numberOfKitchens", {
+                            valueAsNumber: true,
+                          })}
+                        />
+                        {errors.numberOfKitchens && (
+                          <div className="invalid-feedback">
+                            {errors.numberOfKitchens.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Address Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FaMapMarkerAlt className="me-2" /> Địa chỉ cho thuê
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <Row className="mb-3">
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Tỉnh/Thành phố
+                        </Form.Label>
+                        <Form.Select
+                          value={selectedProvince}
+                          onChange={(e) => setSelectedProvince(e.target.value)}
+                          className={
+                            !selectedProvince && errors.address?.province
+                              ? "is-invalid"
+                              : ""
+                          }
+                        >
+                          <option value="">Chọn Tỉnh/Thành phố</option>
+                          {provinces.map((province) => (
+                            <option key={province.code} value={province.code}>
+                              {province.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {!selectedProvince && errors.address?.province && (
+                          <div className="invalid-feedback">
+                            {errors.address.province.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Quận/Huyện</Form.Label>
+                        <Form.Select
+                          value={selectedDistrict}
+                          onChange={(e) => setSelectedDistrict(e.target.value)}
+                          disabled={!selectedProvince}
+                          className={
+                            selectedProvince &&
+                            !selectedDistrict &&
+                            errors.address?.district
+                              ? "is-invalid"
+                              : ""
+                          }
+                        >
+                          <option value="">Chọn Quận/Huyện</option>
+                          {districts.map((district) => (
+                            <option key={district.code} value={district.code}>
+                              {district.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {selectedProvince &&
+                          !selectedDistrict &&
+                          errors.address?.district && (
+                            <div className="invalid-feedback">
+                              {errors.address.district.message}
+                            </div>
+                          )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Phường/Xã</Form.Label>
+                        <Form.Select
+                          value={selectedWard}
+                          onChange={(e) => setSelectedWard(e.target.value)}
+                          disabled={!selectedDistrict}
+                          className={
+                            selectedDistrict &&
+                            !selectedWard &&
+                            errors.address?.ward
+                              ? "is-invalid"
+                              : ""
+                          }
+                        >
+                          <option value="">Chọn Phường/Xã</option>
+                          {wards.map((ward) => (
+                            <option key={ward.code} value={ward.code}>
+                              {ward.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {selectedDistrict &&
+                          !selectedWard &&
+                          errors.address?.ward && (
+                            <div className="invalid-feedback">
+                              {errors.address.ward.message}
+                            </div>
+                          )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Đường/Phố</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập tên đường/phố"
+                          className={errors.address?.street ? "is-invalid" : ""}
+                          {...register("address.street")}
+                        />
+                        {errors.address?.street && (
+                          <div className="invalid-feedback">
+                            {errors.address.street.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Số nhà</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập số nhà"
+                          className={
+                            errors.address?.houseNumber ? "is-invalid" : ""
+                          }
+                          {...register("address.houseNumber")}
+                        />
+                        {errors.address?.houseNumber && (
+                          <div className="invalid-feedback">
+                            {errors.address.houseNumber.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Amenities Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0">Tiện ích</h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <p className="text-muted mb-3">
+                    Chọn tiện ích có sẵn tại phòng trọ
+                  </p>
+                  <Row>
+                    {amenitiesList.map((amenity) => (
+                      <Col
+                        xs={6}
+                        md={4}
+                        lg={3}
+                        key={amenity.id}
+                        className="mb-2"
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          id={`amenity-${amenity.id}`}
+                          label={amenity.name}
+                          onChange={(e) =>
+                            handleCheckboxChange(
+                              amenity.id,
+                              amenity.name,
+                              "amenities",
+                              e.target.checked
+                            )
+                          }
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Target Audiences Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0">Đối tượng phù hợp</h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <p className="text-muted mb-3">
+                    Chọn đối tượng phù hợp để thuê phòng của bạn
+                  </p>
+                  <Row>
+                    {targetAudiencesList.map((audience) => (
+                      <Col
+                        xs={6}
+                        md={4}
+                        lg={3}
+                        key={audience.id}
+                        className="mb-2"
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          id={`audience-${audience.id}`}
+                          label={audience.name}
+                          onChange={(e) =>
+                            handleCheckboxChange(
+                              audience.id,
+                              audience.name,
+                              "targetAudiences",
+                              e.target.checked
+                            )
+                          }
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Surrounding Areas Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0">Khu vực xung quanh</h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <p className="text-muted mb-3">
+                    Chọn các địa điểm gần phòng trọ của bạn
+                  </p>
+                  <Row>
+                    {surroundingAreasList.map((area) => (
+                      <Col xs={6} md={4} lg={3} key={area.id} className="mb-2">
+                        <Form.Check
+                          type="checkbox"
+                          id={`area-${area.id}`}
+                          label={area.name}
+                          onChange={(e) =>
+                            handleCheckboxChange(
+                              area.id,
+                              area.name,
+                              "surroundingAreas",
+                              e.target.checked
+                            )
+                          }
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Images Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FaCamera className="me-2" /> Hình ảnh
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <p className="text-muted mb-3">
+                    Thêm hình ảnh giúp người thuê dễ dàng tìm thấy phòng của
+                    bạn. Đăng tối đa 10 ảnh.
+                  </p>
+
+                  <div className="mb-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                      id="images-input"
+                    />
+
+                    <Button
+                      variant="outline-primary"
+                      className="mb-3 d-flex align-items-center"
+                      onClick={() =>
+                        document.getElementById("images-input")?.click()
+                      }
+                    >
+                      <FaCloudUploadAlt className="me-2" size={20} /> Tải ảnh
+                      lên
+                    </Button>
+
+                    {errors.images && (
+                      <div className="text-danger mb-3">
+                        {errors.images.message}
+                      </div>
+                    )}
+
+                    {imagePreviews.length > 0 && (
+                      <div>
+                        <p className="mb-2 fw-bold">
+                          Ảnh đã chọn ({imagePreviews.length}/10):
+                        </p>
+                        <Row className="g-2">
+                          {imagePreviews.map((preview, index) => (
+                            <Col xs={6} md={3} lg={2} key={index}>
+                              <div className="position-relative">
+                                <img
+                                  src={preview}
+                                  alt={`Preview ${index + 1}`}
+                                  className="img-thumbnail"
+                                  style={{
+                                    width: "100%",
+                                    height: "120px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  className="position-absolute top-0 end-0"
+                                  style={{ padding: "0.15rem 0.4rem" }}
+                                  onClick={() => handleRemoveImage(index)}
+                                >
+                                  ×
+                                </Button>
+                              </div>
+                            </Col>
+                          ))}
+                        </Row>
+                      </div>
+                    )}
+                  </div>
+                </Card.Body>
+              </Card>
+
+              {/* Contact Information Card */}
+              <Card className="mb-4 shadow-sm">
+                <Card.Header className="bg-primary text-white py-3">
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FaUser className="me-2" /> Thông tin liên hệ
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Tên người liên hệ
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập tên người liên hệ"
+                          value={profile?.fullName}
+                          className={errors.posterName ? "is-invalid" : ""}
+                          {...register("posterName")}
+                        />
+                        {errors.posterName && (
+                          <div className="invalid-feedback">
+                            {errors.posterName.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">
+                          Số điện thoại
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập số điện thoại"
+                          className={errors.posterPhone ? "is-invalid" : ""}
+                          {...register("posterPhone")}
+                        />
+                        {errors.posterPhone && (
+                          <div className="invalid-feedback">
+                            {errors.posterPhone.message}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Submit Button */}
+              <div className="d-flex justify-content-center mb-5">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="px-5 py-3"
+                  disabled={loading || isSubmitting}
+                >
+                  {loading || isSubmitting ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    "Đăng tin"
+                  )}
+                </Button>
+              </div>
+            </Form>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 
-export default RoomPostForm;
+export default StepOne;
