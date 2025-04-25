@@ -7,11 +7,23 @@ import {
   SurroundingArea,
   TargetAudience,
 } from "../types/room.type";
+import axios from "axios";
+import { add } from "lodash";
 
 export const URL_GET_ROOMS = "api/v1/rooms";
 export const URL_SEARCH_ROOMS = "api/v1/rooms/search";
 export const URL_GET_WISH_LIST = "api/v1/users/wish-list";
 export const URL_GET_ROOM_BY_ID = "api/v1/rooms";
+export const URL_ADD_TO_WISH_LIST = "api/v1/users/wish-list";
+
+const externalHttp = axios.create({
+  baseURL: "http://localhost:5000/",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+export const AI_TRAIN_MODE = "api/v1/recommend/train"
+export const AI_SIMILAR_ROOM = "api/v1/recommend/similar"
 
 const roomApi = {
   getRooms(
@@ -96,9 +108,22 @@ const roomApi = {
     });
   },
 
+
   getRoomById(id: number) {
     return http.get<SuccessResponse<RoomGetByID>>(`${URL_GET_ROOMS}/${id}`);
   },
+  addToWishList(id: number) {
+    return http.post<SuccessResponse<any>>(`${URL_ADD_TO_WISH_LIST}/${id}`);
+  }
+  ,
+
+  aiGetSimilarRoom(id: number) {
+    return externalHttp.get<SuccessResponse<any>>(`${AI_SIMILAR_ROOM}/${id}`);
+  },
+
+  aiTrainMode() {
+    return externalHttp.get<SuccessResponse<any>>(`${AI_TRAIN_MODE}`);
+  }
 };
 
 export default roomApi;

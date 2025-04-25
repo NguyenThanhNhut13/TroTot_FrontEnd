@@ -114,7 +114,13 @@ const HotListings: React.FC<HotListingsProps> = ({
                 {paddedItems.map((listing, index) => (
                   <Col key={index} style={{ width: "20%" }}>
                     {listing ? (
-                      <Card className="h-100 border-0 shadow-sm position-relative">
+                      <Card
+                        key={listing.id}
+                        className="h-100 border-0 shadow-sm position-relative"
+                        onClick={() => {
+                          window.location.href = `/phong-tro/${listing.id}`;
+                        }}
+                      >
                         {/* HOT Label */}
                         <div
                           className="position-absolute bg-danger text-white px-2 py-1 fw-bold"
@@ -197,13 +203,18 @@ const HotListings: React.FC<HotListingsProps> = ({
       )}
 
       <div className="mt-3 d-flex justify-content-center">
-        <Button 
-          variant="outline-primary" 
+        <Button
+          variant="outline-primary"
           className="px-4"
-          href={roomType === 'BOARDING_HOUSE' ? '/category/nha-tro-phong-tro' : 
-            roomType === 'APARTMENT' ? '/category/chung-cu-can-ho' :
-            roomType === 'WHOLE_HOUSE' ? '/category/nha-nguyen-can' :
-           '/category/all'}
+          href={
+            roomType === "BOARDING_HOUSE"
+              ? "/category/nha-tro-phong-tro"
+              : roomType === "APARTMENT"
+              ? "/category/chung-cu-can-ho"
+              : roomType === "WHOLE_HOUSE"
+              ? "/category/nha-nguyen-can"
+              : "/category/all"
+          }
         >
           Xem tất cả <i className="fas fa-arrow-right ms-1"></i>
         </Button>

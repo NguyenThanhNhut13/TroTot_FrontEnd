@@ -16,7 +16,7 @@ interface Room {
   area: number;
   imageUrl: string;
   district: string;
-  city: string;
+  province: string;
   isHot?: boolean;
 }
 
@@ -24,35 +24,6 @@ export default function SavedRoom() {
   const [savedRooms, setSavedRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Default rooms data if API fails
-  const defaultRooms: Room[] = [
-    {
-      id: 1,
-      title:
-        "Nhà Trọ Hẻm 363/14/6 Bình Lợi, Phường 13, Bình Thạnh, Hồ Chí Minh",
-      address: "Bình Thạnh, Thành phố Hồ Chí Minh",
-      price: "3.5 triệu/tháng",
-      type: "Nhà trọ, phòng trọ",
-      area: 22,
-      imageUrl: "",
-      district: "Bình Thạnh",
-      city: "Thành phố Hồ Chí Minh",
-      isHot: true,
-    },
-    {
-      id: 2,
-      title:
-        "Nhà Trọ đường Ung Văn Khiêm, Phường 25, Quận Bình Thạnh, Hồ Chí Minh",
-      address: "Bình Thạnh, Thành phố Hồ Chí Minh",
-      price: "4 triệu/tháng",
-      type: "Nhà trọ, phòng trọ",
-      area: 16,
-      imageUrl: "",
-      district: "Bình Thạnh",
-      city: "Thành phố Hồ Chí Minh",
-      isHot: true,
-    },
-  ];
 
   // Fetch saved rooms from API
   useEffect(() => {
@@ -70,23 +41,19 @@ export default function SavedRoom() {
             price: item.price ? `${item.price} triệu/tháng` : "Liên hệ",
             type: item.type || "Nhà trọ, phòng trọ",
             area: item.area || 0,
-            imageUrl: item.imageUrl || "/images/default-room.jpg",
+            imageUrl: item.imageUrls[0] || "/images/default-room.jpg",
             district: item.district || "",
-            city: item.city || "",
+            province: item.province || "",
             isHot: item.isHot || false,
           }));
           setSavedRooms(rooms);
         } else {
-          // Use default data if API response format is unexpected
-          setSavedRooms(defaultRooms);
           toast.warning(
             "Không thể lấy danh sách trọ đã lưu. Hiển thị dữ liệu mặc định."
           );
         }
       } catch (error) {
         console.error("Error fetching saved rooms:", error);
-        // Use default data if API fails
-        setSavedRooms(defaultRooms);
         toast.error(
           "Đã xảy ra lỗi khi tải danh sách trọ đã lưu. Hiển thị dữ liệu mặc định."
         );
@@ -129,6 +96,9 @@ export default function SavedRoom() {
                 <Card
                   key={room.id}
                   className="mb-4 overflow-hidden border-0 shadow-sm"
+                  onClick= {() => {
+                    window.location.href = `/phong-tro/${room.id}`;
+                  }}
                 >
                   <div className="position-relative">
                     {room.isHot && (
@@ -198,8 +168,8 @@ export default function SavedRoom() {
                           <div className="d-flex align-items-center mt-3">
                             <FaMapMarkerAlt className="text-muted me-2" />
                             <small className="text-muted">
-                              {room.district && room.city
-                                ? `${room.district}, ${room.city}`
+                              {room.district && room.province
+                                ? `${room.district}, ${room.province}`
                                 : "Không có địa chỉ"}
                             </small>
                           </div>

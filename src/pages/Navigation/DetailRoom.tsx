@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Container,
@@ -63,6 +63,22 @@ export default function DetailRoom() {
 
     fetchRoomDetails();
   }, [id]);
+
+ const [similarRooms, setSimilarRooms] = useState<any[]>([]);
+  useEffect(() => {
+    if(!room) 
+      return
+    const getSimilarRoom = async () => {
+      try{
+        const response = await roomApi.aiGetSimilarRoom(room.id);
+        setSimilarRooms(response.data.data)
+
+      }catch(error){
+        console.log(error)
+      }
+    }
+    getSimilarRoom()
+  }, [room])
 
   // Handle favorite toggle
   const handleToggleFavorite = () => {
@@ -460,12 +476,32 @@ export default function DetailRoom() {
                 <Button
                   variant={isFavorite ? "danger" : "outline-danger"}
                   className="w-100 mb-2"
-                  onClick={handleToggleFavorite}
+                  onClick={async () => {
+                  // If not logged in, show login prompt
+                  const isLoggedIn = localStorage.getItem('accessToken'); // Basic auth check
+                  if (!isLoggedIn) {
+                    toast.info("Vui lòng đăng nhập để lưu phòng trọ yêu thích");
+                    return;
+                  }
+
+                  try {
+                    if (!isFavorite) {
+                    await roomApi.addToWishList(room.id);
+                    toast.success("Đã lưu tin thành công");
+                    } else {
+                    toast.success("Đã xóa tin khỏi danh sách yêu thích");
+                    }
+                    setIsFavorite(!isFavorite);
+                  } catch (error) {
+                    console.error("Error updating wishlist:", error);
+                    toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
+                  }
+                  }}
                 >
                   {isFavorite ? (
-                    <FaHeart className="me-2" />
+                  <FaHeart className="me-2" />
                   ) : (
-                    <FaRegHeart className="me-2" />
+                  <FaRegHeart className="me-2" />
                   )}
                   {isFavorite ? "Đã lưu" : "Lưu tin"}
                 </Button>
@@ -487,50 +523,103 @@ export default function DetailRoom() {
               <h5 className="mb-0">Phòng trọ tương tự</h5>
             </Card.Header>
             <ListGroup variant="flush">
-              {[1, 2, 3].map((item) => (
-                <ListGroup.Item key={item} action className="py-3">
+              {similarRooms.length > 0 ? (
+              similarRooms.map((similarRoom, index) => (
+                <ListGroup.Item key={similarRoom.id} action className="py-3">
+                <Link to={`/detail-room/${similarRoom.id}`} className="text-decoration-none text-dark">
                   <Row className="g-2">
-                    <Col xs={4}>
-                      <div
-                        style={{
-                          height: "60px",
-                          backgroundColor: "#f5f5f5",
-                          borderRadius: "4px",
-                        }}
-                      ></div>
-                    </Col>
-                    <Col xs={8}>
-                      <div
-                        className="small fw-bold mb-1"
-                        style={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        Phòng trọ quận {room.address.district} gần{" "}
-                        {item === 1
-                          ? "trường đại học"
-                          : item === 2
-                          ? "bệnh viện"
-                          : "siêu thị"}
-                      </div>
-                      <div className="small text-danger">
-                        {room.price - item * 200000} đ/tháng
-                      </div>
-                      <div className="d-flex align-items-center">
-                        <div className="small text-secondary me-2">
-                          {room.area - item} m²
-                        </div>
-                        <div className="small text-secondary text-truncate">
-                          <FaMapMarkerAlt size={10} className="me-1" />
-                          {room.address.district}, {room.address.province}
-                        </div>
-                      </div>
-                    </Col>
+                  <Col xs={4}>
+                    <div
+                    style={{
+                      height: "60px",
+                      backgroundColor: "#f5f5f5",
+                      borderRadius: "4px",
+                      overflow: "hidden"
+                    }}
+                    >
+                    {similarRoom.images && similarRoom.images.length > 0 && (
+                      <img 
+                      src={similarRoom.images[0]?.imageUrl} 
+                      alt={similarRoom.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    )}
+                    </div>
+                  </Col>
+                  <Col xs={8}>
+                    <div
+                    className="small fw-bold mb-1"
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    >
+                    {similarRoom.title}
+                    </div>
+                    <div className="small text-danger">
+                    {similarRoom.price} đ/tháng
+                    </div>
+                    <div className="d-flex align-items-center">
+                    <div className="small text-secondary me-2">
+                      {similarRoom.area} m²
+                    </div>
+                    <div className="small text-secondary text-truncate">
+                      <FaMapMarkerAlt size={10} className="me-1" />
+                      {similarRoom.address?.district}, {similarRoom.address?.province}
+                    </div>
+                    </div>
+                  </Col>
                   </Row>
+                </Link>
                 </ListGroup.Item>
-              ))}
+              ))
+              ) : (
+              [1, 2, 3].map((item) => (
+                <ListGroup.Item key={item} action className="py-3">
+                <Row className="g-2">
+                  <Col xs={4}>
+                  <div
+                    style={{
+                    height: "60px",
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: "4px",
+                    }}
+                  ></div>
+                  </Col>
+                  <Col xs={8}>
+                  <div
+                    className="small fw-bold mb-1"
+                    style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    }}
+                  >
+                    Phòng trọ quận {room.address.district} gần{" "}
+                    {item === 1
+                    ? "trường đại học"
+                    : item === 2
+                    ? "bệnh viện"
+                    : "siêu thị"}
+                  </div>
+                  <div className="small text-danger">
+                    {room.price - item * 200000} đ/tháng
+                  </div>
+                  <div className="d-flex align-items-center">
+                    <div className="small text-secondary me-2">
+                    {room.area - item} m²
+                    </div>
+                    <div className="small text-secondary text-truncate">
+                    <FaMapMarkerAlt size={10} className="me-1" />
+                    {room.address.district}, {room.address.province}
+                    </div>
+                  </div>
+                  </Col>
+                </Row>
+                </ListGroup.Item>
+              ))
+              )}
             </ListGroup>
             <Card.Footer className="bg-white text-center">
               <Link
