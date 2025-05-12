@@ -1,10 +1,52 @@
+import { SuccessResponse } from "../types/utils.type";
+import { Province, District, Ward, GetAddressResponse, Forward } from "../types/address.type";
+import axios from "axios";
+
 import http from '../utils/http';
-import { Address } from '../types/address.type';
-import { SuccessResponse } from '../types/utils.type';
+import { Address } from '../types/address.type'
+import { get } from "lodash";
+
+// External API URLs
+export const URL_GET_PROVINCES =
+  "provinces/getAll";
+export const URL_GET_DISTRICTS_BY_PROVINCE =
+  "districts/getByProvince";
+export const URL_GET_WARDS_BY_DISTRICT =
+  "wards/getByDistrict";
 
 export const URL_GET_ADDRESSES = 'api/v1/addresses';
+export const URL_GET_MAP_FORWARD = "api/v1/geocode/forward"
 
-const addressApi = {
+// Create a separate axios instance for the external API
+const externalHttp = axios.create({
+  baseURL: "https://vn-public-apis.fpo.vn/",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+
+const addressAPI = {
+  getProvinces() {
+    return externalHttp.get<GetAddressResponse>(URL_GET_PROVINCES, {
+      params: { limit: -1 },
+    });
+  },
+
+  getDistricts(provinceCode: string) {
+    return externalHttp.get<GetAddressResponse>(
+      URL_GET_DISTRICTS_BY_PROVINCE,
+      {
+        params: { provinceCode, limit: -1 },
+      }
+    );
+  },
+
+  getWards(districtCode: string) {
+    return externalHttp.get<GetAddressResponse>(URL_GET_WARDS_BY_DISTRICT, {
+      params: { districtCode, limit: -1 },
+    });
+  },
   getAddresses(params: { street?: string; district?: string; province?: string } = {}) {
     const { street, district, province } = params;
     return http.get<SuccessResponse<Address[]>>(`${URL_GET_ADDRESSES}/search`, {
@@ -31,6 +73,13 @@ const addressApi = {
   deleteAddress(id: number) {
     return http.delete<SuccessResponse<void>>(`${URL_GET_ADDRESSES}/${id}`);
   },
+
+  getMapForward(address: string) {
+    return http.get<SuccessResponse<Forward>>(URL_GET_MAP_FORWARD, {
+      params: { address }
+    });
+  }
 };
 
-export default addressApi;
+export default addressAPI;
+

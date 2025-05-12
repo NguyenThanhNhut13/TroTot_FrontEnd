@@ -1,108 +1,1292 @@
-import { useState } from "react";
-import { Card, Button, Row, Col, Form, Pagination } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Button,
+  Row,
+  Col,
+  Form,
+  Dropdown,
+  InputGroup,
+  Spinner,
+} from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { FaSearch, FaMapMarkerAlt, FaHeart, FaMap } from "react-icons/fa";
+import http from "../../utils/http"; // Make sure this import path is correct
+import {
+  Amenity,
+  Room,
+  RoomSearchParams,
+  SurroundingArea,
+  TargetAudience,
+} from "../../types/room.type";
+import roomApi from "../../apis/room.api";
+import { District, Province, Ward } from "../../types/address.type";
+import addressAPI from "../../apis/address.api";
 
-export interface Post {
+export interface Listing {
   id: number;
   title: string;
+  price: number;
+  area: number;
   image: string;
-  price: string;
-  address: string;
+  location: string;
 }
 
 interface Props {
-  posts: Post[];
   title: string;
+  roomType: "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE";
 }
 
-const CategorySharedPage = ({ posts, title }: Props) => {
-  const [filter, setFilter] = useState({
-    keyword: "",
-    price: "",
-    area: "",
-    sort: "",
+const priceLabelMap: Record<string, string> = {
+  all: "Tất cả mức giá",
+  "under-1m": "Dưới 1 triệu",
+  "1-10m": "1 - 10 triệu",
+  "10-30m": "10 - 30 triệu",
+  "30-50m": "30 - 50 triệu",
+  "50m-plus": "Trên 50 triệu",
+  "100m-plus": "Trên 100 triệu",
+};
+
+const CategorySharedPage = ({ title, roomType }: Props) => {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
+
+  // API data states
+  const [amenities, setAmenities] = useState<Amenity[]>([]);
+  const [targetAudiences, setTargetAudiences] = useState<TargetAudience[]>([]);
+  const [surroundingAreas, setSurroundingAreas] = useState<SurroundingArea[]>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchParams, setSearchParams] = useState<any>(null);
+
+  const [selectedFilters, setSelectedFilters] = useState(() => {
+    const savedFilters = localStorage.getItem(`filters_${roomType}`);
+    if (savedFilters) {
+      try {
+        return JSON.parse(savedFilters);
+      } catch (error) {
+        console.error("Error parsing saved filters:", error);
+      }
+    }
+    return {
+      area: [] as string[],
+      amenities: [] as string[],
+      targetAudiences: [] as string[],
+      surroundingAreas: [] as string[],
+    };
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      setFilter({ ...filter, [e.target.name]: e.target.value });
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+
+  const [selectedProvince, setSelectedProvince] = useState<string>("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedWard, setSelectedWard] = useState<string>("");
+
+  const [priceRange, setPriceRange] = useState("all");
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  // Save selectedFilters to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem(
+      `filters_${roomType}`,
+      JSON.stringify(selectedFilters)
+    );
+  }, [selectedFilters, roomType]);
+
+  // Area filter options
+  const areaOptions = [
+    { id: "under20", label: "Dưới 20 m2" },
+    { id: "20-40", label: "20-40 m2" },
+    { id: "40-60", label: "40-60 m2" },
+    { id: "60-80", label: "60-80 m2" },
+    { id: "above80", label: "Trên 80 m2" },
+  ];
+
+  useEffect(() => {
+    const amenitiesLS = localStorage.getItem(`amenities`);
+    const targetAudiencesLS = localStorage.getItem(`targetAudiences`);
+    const surroundingAreasLS = localStorage.getItem(`surroundingAreas`);
+
+    // If all data is available in localStorage, use it and set loading to false
+    if (amenitiesLS && targetAudiencesLS && surroundingAreasLS) {
+      try {
+        setAmenities(JSON.parse(amenitiesLS));
+        setTargetAudiences(JSON.parse(targetAudiencesLS));
+        setSurroundingAreas(JSON.parse(surroundingAreasLS));
+        setIsLoading(false); // Set loading to false when data is loaded from localStorage
+        return;
+      } catch (error) {
+        console.error("Error parsing cached data:", error);
+        // Continue to API fetch if there's an error with localStorage data
+      }
+    }
+
+    const fetchFilters = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch amenities
+        const amenitiesResponse = await roomApi.getAmenities();
+        if (amenitiesResponse.data && amenitiesResponse.data.data) {
+          localStorage.setItem(
+            `amenities`,
+            JSON.stringify(amenitiesResponse.data.data)
+          );
+          setAmenities(amenitiesResponse.data.data);
+        }
+
+        // Fetch target audiences
+        const targetAudiencesResponse = await roomApi.getTargetAudiences();
+        if (targetAudiencesResponse.data && targetAudiencesResponse.data.data) {
+          localStorage.setItem(
+            `targetAudiences`,
+            JSON.stringify(targetAudiencesResponse.data.data)
+          );
+          setTargetAudiences(targetAudiencesResponse.data.data);
+        }
+
+        // Fetch surrounding areas
+        const surroundingAreasResponse = await roomApi.getSurroundingAreas();
+        if (
+          surroundingAreasResponse.data &&
+          surroundingAreasResponse.data.data
+        ) {
+          localStorage.setItem(
+            `surroundingAreas`,
+            JSON.stringify(surroundingAreasResponse.data.data)
+          );
+          setSurroundingAreas(surroundingAreasResponse.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching filters:", error);
+      } finally {
+        setIsLoading(false); // Set loading to false when API fetching is done
+      }
+    };
+
+    fetchFilters();
+  }, []);
+
+  useEffect(() => {
+    // Get data from localStorage
+    const cachedData = localStorage.getItem(`list${roomType}Pagging`);
+
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        setListings(parsedData);
+        setFilteredListings(parsedData);
+        setTotalCount(parsedData.length);
+      } catch (error) {
+        console.error("Error parsing cached data:", error);
+      }
+    }
+  }, [roomType]);
+
+  useEffect(() => {
+    const params = localStorage.getItem("searchParams");
+    if (params) {
+      try {
+        const parsedParams = JSON.parse(params);
+        setSearchParams(parsedParams);
+
+        // Nếu có searchParams và roomType trong props trùng khớp hoặc không có roomType trong searchParams
+        if (!parsedParams.roomType || parsedParams.roomType === roomType) {
+          // Perform search with these params
+          performSearch(parsedParams);
+        }
+
+        // Optionally, clear localStorage after using the params
+        // localStorage.removeItem('searchParams');
+      } catch (error) {
+        console.error("Error parsing search params:", error);
+      }
+    }
+  }, [roomType]);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      if (localStorage.getItem("provinces")) {
+        const cachedProvinces = localStorage.getItem("provinces");
+        if (cachedProvinces) {
+          setProvinces(JSON.parse(cachedProvinces) as Province[]);
+          return;
+        }
+      }
+      try {
+        setLoading(true);
+        const response = await addressAPI.getProvinces();
+        if (response.data && response.data.data && response.data.data.data) {
+          setProvinces(response.data.data.data as Province[]);
+          localStorage.setItem(
+            "provinces",
+            JSON.stringify(response.data.data.data as Province[])
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching provinces:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProvinces();
+  }, []);
+
+  // Fetch districts when province changes
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      if (!selectedProvince) {
+        setDistricts([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await addressAPI.getDistricts(selectedProvince);
+        if (response.data && response.data.data && response.data.data.data) {
+          setDistricts(response.data.data.data as District[]);
+        }
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDistricts();
+    // Reset dependent fields
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setWards([]);
+  }, [selectedProvince]);
+
+  // Fetch wards when district changes
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (!selectedDistrict) {
+        setWards([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await addressAPI.getWards(selectedDistrict);
+        if (response.data && response.data.data && response.data.data.data) {
+          setWards(response.data.data.data as Ward[]);
+        }
+      } catch (error) {
+        console.error("Error fetching wards:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWards();
+    // Reset dependent field
+    setSelectedWard("");
+  }, [selectedDistrict]);
+
+  const resetLocationSelections = () => {
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
   };
+
+  const handleSearch = () => {
+    const searchParams: any = {
+      roomType: roomType
+    };
+
+    if (selectedProvince) {
+      const provinceName = provinces.find(p => p.code === selectedProvince)?.name;
+      searchParams.province = provinceName;
+    }
+
+    if (selectedDistrict) {
+      const districtName = districts.find(d => d.code === selectedDistrict)?.name;
+      searchParams.district = districtName;
+    }
+
+    if (selectedWard) {
+      const wardName = wards.find(w => w.code === selectedWard)?.name;
+      searchParams.ward = wardName;
+    }
+
+    if (priceRange && priceRange !== 'all') {
+      switch (priceRange) {
+        case 'under-1m':
+          searchParams.maxPrice = 1000000;
+          break;
+        case '1-10m':
+          searchParams.minPrice = 1000000;
+          searchParams.maxPrice = 10000000;
+          break;
+        case '10-30m':
+          searchParams.minPrice = 10000000;
+          searchParams.maxPrice = 30000000;
+          break;
+        case '30-50m':
+          searchParams.minPrice = 30000000;
+          searchParams.maxPrice = 50000000;
+          break;
+        case '50m-plus':
+          searchParams.minPrice = 50000000;
+          break;
+        case '100m-plus':
+          searchParams.minPrice = 100000000;
+          break;
+      }
+    } else if (minPriceInput || maxPriceInput) {
+      if (minPriceInput) {
+        searchParams.minPrice = parseFloat(minPriceInput) * 1000000;
+      }
+      if (maxPriceInput) {
+        searchParams.maxPrice = parseFloat(maxPriceInput) * 1000000;
+      }
+    }
+
+    if (searchTerm) {
+      searchParams.query = searchTerm;
+    }
+
+    performSearch(searchParams);
+  };
+
+  const resetList = () => {
+    // Reset search states
+    setSearchTerm("");
+    setPriceRange("all");
+    setMinPriceInput("");
+    setMaxPriceInput("");
+    resetLocationSelections();
+    
+    // Reset filters
+    setSelectedFilters({
+      area: [],
+      amenities: [],
+      targetAudiences: [],
+      surroundingAreas: [],
+    });
+    
+    // Reset search parameters
+    setSearchParams(null);
+    localStorage.removeItem("searchParams");
+    
+    // Reload listings from localStorage or perform a fresh search
+    const cachedData = localStorage.getItem(`list${roomType}Pagging`);
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        setListings(parsedData);
+        setFilteredListings(parsedData);
+        setTotalCount(parsedData.length);
+      } catch (error) {
+        console.error("Error parsing cached data:", error);
+        // If cached data fails, perform a basic search
+        performSearch({ roomType });
+      }
+    } else {
+      // If no cache, perform a basic search
+      performSearch({ roomType });
+    }
+  };
+
+  const handleSearchAdvanced = () => {
+    const searchParams: any = {
+      roomType: roomType
+    };
+
+    // Add location parameters
+    if (selectedProvince) {
+      const provinceName = provinces.find(p => p.code === selectedProvince)?.name;
+      searchParams.province = provinceName;
+    }
+
+    if (selectedDistrict) {
+      const districtName = districts.find(d => d.code === selectedDistrict)?.name;
+      searchParams.district = districtName;
+    }
+
+    if (selectedWard) {
+      const wardName = wards.find(w => w.code === selectedWard)?.name;
+      searchParams.ward = wardName;
+    }
+
+    // Add price parameters
+    if (priceRange && priceRange !== 'all') {
+      switch (priceRange) {
+        case 'under-1m':
+          searchParams.maxPrice = 1000000;
+          break;
+        case '1-10m':
+          searchParams.minPrice = 1000000;
+          searchParams.maxPrice = 10000000;
+          break;
+        case '10-30m':
+          searchParams.minPrice = 10000000;
+          searchParams.maxPrice = 30000000;
+          break;
+        case '30-50m':
+          searchParams.minPrice = 30000000;
+          searchParams.maxPrice = 50000000;
+          break;
+        case '50m-plus':
+          searchParams.minPrice = 50000000;
+          break;
+        case '100m-plus':
+          searchParams.minPrice = 100000000;
+          break;
+      }
+    } else if (minPriceInput || maxPriceInput) {
+      if (minPriceInput) {
+        searchParams.minPrice = parseFloat(minPriceInput) * 1000000;
+      }
+      if (maxPriceInput) {
+        searchParams.maxPrice = parseFloat(maxPriceInput) * 1000000;
+      }
+    }
+
+    // Add search term
+    if (searchTerm) {
+      searchParams.query = searchTerm;
+    }
+
+    // Add area filters
+    if (selectedFilters.area.length > 0) {
+      const areaRanges = [];
+      for (const area of selectedFilters.area) {
+        switch (area) {
+          case 'under20':
+            areaRanges.push('0-20');
+            break;
+          case '20-40':
+            areaRanges.push('20-40');
+            break;
+          case '40-60':
+            areaRanges.push('40-60');
+            break;
+          case '60-80':
+            areaRanges.push('60-80');
+            break;
+          case 'above80':
+            areaRanges.push('80-999');
+            break;
+        }
+      }
+      searchParams.areaRange = areaRanges.join(',');
+    }
+
+    // Add amenities
+      if (selectedFilters.amenities.length > 0) {
+        const amenityNames = selectedFilters.amenities.map((id: string) => {
+          const amenity = amenities.find(a => a.id.toString() === id);
+          return amenity ? amenity.name : '';
+        }).filter(Boolean);
+        
+        if (amenityNames.length > 0) {
+          searchParams.amenities = amenityNames.join(',');
+        }
+      }
   
+      // Add surrounding areas
+      if (selectedFilters.surroundingAreas.length > 0) {
+        const areaNames = selectedFilters.surroundingAreas.map((id: string) => {
+          const area = surroundingAreas.find(a => a.id.toString() === id);
+          return area ? area.name : '';
+        }).filter(Boolean);
+        
+        if (areaNames.length > 0) {
+          searchParams.environment = areaNames.join(',');
+        }
+      }
   
+      // Add target audiences
+      if (selectedFilters.targetAudiences.length > 0) {
+        const audienceNames = selectedFilters.targetAudiences.map((id: string) => {
+          const audience = targetAudiences.find(a => a.id.toString() === id);
+          return audience ? audience.name : '';
+        }).filter(Boolean);
+      
+      if (audienceNames.length > 0) {
+        searchParams.targetAudience = audienceNames.join(',');
+      }
+    }
+
+    // Perform the search with the constructed parameters
+    performSearch(searchParams);
+  }
+
+  const performSearch = async (params: any) => {
+    setIsSearching(true);
+    try {
+      const searchRoomParams: RoomSearchParams = {
+        page: 0,
+        size: 25,
+        roomType: roomType,
+      };
+
+      if (params.query) {
+        searchRoomParams.street = params.query;
+      }
+
+      if (params.province) {
+        searchRoomParams.city = params.province;
+      }
+
+      if (params.district) {
+        searchRoomParams.district = params.district;
+      }
+
+      if (params.minPrice !== undefined) {
+        searchRoomParams.minPrice = params.minPrice;
+      }
+
+      if (params.maxPrice !== undefined) {
+        searchRoomParams.maxPrice = params.maxPrice;
+      }
+
+      if (params.areaRange) {
+        searchRoomParams.areaRange = params.areaRange;
+      }
+
+      const response = await roomApi.searchRooms(searchRoomParams);
+
+      if (response.data && response.data.data && response.data.data.content) {
+        const transformedListings = response.data.data.content.map(
+          (item: Room) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            area: item.area,
+            image: item.imageUrls[0],
+            location: `${item.district}, ${item.province}`,
+          })
+        );
+
+        setListings(transformedListings);
+        setFilteredListings(transformedListings);
+        setTotalCount(response.data.data.totalElements);
+      }
+    } catch (error) {
+      console.error("Error searching rooms:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    filterListings(e.target.value, selectedFilters);
+  };
+
+  // Toggle area filter selection
+  const toggleAreaFilter = (areaId: string) => {
+    setSelectedFilters(
+      (prev: {
+        area: string[];
+        amenities: string[];
+        targetAudiences: string[];
+        surroundingAreas: string[];
+      }) => {
+        const newAreas: string[] = prev.area.includes(areaId)
+          ? prev.area.filter((id: string) => id !== areaId)
+          : [...prev.area, areaId];
+
+        const newFilters: {
+          area: string[];
+          amenities: string[];
+          targetAudiences: string[];
+          surroundingAreas: string[];
+        } = { ...prev, area: newAreas };
+        filterListings(searchTerm, newFilters);
+        return newFilters;
+      }
+    );
+  };
+
+  // Toggle amenity filter selection
+  const toggleAmenityFilter = (amenityId: string) => {
+    setSelectedFilters((prev: { amenities: string[] }) => {
+      const newAmenities = prev.amenities.includes(amenityId)
+        ? prev.amenities.filter((id) => id !== amenityId)
+        : [...prev.amenities, amenityId];
+
+      const newFilters = { ...prev, amenities: newAmenities };
+      filterListings(searchTerm, newFilters);
+      return newFilters;
+    });
+  };
+
+  // Toggle target audience filter selection
+  const toggleTargetAudienceFilter = (audienceId: string) => {
+    setSelectedFilters((prev: { targetAudiences: string[] }) => {
+      const newTargetAudiences = prev.targetAudiences.includes(audienceId)
+        ? prev.targetAudiences.filter((id) => id !== audienceId)
+        : [...prev.targetAudiences, audienceId];
+
+      const newFilters = { ...prev, targetAudiences: newTargetAudiences };
+      filterListings(searchTerm, newFilters);
+      return newFilters;
+    });
+  };
+
+  // Toggle surrounding area filter selection
+  const toggleSurroundingAreaFilter = (areaId: string) => {
+    setSelectedFilters((prev: { surroundingAreas: string[] }) => {
+      const newSurroundingAreas = prev.surroundingAreas.includes(areaId)
+        ? prev.surroundingAreas.filter((id) => id !== areaId)
+        : [...prev.surroundingAreas, areaId];
+
+      const newFilters = { ...prev, surroundingAreas: newSurroundingAreas };
+      filterListings(searchTerm, newFilters);
+      return newFilters;
+    });
+  };
+
+  // Filter listings based on search term and filters
+  const filterListings = (search: string, filters: typeof selectedFilters) => {
+    let result = [...listings];
+
+    // Apply search term filter
+    if (search) {
+      result = result.filter(
+        (listing) =>
+          listing.title.toLowerCase().includes(search.toLowerCase()) ||
+          listing.location.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Apply area filters (simplified - in real app would use actual m² values)
+    if (filters.area.length > 0) {
+      result = result.filter((listing) => {
+        if (filters.area.includes("under20") && listing.area < 20) return true;
+        if (
+          filters.area.includes("20-40") &&
+          listing.area >= 20 &&
+          listing.area < 40
+        )
+          return true;
+        if (
+          filters.area.includes("40-60") &&
+          listing.area >= 40 &&
+          listing.area < 60
+        )
+          return true;
+        if (
+          filters.area.includes("60-80") &&
+          listing.area >= 60 &&
+          listing.area < 80
+        )
+          return true;
+        if (filters.area.includes("above80") && listing.area >= 80) return true;
+        return filters.area.length === 0;
+      });
+    }
+
+    setFilteredListings(result);
+  };
 
   return (
     <div>
+      {/* Blue header background with search */}
+      <div className=" text-white py-4" style={{ backgroundColor: "#0145aa" }}>
+        <div className="container">
+          <h1 className="fw-bold mb-4">
+            {title.toUpperCase()} GIÁ RẺ, MỚI NHẤT
+          </h1>
 
+          <div
+            className="d-flex flex-wrap align-items-center bg-white p-2"
+            style={{ borderRadius: "8px" }}
+          >
+            {/* Search input */}
+            <div className="d-flex align-items-center flex-grow-1 pe-2">
+              <div
+                className="bg-primary d-flex justify-content-center align-items-center"
+                style={{ width: "45px", height: "45px", borderRadius: "4px" }}
+              >
+                <FaSearch color="white" size={20} />
+              </div>
+              <input
+                type="text"
+                className="form-control border-0 shadow-none ms-2"
+                placeholder="Bạn muốn tìm trọ ở đâu?"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                style={{ height: "45px" }}
+              />
+            </div>
 
-      {/* Header */}
-      <h2 className="mb-3">{title}</h2>
-      <p className="text-muted">Tìm kiếm {title} giá rẻ, an toàn, tiện lợi.</p>
+            {/* Category dropdown */}
+            <div
+              className="border-start px-3 d-flex align-items-center"
+              style={{ height: "45px" }}
+            >
+              <div className="dropdown">
+                <button
+                  className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
+                  type="button"
+                  id="categoryDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  style={{ minWidth: "180px" }}
+                >
+                  <span>Nhà trọ, phòng trọ</span>
+                </button>
+                <ul
+                  className="dropdown-menu"
+                  aria-labelledby="categoryDropdown"
+                >
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Nhà trọ, phòng trọ
+                    </a>
+                  </li>
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Nhà nguyên căn
+                    </a>
+                  </li>
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Căn hộ
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
 
-      {/* Bộ lọc tìm kiếm */}
-      <Form className="mb-4">
-        <Row>
-          <Col md={3}>
-            <Form.Control
-              type="text"
-              placeholder="Tìm theo từ khóa..."
-              name="keyword"
-              value={filter.keyword}
-              onChange={handleChange}
-            />
-          </Col>
-          <Col md={3}>
-            <Form.Select name="price" value={filter.price} onChange={handleChange}>
-              <option value="">Chọn mức giá</option>
-              <option value="duoi-2tr">Dưới 2 triệu</option>
-              <option value="2-4tr">2 - 4 triệu</option>
-              <option value="tren-4tr">Trên 4 triệu</option>
-            </Form.Select>
-          </Col>
-          <Col md={3}>
-            <Form.Select name="area" value={filter.area} onChange={handleChange}>
-              <option value="">Chọn diện tích</option>
-              <option value="duoi-20m2">Dưới 20m²</option>
-              <option value="20-40m2">20 - 40m²</option>
-              <option value="tren-40m2">Trên 40m²</option>
-            </Form.Select>
-          </Col>
-          <Col md={3}>
-            <Form.Select name="sort" value={filter.sort} onChange={handleChange}>
-              <option value="">Sắp xếp</option>
-              <option value="moi-nhat">Mới nhất</option>
-              <option value="gia-thap-den-cao">Giá thấp đến cao</option>
-              <option value="gia-cao-den-thap">Giá cao đến thấp</option>
-            </Form.Select>
-          </Col>
-        </Row>
-      </Form>
+            {/* Location dropdown */}
+            <div
+              className="border-start px-3 d-flex align-items-center"
+              style={{ height: "45px" }}
+            >
+              <div
+                className=" px-3 d-flex align-items-center"
+                style={{ height: "45px" }}
+              >
+                <div className="dropdown">
+                  <button
+                    className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
+                    type="button"
+                    id="dropdownLocation"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <div className="d-flex align-items-center">
+                      {selectedWard ? (
+                        <span
+                          className="text-truncate d-inline-block"
+                          style={{
+                            maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {(wards.find((w) => w.code === selectedWard)?.name ||
+                            "") +
+                            ", " +
+                            (districts.find((d) => d.code === selectedDistrict)
+                              ?.name || "") +
+                            ", " +
+                            (provinces.find((p) => p.code === selectedProvince)
+                              ?.name || "")}
+                        </span>
+                      ) : selectedDistrict ? (
+                        <span
+                          className="text-truncate d-inline-block"
+                          style={{
+                            maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {(districts.find((d) => d.code === selectedDistrict)
+                            ?.name || "") +
+                            ", " +
+                            (provinces.find((p) => p.code === selectedProvince)
+                              ?.name || "")}
+                        </span>
+                      ) : selectedProvince ? (
+                        <span
+                          className="text-truncate d-inline-block"
+                          style={{
+                            maxWidth: "200px", // hoặc bạn set cố định phù hợp với thiết kế
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {provinces.find((p) => p.code === selectedProvince)
+                            ?.name || ""}
+                        </span>
+                      ) : (
+                        <span>Địa điểm</span>
+                      )}
+                    </div>
+                  </button>
+                  <div
+                    className="dropdown-menu p-0 w-100"
+                    style={{ zIndex: 1050 }}
+                    aria-labelledby="dropdownLocation"
+                  >
+                    <div className="location-form p-0">
+                      <div className="mb-0">
+                        <Form.Select
+                          value={selectedProvince}
+                          onChange={(e) => {
+                            setSelectedProvince(e.target.value);
+                            setSelectedDistrict("");
+                            setSelectedWard("");
+                          }}
+                          className="border-0 border-bottom rounded-0 py-3"
+                          disabled={loading}
+                        >
+                          <option key="default-province" value="">Chọn Tỉnh/TP...</option>
+                          {Array.isArray(provinces) &&
+                            provinces.map((province) => (
+                              <option key={province.code} value={province.code}>
+                                {province.name_with_type}
+                              </option>
+                            ))}
+                        </Form.Select>
+                      </div>
 
-      {/* Danh sách bài đăng */}
-      <Row>
-        {posts.map((post) => (
-          <Col md={4} key={post.id} className="mb-3">
-            <Card>
-              <Card.Img variant="top" src={post.image} alt={post.title} />
-              <Card.Body>
-                <Card.Title>{post.title}</Card.Title>
-                <Card.Text>
-                  <strong>{post.price} VNĐ/tháng</strong> <br />
-                  <small>{post.address}</small>
-                </Card.Text>
-                <Button variant="primary">Xem chi tiết</Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+                      <div className="mb-0">
+                        <Form.Select
+                          value={selectedDistrict}
+                          onChange={(e) => {
+                            setSelectedDistrict(e.target.value);
+                            setSelectedWard("");
+                          }}
+                          className="border-0 border-bottom rounded-0 py-3"
+                          disabled={!selectedProvince || loading}
+                        >
+                          <option value="">Quận/Huyện...</option>
+                          {districts.map((district) => (
+                            <option key={district.code} value={district.code}>
+                              {district.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </div>
 
-      {/* Phân trang */}
-      <Pagination className="mt-4">
-        <Pagination.Prev />
-        <Pagination.Item>{1}</Pagination.Item>
-        <Pagination.Item>{2}</Pagination.Item>
-        <Pagination.Item>{3}</Pagination.Item>
-        <Pagination.Next />
-      </Pagination>
+                      <div className="mb-0">
+                        <Form.Select
+                          value={selectedWard}
+                          onChange={(e) => setSelectedWard(e.target.value)}
+                          className="border-0 border-bottom rounded-0 py-3"
+                          disabled={!selectedDistrict || loading}
+                        >
+                          <option value="">Đường phố...</option>
+                          {wards.map((ward) => (
+                            <option key={ward.id} value={ward.code}>
+                              {ward.name_with_type}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </div>
+
+                      <div className="d-flex justify-content-between p-2">
+                        <Button
+                          variant="link"
+                          className="text-decoration-none d-flex align-items-center"
+                          onClick={resetLocationSelections}
+                        >
+                          <i className="bi bi-arrow-repeat me-1"></i> Đặt lại
+                        </Button>
+                        <Button onClick={handleSearch} variant="primary">
+                          Tìm ngay
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Price dropdown */}
+            <div
+              className="border-start px-3 d-flex align-items-center"
+              style={{ height: "45px" , minWidth : "280px" }}
+            >
+              <Dropdown className="w-100 h-100">
+                <Dropdown.Toggle className="bg-white border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between" style={{color: "#363940"}}>
+                  <span className="text-start w-100">
+                    {minPriceInput || maxPriceInput
+                      ? `Từ ${minPriceInput || "0"} → ${
+                          maxPriceInput || "∞"
+                        } triệu`
+                      : priceLabelMap[priceRange] || "Mức giá"}
+                  </span>
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu className="w-100 p-3" style={{ zIndex: 1050 }}>
+                  <div className="mb-3">
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="pe-2 flex-grow-1">
+                        <Form.Control
+                          type="text"
+                          placeholder="Từ"
+                          className="rounded"
+                          value={minPriceInput}
+                          onChange={(e) => {
+                            setMinPriceInput(e.target.value);
+                            setPriceRange(""); // reset radio
+                          }}
+                        />
+                      </div>
+                      <div className="px-2">→</div>
+                      <div className="ps-2 flex-grow-1">
+                        <Form.Control
+                          type="text"
+                          placeholder="Đến"
+                          className="rounded"
+                          value={maxPriceInput}
+                          onChange={(e) => {
+                            setMaxPriceInput(e.target.value);
+                            setPriceRange(""); // reset radio
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {Object.entries(priceLabelMap).map(([key, label]) => (
+                      <Form.Check
+                        type="radio"
+                        id={key}
+                        name="price-range"
+                        key={key}
+                        label={
+                          key === "all" ? (
+                            <span className="fw-bold">{label}</span>
+                          ) : (
+                            label
+                          )
+                        }
+                        checked={priceRange === key}
+                        onChange={() => {
+                          setPriceRange(key);
+                          setMinPriceInput("");
+                          setMaxPriceInput("");
+                        }}
+                        className="mb-2"
+                      />
+                    ))}
+                  </div>
+
+                  <div className="d-flex justify-content-between p-2">
+                    <Button
+                      variant="link"
+                      className="text-decoration-none d-flex align-items-center"
+                      onClick={() => {
+                        setMinPriceInput("");
+                        setMaxPriceInput("");
+                        setPriceRange("all");
+                        resetList()
+                      }}
+                    >
+                      <i className="bi bi-arrow-repeat me-1"></i> Đặt lại
+                    </Button>
+                    <Button onClick={handleSearch} variant="primary">
+                      Tìm ngay
+                    </Button>
+                  </div>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+
+            {/* Search button */}
+            <div className="ps-3">
+              <button
+                className="btn text-white d-flex align-items-center"
+                style={{
+                  backgroundColor: "#ff5a00",
+                  borderColor: "#ff5a00",
+                  height: "45px",
+                  fontWeight: "500",
+                }}
+                onClick={handleSearch}
+              >
+                <FaSearch className="me-2" /> Tìm kiếm
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mt-4">
+        {searchParams && (
+          <div className="alert alert-info mb-3">
+            <strong>Kết quả tìm kiếm cho: </strong>
+            {searchParams.query && <span>"{searchParams.query}" </span>}
+            {searchParams.province && <span>tại {searchParams.province} </span>}
+            {searchParams.minPrice && (
+              <span>từ {searchParams.minPrice / 1000000} triệu </span>
+            )}
+            {searchParams.maxPrice && (
+              <span>đến {searchParams.maxPrice / 1000000} triệu </span>
+            )}
+            {searchParams.areaRange && (
+              <span>diện tích {searchParams.areaRange}m² </span>
+            )}
+            <button
+              className="btn btn-sm btn-outline-secondary ms-2"
+              onClick={() => {
+                localStorage.removeItem("searchParams");
+                setSearchParams(null);
+                // Reset to original listings
+                setFilteredListings(listings);
+                window.location.reload();
+              }}
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        )}
+
+        <div className="d-flex flex-nowrap">
+          {/* Left sidebar - Filters */}
+          <div
+            className="filter-sidebar"
+            style={{ width: "280px", minWidth: "280px", marginRight: "20px" }}
+          >
+            <div className="bg-white p-3 rounded shadow-sm mb-4">
+              <h5 className="fw-bold text-primary mb-3">
+                <FaSearch className="me-2" />
+                Lọc tìm kiếm
+              </h5>
+
+              {/* Area filters */}
+              <div className="mb-4">
+                <h6 className="fw-bold mb-2">Diện tích</h6>
+                {areaOptions.map((area) => (
+                  <Form.Check
+                    key={area.id}
+                    type="checkbox"
+                    id={`area-${area.id}`}
+                    label={area.label}
+                    className="mb-2"
+                    checked={selectedFilters.area.includes(area.id)}
+                    onChange={() => toggleAreaFilter(area.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Amenity filters from API */}
+              <div className="mb-4">
+                <h6 className="fw-bold mb-2">Tiện nghi</h6>
+                {isLoading ? (
+                  <p>Đang tải...</p>
+                ) : (
+                  amenities.map((amenity) => (
+                    <Form.Check
+                      key={amenity.id}
+                      type="checkbox"
+                      id={`amenity-${amenity.id}`}
+                      label={amenity.name}
+                      className="mb-2"
+                      checked={selectedFilters.amenities.includes(
+                        amenity.id.toString()
+                      )}
+                      onChange={() =>
+                        toggleAmenityFilter(amenity.id.toString())
+                      }
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Target audience filters from API */}
+              <div className="mb-4">
+                <h6 className="fw-bold mb-2">Đối tượng thuê</h6>
+                {isLoading ? (
+                  <p>Đang tải...</p>
+                ) : (
+                  targetAudiences.map((audience) => (
+                    <Form.Check
+                      key={audience.id}
+                      type="checkbox"
+                      id={`audience-${audience.id}`}
+                      label={audience.name}
+                      className="mb-2"
+                      checked={selectedFilters.targetAudiences.includes(
+                        audience.id.toString()
+                      )}
+                      onChange={() =>
+                        toggleTargetAudienceFilter(audience.id.toString())
+                      }
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Surrounding area filters from API */}
+              <div className="mb-3">
+                <h6 className="fw-bold mb-2">Khu vực xung quanh</h6>
+                {isLoading ? (
+                  <p>Đang tải...</p>
+                ) : (
+                  surroundingAreas.map((area) => (
+                    <Form.Check
+                      key={area.id}
+                      type="checkbox"
+                      id={`surrounding-${area.id}`}
+                      label={area.name}
+                      className="mb-2"
+                      checked={selectedFilters.surroundingAreas.includes(
+                        area.id.toString()
+                      )}
+                      onChange={() =>
+                        toggleSurroundingAreaFilter(area.id.toString())
+                      }
+                    />
+                  ))
+                )}
+              </div>
+
+                <button
+                  className="btn btn-primary w-100"
+                  onClick={handleSearchAdvanced}
+                >
+                  Tìm kiếm nâng cao
+              </button>
+            </div>
+          </div>
+
+          {/* Right content - Listing results */}
+          <div className="flex-grow-1">
+            <div className="d-flex justify-content-between mb-3">
+              <p className="mb-0">Tổng {totalCount} kết quả</p>
+            </div>
+
+            {/* Loading indicator */}
+            {isSearching && (
+              <div className="text-center py-5">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-2">Đang tìm kiếm...</p>
+              </div>
+            )}
+
+            {/* Listing results */}
+            {!isSearching && filteredListings.length === 0 && (
+              <div className="alert alert-warning">
+                Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu
+                chí khác.
+              </div>
+            )}
+
+            {!isSearching &&
+              filteredListings.map((listing, index) => (
+                <Card key={listing.id} className="mb-3 border-0 shadow-sm">
+                  <div className="position-relative">
+                    {/* HOT label */}
+                    <div
+                      className="position-absolute bg-danger text-white px-2 py-1"
+                      style={{ top: "10px", left: "0" }}
+                    >
+                      HOT
+                    </div>
+
+                    <Row className="g-0">
+                      {/* Left - Image */}
+                      <Col md={4}>
+                        <Card.Img
+                          src={listing.image}
+                          alt={listing.title}
+                          style={{ height: "100%", objectFit: "cover" }}
+                        />
+                      </Col>
+
+                      {/* Right - Content */}
+                      <Col md={8}>
+                        <Card.Body>
+                          <div className="d-flex justify-content-between">
+                            <Card.Title className="fw-bold mb-2">
+                              {listing.title}
+                            </Card.Title>
+                            <FaHeart
+                              className="text-muted"
+                              style={{ cursor: "pointer" }}
+                            />
+                          </div>
+
+                          <Card.Text className="text-danger fw-bold mb-2">
+                          {listing.price.toLocaleString()}/tháng
+                            
+                          </Card.Text>
+
+                          <div className="d-flex mb-2">
+                            <span className="me-3">{listing.area}m²</span>
+                          </div>
+
+                          <div className="d-flex align-items-center text-muted mb-2">
+                            <FaMapMarkerAlt className="me-1" />
+                            {listing.location}
+                          </div>
+
+                          <Link
+                            to={`/phong-tro/${listing.id}`}
+                            className="text-decoration-none"
+                          >
+                            <Button variant="primary" className="mt-1">
+                              Xem chi tiết
+                            </Button>
+                          </Link>
+                        </Card.Body>
+                      </Col>
+                    </Row>
+                  </div>
+                </Card>
+              ))}
+
+            {/* Pagination */}
+            <div className="d-flex justify-content-center mt-4">
+              <nav aria-label="Page navigation">
+                <ul className="pagination">
+                  <li className="page-item">
+                    <a className="page-link" href="#" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                  <li className="page-item active">
+                    <a className="page-link" href="#">
+                      1
+                    </a>
+                  </li>
+                  <li className="page-item">
+                    <a className="page-link" href="#">
+                      2
+                    </a>
+                  </li>
+                  <li className="page-item">
+                    <a className="page-link" href="#">
+                      3
+                    </a>
+                  </li>
+                  <li className="page-item">
+                    <a className="page-link" href="#" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,9 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Post, mockPosts } from "../../data/mockPosts";
 import CategorySharedPage from "./CategorySharedPage";
 import VideoReviewPage from "./VideoReviewPage";
 import BlogPage from "./BlogPage";
+import AllCategoriesPage from "./AllCategoriesPage";
 import {
   SHARED_CATEGORIES,
   VIDEO_CATEGORY,
@@ -11,16 +10,17 @@ import {
   categoryNameMap,
 } from "../../data/categories";
 
+// category -> roomType mapping
+const CATEGORY_TO_ROOM_TYPE: Record<string, "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE"> = {
+  "can-ho-chung-cu": "APARTMENT",
+  "nha-nguyen-can": "WHOLE_HOUSE",
+  "nha-tro-phong-tro": "BOARDING_HOUSE",
+};
+
+var i = 0;
+
 const CategoryPage = () => {
   const { type } = useParams();
-  const [posts, setPosts] = useState<Post[]>([]);
-
-  useEffect(() => {
-    if (type) {
-      const filtered = mockPosts.filter((p) => p.category === type);
-      setPosts(filtered);
-    }
-  }, [type]);
 
   if (!type) return <div>Không xác định danh mục.</div>;
 
@@ -35,12 +35,14 @@ const CategoryPage = () => {
       </p>
 
       {/* ✅ Giao diện tùy loại */}
-      {SHARED_CATEGORIES.includes(type) && (
-        <CategorySharedPage posts={posts} title={categoryName} />
+      {type === "tat-ca" && <AllCategoriesPage />}
+
+      {SHARED_CATEGORIES.includes(type) && type !== "tat-ca" && (
+        <CategorySharedPage title={categoryName} roomType={CATEGORY_TO_ROOM_TYPE[type]} />
       )}
 
-      {type === VIDEO_CATEGORY && <VideoReviewPage posts={posts} />}
-      {type === BLOG_CATEGORY && <BlogPage posts={posts} />}
+      {type === VIDEO_CATEGORY && <VideoReviewPage />}
+      {type === BLOG_CATEGORY && <BlogPage />}
     </div>
   );
 };

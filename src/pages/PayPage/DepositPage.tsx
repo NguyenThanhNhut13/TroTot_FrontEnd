@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/styles/Deposit.css";
+import paymentAPI from "../../apis/payment.api";
+import { toast } from "react-toastify";
+import { AppContext } from "../../contexts/app.context";
 
 const DepositPage: React.FC = () => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(0);
   const [selectedMethod, setSelectedMethod] = useState<string>("vnpay");
+  const { profile } = useContext(AppContext);
 
   // Danh sách số tiền có thể chọn
   const amounts = [
@@ -39,12 +43,40 @@ const DepositPage: React.FC = () => {
     setSelectedMethod(method);
   };
 
-  const handleSubmit = () => {
-    // Xử lý logic nạp tiền (gọi API, chuyển hướng đến cổng thanh toán, v.v.)
-    console.log("Nạp tiền:", selectedAmount, "Phương thức:", selectedMethod);
-    // Ví dụ: chuyển hướng đến cổng thanh toán VNPAY
-    if (selectedMethod === "vnpay") {
-      window.location.href = "https://sandbox.vnpayment.vn/"; // Thay bằng URL thực tế
+  const handleSubmit = async () => {
+    if (!selectedAmount) {
+      toast.error("Vui lòng chọn số tiền cần nạp");
+      return;
+    }
+
+    try {
+      // Lấy userId từ localStorage hoặc context state management
+      const userId = profile?.id; // hoặc từ context của bạn
+
+      if (!userId) {
+        toast.error("Bạn cần đăng nhập để thực hiện chức năng này");
+        return;
+      }
+
+      const response = await paymentAPI.addMoneyToWallet(
+        Number(userId),
+        selectedAmount
+      );
+
+      if (response.data && response.data.data.paymentUrl) {
+        // Lưu thông tin chuyển hướng để sau khi thanh toán xong có thể quay lại
+        localStorage.setItem("redirectAfterPayment", "/post-room");
+
+        // Chuyển hướng đến trang thanh toán
+        window.location.href = response.data.data.paymentUrl;
+      } else {
+        toast.error(
+          "Không thể tạo giao dịch thanh toán. Vui lòng thử lại sau."
+        );
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại sau.");
     }
   };
 
@@ -121,7 +153,7 @@ const DepositPage: React.FC = () => {
           <Row>
             <Col xs={6}>Nạp vào tài khoản:</Col>
             <Col xs={6} className="text-end">
-              Ngô Văn Toàn
+              {profile?.fullName || "Null"}
             </Col>
           </Row>
         </div>

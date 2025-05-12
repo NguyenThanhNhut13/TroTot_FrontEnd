@@ -1,20 +1,27 @@
-import React, { useState, useContext } from 'react'
-import { Navbar, Nav, Button, Container, Dropdown } from 'react-bootstrap'
-import { Link, useNavigate } from 'react-router-dom'
-import LoginModal from '../../pages/Login/LoginModal'
-import RegisterModal from '../../pages/Register/RegisterModal'
-import authApi from '../../apis/auth.api'
-import { useMutation } from '@tanstack/react-query'
-import { AppContext } from '../../contexts/app.context'
-import { toast } from 'react-toastify'
-import { FaBell, FaHeart } from 'react-icons/fa'
-import Badge from 'react-bootstrap/Badge'
-
+import React, { useState, useEffect, useContext } from "react";
+import {
+  Navbar,
+  Nav,
+  Button,
+  Container,
+  Dropdown,
+  Badge,
+} from "react-bootstrap";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import LoginModal from "../../pages/Login/LoginModal";
+import RegisterModal from "../../pages/Register/RegisterModal";
+import authApi from "../../apis/auth.api";
+import { useMutation } from "@tanstack/react-query";
+import { AppContext } from "../../contexts/app.context";
+import { FaBell, FaHeart } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
 
   const { setIsAuthenticated, setProfile, profile } = useContext(AppContext)
 
@@ -52,6 +59,14 @@ const Header = () => {
     navigate('/post-room')
   }
 
+  const categories = [
+    { path: "/category/nha-tro-phong-tro", label: "Nhà trọ, phòng trọ" },
+    { path: "/category/nha-nguyen-can", label: "Nhà nguyên căn" },
+    { path: "/category/can-ho-chung-cu", label: "Căn hộ" },
+    { path: "/category/video-review", label: "Video review" },
+    { path: "/category/blog", label: "Blog" },
+  ];
+
   return (
     <>
       <Navbar bg="white" expand="lg" className="shadow-sm py-2">
@@ -72,41 +87,26 @@ const Header = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link
-                as={Link}
-                to="/category/nha-tro-phong-tro"
-                className="fw-medium mx-2"
-              >
-                Nhà Trọ, Phòng Trọ
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/category/nha-nguyen-can"
-                className="fw-medium mx-2"
-              >
-                Nhà Nguyên Căn
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/category/can-ho-chung-cu"
-                className="fw-medium mx-2"
-              >
-                Căn Hộ
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/category/video-review"
-                className="fw-medium mx-2"
-              >
-                Video Review
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/category/blog"
-                className="fw-medium mx-2"
-              >
-                Blog
-              </Nav.Link>
+              {categories.map((cat) => {
+                const isActive = location.pathname === cat.path;
+                return (
+                  <Nav.Link
+                    key={cat.path}
+                    as={Link}
+                    to={cat.path}
+                    className={`fw-medium mx-2`}
+                    style={{
+                      backgroundColor: isActive ? "#0145aa" : "transparent",
+                      color: isActive ? "#ffffff" : "#393738",
+                      padding: "10px 12px",
+                      borderRadius: "4px",
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  >
+                    {cat.label}
+                  </Nav.Link>
+                );
+              })}
             </Nav>
 
             <Nav className="align-items-center">

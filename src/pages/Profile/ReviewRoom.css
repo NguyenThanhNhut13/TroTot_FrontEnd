@@ -1,0 +1,13 @@
+.empty-reviews-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 20px 0;
+  padding: 60px 20px;
+}
+
+.empty-review-image {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}

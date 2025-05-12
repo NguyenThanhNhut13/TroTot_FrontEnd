@@ -5,4 +5,5 @@ export type AuthResponse = SuccessResponse<{
   refreshToken: string
 }>
 
-export type RefreshTokenReponse = SuccessResponse<{ accessToken: string }>
+export type RefreshTokenReponse = SuccessResponse<{ accessToken: string , refreshToken: string }>
+

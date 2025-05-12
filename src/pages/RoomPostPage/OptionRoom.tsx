@@ -2,8 +2,8 @@ import React from "react";
 import { Row, Col, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../MainPage/Sidebar";
-import "../../assets/styles/PostRoom.css"; 
-
+import "../../assets/styles/PostRoom.css";
+import { min } from "moment";
 
 interface RoomType {
   icon: string;
@@ -41,7 +41,6 @@ const PostRoomPage = () => {
 
   // Hàm xử lý khi nhấn nút "Đăng ngay"
   const handlePostClick = (link: string) => {
-    console.log("Navigating to:", link);
     navigate(link);
   };
 

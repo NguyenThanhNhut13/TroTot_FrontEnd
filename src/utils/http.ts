@@ -20,8 +20,7 @@ import {
 } from "../apis/auth.api";
 import { URL_GET_PROFILE } from "../apis/user.api";
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from "./utils";
-import { ErrorResponse } from "../types/utils.type";
-import { set } from "lodash";
+import { ErrorResponse, ResponseOfAccessToken401 } from "../types/utils.type";
 import { UserRespone } from "../types/user.type";
 
 // Post: 1 - 3
@@ -113,26 +112,27 @@ export class Http {
         ) {
           const config = error.response?.config || { headers: {}, url: "" };
           const { url } = config;
-          // Trường hợp Token hết hạn và request đó không phải là của request refresh token
-          // thì chúng ta mới tiến hành gọi refresh token
-          if (isAxiosExpiredTokenError(error) && url !== URL_REFRESH_TOKEN) {
+            // Trường hợp Token hết hạn và request đó không phải là của request refresh token
+            // thì chúng ta mới tiến hành gọi refresh token
+            if ((isAxiosExpiredTokenError(error) )
+              ) {
             // Hạn chế gọi 2 lần handleRefreshToken
             this.refreshTokenRequest = this.refreshTokenRequest
               ? this.refreshTokenRequest
               : this.handleRefreshToken().finally(() => {
-                  // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
-                  setTimeout(() => {
-                    this.refreshTokenRequest = null;
-                  }, 10000);
-                });
+                // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
+                setTimeout(() => {
+                this.refreshTokenRequest = null;
+                }, 10000);
+              });
             return this.refreshTokenRequest.then((accessToken) => {
               // Nghĩa là chúng ta tiếp tục gọi lại request cũ vừa bị lỗi
               return this.instance({
-                ...config,
-                headers: { ...config.headers, authorization: accessToken },
+              ...config,
+              headers: { ...config.headers, authorization: `Bearer ${accessToken}` },
               });
             });
-          }
+            }
 
           // Còn những trường hợp như token không đúng
           // không truyền token,
@@ -143,7 +143,8 @@ export class Http {
           this.accessToken = "";
           this.refreshToken = "";
           toast.error(
-            error.response?.data.data?.message || error.response?.data.message
+            (error as AxiosError<ErrorResponse<{ message: string }>>).response?.data.data?.message || 
+            (error as AxiosError<ErrorResponse<{ message: string }>>).response?.data.message
           );
           // window.location.reload()
         }
@@ -155,11 +156,14 @@ export class Http {
     return this.instance
       .post<RefreshTokenReponse>(URL_REFRESH_TOKEN, {
         refreshToken: this.refreshToken,
+        accessToken: this.accessToken,
       })
       .then((res) => {
-        const { accessToken } = res.data.data;
+        const { accessToken, refreshToken } = res.data.data;
         setAccessTokenToLS(accessToken);
+        setRefreshTokenToLS(refreshToken);
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         return accessToken;
       })
       .catch((error) => {

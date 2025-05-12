@@ -1,14 +1,11 @@
-import { Post } from "../../data/mockPosts";
+import { useState } from "react";
 
-interface Props {
-  posts: Post[];
-}
 
-const VideoReviewPage = ({ posts }: Props) => {
+const VideoReviewPage = () => {
   return (
     <div>
       <h2>Video Review</h2>
-      {posts.map((post) => (
+      {/* {posts.map((post) => (
         <div key={post.id} className="mb-4">
           <h5>{post.title}</h5>
           <video width="100%" controls>
@@ -16,7 +13,7 @@ const VideoReviewPage = ({ posts }: Props) => {
             Trình duyệt không hỗ trợ video.
           </video>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 };
