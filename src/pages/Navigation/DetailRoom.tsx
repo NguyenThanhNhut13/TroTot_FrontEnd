@@ -70,8 +70,10 @@ export default function DetailRoom() {
       return
     const getSimilarRoom = async () => {
       try{
+        console.log("dang load data tu ai")
         const response = await roomApi.aiGetSimilarRoom(room.id);
         setSimilarRooms(response.data.data)
+        console.log("da load")
 
       }catch(error){
         console.log(error)
@@ -537,9 +539,9 @@ export default function DetailRoom() {
                       overflow: "hidden"
                     }}
                     >
-                    {similarRoom.images && similarRoom.images.length > 0 && (
+                    {similarRoom.imageUrls && (
                       <img 
-                      src={similarRoom.images[0]?.imageUrl} 
+                      src={similarRoom.imageUrls[0]} 
                       alt={similarRoom.title}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
@@ -576,48 +578,7 @@ export default function DetailRoom() {
               ))
               ) : (
               [1, 2, 3].map((item) => (
-                <ListGroup.Item key={item} action className="py-3">
-                <Row className="g-2">
-                  <Col xs={4}>
-                  <div
-                    style={{
-                    height: "60px",
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: "4px",
-                    }}
-                  ></div>
-                  </Col>
-                  <Col xs={8}>
-                  <div
-                    className="small fw-bold mb-1"
-                    style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    }}
-                  >
-                    Phòng trọ quận {room.address.district} gần{" "}
-                    {item === 1
-                    ? "trường đại học"
-                    : item === 2
-                    ? "bệnh viện"
-                    : "siêu thị"}
-                  </div>
-                  <div className="small text-danger">
-                    {room.price - item * 200000} đ/tháng
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <div className="small text-secondary me-2">
-                    {room.area - item} m²
-                    </div>
-                    <div className="small text-secondary text-truncate">
-                    <FaMapMarkerAlt size={10} className="me-1" />
-                    {room.address.district}, {room.address.province}
-                    </div>
-                  </div>
-                  </Col>
-                </Row>
-                </ListGroup.Item>
+                <div className=""></div>
               ))
               )}
             </ListGroup>

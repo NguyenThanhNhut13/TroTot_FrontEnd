@@ -7,6 +7,7 @@ import "../../assets/styles/Sidebar.css";
 import { number } from "yup";
 import paymentAPI from "../../apis/payment.api";
 import { toast } from "react-toastify";
+import userApi from "../../apis/user.api";
 
 const Sidebar = () => {
   const { profile } = useContext(AppContext);
@@ -21,6 +22,7 @@ const Sidebar = () => {
     const getTotal = async () => {
       try{
         const response  = await paymentAPI.getWallet(userId);
+        await userApi.getProfile();
         setTotal(response.data.data.balance);
       }catch (error) {
         toast.error("Lỗi khi lấy thông tin ví");
@@ -82,7 +84,7 @@ const Sidebar = () => {
         </div>
         <div className="d-flex justify-content-between">
           <span>Số lượng tin:</span>
-          <span className="text-danger fw-bold">0/1 Tin</span>
+          <span className="text-danger fw-bold">{profile?.numberOfPosts}</span>
         </div>
       </div>
 

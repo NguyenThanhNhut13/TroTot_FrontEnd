@@ -45,6 +45,7 @@ const PurchasePostModal: React.FC<PurchasePostModalProps> = ({
 
     // Gọi API thanh toán ở đây
     const response = await paymentAPI.purchaseSlot({ amount: selectedPackage });
+    window.location.reload();
     if (response.data.data.success) {
       toast.success("Mua gói thành công!");
     } else {
