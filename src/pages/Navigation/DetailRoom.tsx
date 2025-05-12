@@ -80,18 +80,58 @@ export default function DetailRoom() {
     getSimilarRoom()
   }, [room])
 
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!room) return;
+      
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+      
+      try {
+        const response = await roomApi.getSavedRoomIds();
+        console.log("Saved rooms response:", response.data);
+        
+        if (response.data?.data?.roomIds) {
+          const isSaved = response.data.data.roomIds.includes(room.id);
+          console.log(`Room ${room.id} saved status:`, isSaved);
+          setIsFavorite(isSaved);
+        }
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
+    };
+    
+    checkFavoriteStatus();
+  }, [room]);
+
   // Handle favorite toggle
-  const handleToggleFavorite = () => {
-    // If not logged in, show login prompt
-    const isLoggedIn = false; // Replace with actual auth check
+  const handleToggleFavorite = async () => {
+    if (!room) return;
+
+    // Kiểm tra đăng nhập thực tế
+    const isLoggedIn = localStorage.getItem('accessToken');
     if (!isLoggedIn) {
       toast.info("Vui lòng đăng nhập để lưu phòng trọ yêu thích");
       return;
     }
-
-    setIsFavorite(!isFavorite);
-    // Call API to add/remove from favorites
-    // ...
+  
+    try {
+      // Gọi API tương ứng dựa vào trạng thái hiện tại
+      if (!isFavorite) {
+        await roomApi.addToWishList(room.id);
+        toast.success("Đã lưu tin thành công");
+      } else {
+        // Gọi API xóa khỏi danh sách yêu thích
+        await roomApi.removeFromWishList(room.id);
+        toast.success("Đã xóa tin khỏi danh sách yêu thích");
+      }
+      
+      // Cập nhật trạng thái hiển thị
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
+    }
   };
 
   // Handle share button click
@@ -476,32 +516,12 @@ export default function DetailRoom() {
                 <Button
                   variant={isFavorite ? "danger" : "outline-danger"}
                   className="w-100 mb-2"
-                  onClick={async () => {
-                  // If not logged in, show login prompt
-                  const isLoggedIn = localStorage.getItem('accessToken'); // Basic auth check
-                  if (!isLoggedIn) {
-                    toast.info("Vui lòng đăng nhập để lưu phòng trọ yêu thích");
-                    return;
-                  }
-
-                  try {
-                    if (!isFavorite) {
-                    await roomApi.addToWishList(room.id);
-                    toast.success("Đã lưu tin thành công");
-                    } else {
-                    toast.success("Đã xóa tin khỏi danh sách yêu thích");
-                    }
-                    setIsFavorite(!isFavorite);
-                  } catch (error) {
-                    console.error("Error updating wishlist:", error);
-                    toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
-                  }
-                  }}
+                  onClick={handleToggleFavorite}
                 >
                   {isFavorite ? (
-                  <FaHeart className="me-2" />
+                    <FaHeart className="me-2" />
                   ) : (
-                  <FaRegHeart className="me-2" />
+                    <FaRegHeart className="me-2" />
                   )}
                   {isFavorite ? "Đã lưu" : "Lưu tin"}
                 </Button>
