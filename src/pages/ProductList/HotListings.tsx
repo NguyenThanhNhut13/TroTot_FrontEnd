@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, Button, Row, Col, Spinner } from "react-bootstrap";
-import roomApi from "../../apis/room.api."; // update path if needed
+import roomApi from "../../apis/room.api"; // update path if needed
 import { Room } from "../../types/room.type"; // kiểu gốc từ API
+import { AppContext } from "../../contexts/app.context";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 interface Listing {
   id: number;
@@ -29,6 +31,9 @@ const HotListings: React.FC<HotListingsProps> = ({
 }) => {
   const [hotListings, setHotListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [savedRoomIds, setSavedRoomIds] = useState<Set<number>>(new Set()); // Thêm state này
+  const { isAuthenticated } = useContext(AppContext);
+  
 
   // Helper function to create dummy empty listings if count is less than 5
   const ensureMinimumItems = (listings: Listing[], minCount: number = 5) => {
@@ -80,6 +85,62 @@ const HotListings: React.FC<HotListingsProps> = ({
 
     fetchRooms();
   }, [page, size, sort, roomType]); // Re-fetch if params change
+
+  const handleSaveRoom = async (e: React.MouseEvent, roomId: number) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!isAuthenticated) {
+      return;
+    }
+    
+    try {
+      // Gọi API trực tiếp thay vì dùng toggleSaveRoom để kiểm soát luồng tốt hơn
+      if (savedRoomIds.has(roomId)) {
+        // Xóa phòng khỏi danh sách yêu thích
+        await roomApi.removeFromWishList(roomId);
+        // Cập nhật UI ngay lập tức
+        setSavedRoomIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(roomId);
+          return newSet;
+        });
+      } else {
+        // Thêm phòng vào danh sách yêu thích
+        await roomApi.addToWishList(roomId);
+        // Cập nhật UI ngay lập tức
+        setSavedRoomIds(prev => {
+          const newSet = new Set(prev);
+          newSet.add(roomId);
+          return newSet;
+        });
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Sử dụng biến flag để chỉ gọi API một lần khi đăng nhập
+    let isMounted = true;
+    
+    if (isAuthenticated) {
+      const fetchSavedRoomIds = async () => {
+        try {
+          const response = await roomApi.getSavedRoomIds();
+          if (isMounted && response.data?.data?.roomIds) {
+            setSavedRoomIds(new Set(response.data.data.roomIds));
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      };
+      
+      fetchSavedRoomIds();
+    }
+    
+    return () => { isMounted = false; };
+  }, [isAuthenticated]);
 
   return (
     <div className="hot-listings mt-4">
@@ -145,8 +206,13 @@ const HotListings: React.FC<HotListingsProps> = ({
                             zIndex: 1,
                             cursor: "pointer",
                           }}
+                          onClick={(e) => handleSaveRoom(e, listing.id)}
                         >
-                          <i className="far fa-heart"></i>
+                          {savedRoomIds.has(listing.id) ? (
+                          <FaHeart className="text-danger" size={16} />
+                        ) : (
+                          <FaRegHeart size={16} />
+                        )}
                         </div>
 
                         <Card.Img

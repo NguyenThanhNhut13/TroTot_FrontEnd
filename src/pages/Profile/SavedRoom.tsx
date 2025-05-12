@@ -5,7 +5,7 @@ import { FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import "./SavedRoom.css";
 import axios from "axios";
 import { toast } from "react-toastify";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 
 interface Room {
   id: number;

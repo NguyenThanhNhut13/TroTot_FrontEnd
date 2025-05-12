@@ -15,7 +15,7 @@ import ProvinceListings from "../../components/common/ProvinceListings ";
 import { FaDollarSign, FaMap, FaSearch } from "react-icons/fa";
 import addressAPI from "../../apis/address.api";
 import { District, Province, Ward } from "../../types/address.type";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 
 const HomePage = () => {
   const navigate = useNavigate();

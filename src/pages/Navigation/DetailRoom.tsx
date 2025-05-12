@@ -23,7 +23,7 @@ import {
   FaUserAlt,
   FaAngleRight,
 } from "react-icons/fa";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 import { RoomGetByID } from "../../types/room.type";
 import { toast } from "react-toastify";
 import RoomMap from "../../components/common/Map/RoomMap";

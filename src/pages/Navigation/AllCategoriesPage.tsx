@@ -19,7 +19,7 @@ import {
   SurroundingArea,
   TargetAudience,
 } from "../../types/room.type";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 import { Listing } from "./CategorySharedPage";
 
 const AllCategoriesPage = () => {
