@@ -4,6 +4,7 @@ import roomApi from "../../apis/room.api"; // update path if needed
 import { Room } from "../../types/room.type"; // kiểu gốc từ API
 import { AppContext } from "../../contexts/app.context";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 interface Listing {
   id: number;
@@ -91,6 +92,7 @@ const HotListings: React.FC<HotListingsProps> = ({
     e.preventDefault();
     
     if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để lưu phòng trọ");
       return;
     }
     
