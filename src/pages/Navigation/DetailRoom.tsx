@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react"; // Removed unused 'use' import
 import { useParams, Link } from "react-router-dom";
 import {
   Container,
@@ -40,22 +40,31 @@ export default function DetailRoom() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [latitude, setLatitude] = useState(0);
+  const [similarRoomsError, setSimilarRoomsError] = useState<string | null>(
+    null
+  ); // Lỗi cho similar rooms
+  const maxRetries = 3;
 
   // Fetch room details by ID
   useEffect(() => {
-    const fetchRoomDetails = async () => {
+    const fetchRoomDetails = async (attempt = 1) => {
       if (!id) return;
 
       setLoading(true);
+      setError(null);
       try {
         const response = await roomApi.getRoomById(Number(id));
         if (response?.data?.data) {
           setRoom(response.data.data);
         }
-
       } catch (error) {
         console.error("Error fetching room details:", error);
-        setError("Không thể tải thông tin phòng. Vui lòng thử lại sau.");
+        if (attempt <= maxRetries) {
+          const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+          setTimeout(() => fetchRoomDetails(attempt + 1), delay);
+        } else {
+          setError("Không thể tải thông tin phòng. Vui lòng thử lại sau.");
+        }
       } finally {
         setLoading(false);
       }
@@ -64,21 +73,33 @@ export default function DetailRoom() {
     fetchRoomDetails();
   }, [id]);
 
- const [similarRooms, setSimilarRooms] = useState<any[]>([]);
-  useEffect(() => {
-    if(!room) 
-      return
-    const getSimilarRoom = async () => {
-      try{
-        const response = await roomApi.aiGetSimilarRoom(room.id);
-        setSimilarRooms(response.data.data)
-
-      }catch(error){
-        console.log(error)
+  const [similarRooms, setSimilarRooms] = useState<any[]>([]);
+  // Define getSimilarRoom outside useEffect
+  const getSimilarRoom = async (attempt = 1) => {
+    try {
+      console.log(`Attempt ${attempt}: Loading similar rooms data...`);
+      const response = await roomApi.aiGetSimilarRoom(room!.id);
+      setSimilarRooms(response.data.data);
+      setSimilarRoomsError(null); // Reset error on success
+      console.log("Successfully loaded similar rooms");
+    } catch (error) {
+      console.error("Error fetching similar rooms:", error);
+      if (attempt <= maxRetries) {
+        const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+        setTimeout(() => getSimilarRoom(attempt + 1), delay);
+      } else {
+        setSimilarRoomsError(
+          "Không thể tải danh sách phòng tương tự. Vui lòng thử lại sau."
+        );
       }
     }
-    getSimilarRoom()
-  }, [room])
+  };
+
+  // Fetch similar rooms when room is available
+  useEffect(() => {
+    if (!room) return;
+    getSimilarRoom();
+  }, [room]);
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -185,7 +206,7 @@ export default function DetailRoom() {
 
   // if (room) {
   //   const getMapForWard = async () => {
-      
+
   //     const reponseForward = await addressAPI.getMapForward(`${ room.address.houseNumber }, ${room.address.street},${room.address.ward}, ${room.address.district},${" "}${room.address.province}`);
   //     setLongitude(reponseForward.data.data.longitude);
   //     setLatitude(reponseForward.data.data.latitude);
@@ -475,7 +496,7 @@ export default function DetailRoom() {
                 }}
               >
                 <div className="text-center text-muted">
-                  <RoomMap latitude={10.7958642}  longitude={106.7067786}/>
+                  <RoomMap latitude={10.7958642} longitude={106.7067786} />
                 </div>
               </div>
             </Card.Body>
@@ -516,7 +537,29 @@ export default function DetailRoom() {
                 <Button
                   variant={isFavorite ? "danger" : "outline-danger"}
                   className="w-100 mb-2"
-                  onClick={handleToggleFavorite}
+                  onClick={async () => {
+                    // If not logged in, show login prompt
+                    const isLoggedIn = localStorage.getItem("accessToken"); // Basic auth check
+                    if (!isLoggedIn) {
+                      toast.info(
+                        "Vui lòng đăng nhập để lưu phòng trọ yêu thích"
+                      );
+                      return;
+                    }
+
+                    try {
+                      if (!isFavorite) {
+                        await roomApi.addToWishList(room.id);
+                        toast.success("Đã lưu tin thành công");
+                      } else {
+                        toast.success("Đã xóa tin khỏi danh sách yêu thích");
+                      }
+                      setIsFavorite(!isFavorite);
+                    } catch (error) {
+                      console.error("Error updating wishlist:", error);
+                      toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
+                    }
+                  }}
                 >
                   {isFavorite ? (
                     <FaHeart className="me-2" />
@@ -542,105 +585,92 @@ export default function DetailRoom() {
             <Card.Header className="bg-primary text-white py-3">
               <h5 className="mb-0">Phòng trọ tương tự</h5>
             </Card.Header>
-            <ListGroup variant="flush">
-              {similarRooms.length > 0 ? (
-              similarRooms.map((similarRoom, index) => (
-                <ListGroup.Item key={similarRoom.id} action className="py-3">
-                <Link to={`/detail-room/${similarRoom.id}`} className="text-decoration-none text-dark">
-                  <Row className="g-2">
-                  <Col xs={4}>
-                    <div
-                    style={{
-                      height: "60px",
-                      backgroundColor: "#f5f5f5",
-                      borderRadius: "4px",
-                      overflow: "hidden"
-                    }}
-                    >
-                    {similarRoom.images && similarRoom.images.length > 0 && (
-                      <img 
-                      src={similarRoom.images[0]?.imageUrl} 
-                      alt={similarRoom.title}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    )}
-                    </div>
-                  </Col>
-                  <Col xs={8}>
-                    <div
-                    className="small fw-bold mb-1"
-                    style={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                    >
-                    {similarRoom.title}
-                    </div>
-                    <div className="small text-danger">
-                    {similarRoom.price} đ/tháng
-                    </div>
-                    <div className="d-flex align-items-center">
-                    <div className="small text-secondary me-2">
-                      {similarRoom.area} m²
-                    </div>
-                    <div className="small text-secondary text-truncate">
-                      <FaMapMarkerAlt size={10} className="me-1" />
-                      {similarRoom.address?.district}, {similarRoom.address?.province}
-                    </div>
-                    </div>
-                  </Col>
-                  </Row>
-                </Link>
-                </ListGroup.Item>
-              ))
-              ) : (
-              [1, 2, 3].map((item) => (
-                <ListGroup.Item key={item} action className="py-3">
-                <Row className="g-2">
-                  <Col xs={4}>
-                  <div
-                    style={{
-                    height: "60px",
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: "4px",
-                    }}
-                  ></div>
-                  </Col>
-                  <Col xs={8}>
-                  <div
-                    className="small fw-bold mb-1"
-                    style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    }}
-                  >
-                    Phòng trọ quận {room.address.district} gần{" "}
-                    {item === 1
-                    ? "trường đại học"
-                    : item === 2
-                    ? "bệnh viện"
-                    : "siêu thị"}
-                  </div>
-                  <div className="small text-danger">
-                    {room.price - item * 200000} đ/tháng
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <div className="small text-secondary me-2">
-                    {room.area - item} m²
-                    </div>
-                    <div className="small text-secondary text-truncate">
-                    <FaMapMarkerAlt size={10} className="me-1" />
-                    {room.address.district}, {room.address.province}
-                    </div>
-                  </div>
-                  </Col>
-                </Row>
-                </ListGroup.Item>
-              ))
-              )}
-            </ListGroup>
+            {similarRoomsError ? (
+              <div className="alert alert-danger m-3">
+                {similarRoomsError}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="ms-2"
+                  onClick={() => getSimilarRoom()}
+                >
+                  Thử lại
+                </Button>
+              </div>
+            ) : (
+              <ListGroup variant="flush">
+                {similarRooms.length > 0
+                  ? similarRooms.map((similarRoom, index) => (
+                      <ListGroup.Item
+                        key={similarRoom.id}
+                        action
+                        className="py-3"
+                      >
+                        <Link
+                          to={`/detail-room/${similarRoom.id}`}
+                          className="text-decoration-none text-dark"
+                        >
+                          <Row className="g-2">
+                            <Col xs={4}>
+                              <div
+                                style={{
+                                  height: "60px",
+                                  backgroundColor: "#f5f5f5",
+                                  borderRadius: "4px",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                {similarRoom.imageUrls && (
+                                  <img
+                                    src={similarRoom.imageUrls[0]}
+                                    alt={similarRoom.title}
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </Col>
+                            <Col xs={8}>
+                              <div
+                                className="small fw-bold mb-1"
+                                style={{
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {similarRoom.title}
+                              </div>
+                              <div className="small text-danger">
+                                {similarRoom.price} đ/tháng
+                              </div>
+                              <div className="d-flex align-items-center">
+                                <div className="small text-secondary me-2">
+                                  {similarRoom.area} m²
+                                </div>
+                                <div className="small text-secondary text-truncate">
+                                  <FaMapMarkerAlt size={10} className="me-1" />
+                                  {similarRoom.address?.district},{" "}
+                                  {similarRoom.address?.province}
+                                </div>
+                              </div>
+                            </Col>
+                          </Row>
+                        </Link>
+                      </ListGroup.Item>
+                    ))
+                  : [1, 2, 3].map((item) => (
+                      <ListGroup.Item key={item} className="py-3">
+                        <div className="text-muted">
+                          Không có phòng tương tự
+                        </div>
+                      </ListGroup.Item>
+                    ))}
+              </ListGroup>
+            )}
             <Card.Footer className="bg-white text-center">
               <Link
                 to={`/${

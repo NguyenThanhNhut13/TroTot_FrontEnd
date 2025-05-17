@@ -32,6 +32,9 @@ const HotListings: React.FC<HotListingsProps> = ({
 }) => {
   const [hotListings, setHotListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const maxRetries = 3; // Maximum retry attempts
   const [savedRoomIds, setSavedRoomIds] = useState<Set<number>>(new Set()); // Thêm state này
   const { isAuthenticated } = useContext(AppContext);
   
@@ -43,6 +46,42 @@ const HotListings: React.FC<HotListingsProps> = ({
     // Create empty slots to fill the row
     const emptySlots = Array(minCount - listings.length).fill(null);
     return [...listings, ...emptySlots];
+  };
+
+  // Define fetchRooms outside useEffect
+  const fetchRooms = async (attempt = 1) => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log(`Fetching rooms, attempt ${attempt}/${maxRetries}`);
+      const res = await roomApi.getRooms({ page, size, sort, roomType });
+      console.log("API response:", res.data);
+      const rooms = res.data.data.content;
+
+      const mapped: Listing[] = rooms.map((room: Room) => ({
+        id: room.id,
+        image:
+          room.imageUrls[0] ||
+          "https://tromoi.com/uploads/guest/o_1h5tpk1fl1i0047413epqpsee3a.jpg",
+        title: room.title,
+        price: `${room.price.toLocaleString()} VNĐ`,
+        area: room.area,
+        location: `${room.district}, ${room.province}`,
+      }));
+
+      localStorage.setItem(`list${roomType}Pagging`, JSON.stringify(mapped));
+      setHotListings(mapped);
+    } catch (error) {
+      console.error("Error fetching hot listings", error);
+      if (attempt <= maxRetries) {
+        const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+        setTimeout(() => fetchRooms(attempt + 1), delay);
+      } else {
+        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -58,33 +97,7 @@ const HotListings: React.FC<HotListingsProps> = ({
       }
     }
 
-    const fetchRooms = async () => {
-      try {
-        setLoading(true);
-        const res = await roomApi.getRooms({ page, size, sort, roomType });
-        const rooms = res.data.data.content;
-
-        const mapped: Listing[] = rooms.map((room: Room) => ({
-          id: room.id,
-          image:
-            room.imageUrls[0] ||
-            "https://tromoi.com/uploads/guest/o_1h5tpk1fl1i0047413epqpsee3a.jpg",
-          title: room.title,
-          price: `${room.price.toLocaleString()} VNĐ`,
-          area: room.area,
-          location: `${room.district}, ${room.province}`,
-        }));
-
-        localStorage.setItem(`list${roomType}Pagging`, JSON.stringify(mapped));
-        setHotListings(mapped);
-      } catch (error) {
-        console.error("Error fetching hot listings", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRooms();
+    fetchRooms(); // Call fetchRooms
   }, [page, size, sort, roomType]); // Re-fetch if params change
 
   const handleSaveRoom = async (e: React.MouseEvent, roomId: number) => {
@@ -147,7 +160,7 @@ const HotListings: React.FC<HotListingsProps> = ({
   return (
     <div className="hot-listings mt-4">
       <h2
-        className=" fw-bold"
+        className="fw-bold"
         style={{
           fontSize: "24px",
           textTransform: "uppercase",
@@ -161,6 +174,19 @@ const HotListings: React.FC<HotListingsProps> = ({
       {loading ? (
         <div className="text-center my-4">
           <Spinner animation="border" variant="primary" />
+        </div>
+      ) : error ? (
+        <div className="text-center my-4">
+          <p className="text-danger">{error}</p>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setRetryCount(retryCount + 1);
+              fetchRooms();
+            }}
+          >
+            Thử lại
+          </Button>
         </div>
       ) : (
         Array.from(

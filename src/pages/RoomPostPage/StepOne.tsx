@@ -76,11 +76,11 @@ const StepOne = () => {
   const createRoomMutation = useMutation({
     mutationFn: (body: FormCreateRoomSchema) => {
       const formData = new FormData();
-      
+
       // Convert form data to FormData object
       Object.entries(body).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (typeof value === 'object' && !Array.isArray(value)) {
+          if (typeof value === "object" && !Array.isArray(value)) {
             // Handle nested objects like address
             Object.entries(value).forEach(([nestedKey, nestedValue]) => {
               if (nestedValue !== undefined && nestedValue !== null) {
@@ -96,63 +96,84 @@ const StepOne = () => {
           }
         }
       });
-      
+
       return roomApi.createRoom(formData);
+    },
+    retry: 3, // Số lần retry tối đa
+    retryDelay: (attempt) => 3000 + (attempt - 1) * 1000, // 3s, 4s, 5s
+    onSuccess: async (data) => {
+      console.log("Mutation Success Response:", data);
+      toast.success("Đăng tin thành công!");
+      navigate("/post-room");
+    },
+    onError: (error) => {
+      console.error("Mutation Error:", error);
+      toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
     },
   });
 
   const onSubmit = handleSubmit(async (data) => {
-      setLoading(true);
-      console.log("first")
-      // Set address values
-      data.address.province = selectedProvince;
-      data.address.district = selectedDistrict;
-      data.address.ward = selectedWard;
+    setLoading(true);
+    console.log("Form Data Before Submission:", data);
+    // Set address values
+    data.address.province = selectedProvince;
+    data.address.district = selectedDistrict;
+    data.address.ward = selectedWard;
+    console.log("Address Data:", {
+      province: selectedProvince,
+      district: selectedDistrict,
+      ward: selectedWard,
+    });
 
-      // Validate required fields
-      if (
-        !data.address.province ||
-        !data.address.district ||
-        !data.address.ward
-      ) {
-        toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
-        setLoading(false);
-        return;
-      }
+    // Validate required fields
+    if (
+      !data.address.province ||
+      !data.address.district ||
+      !data.address.ward
+    ) {
+      toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
+      setLoading(false);
+      return;
+    }
 
-      // Validate image upload
-      if (imageFiles.length === 0) {
-        toast.error("Vui lòng tải lên ít nhất một hình ảnh");
-        setLoading(false);
-        return;
-      }
+    // Validate image upload
+    if (imageFiles.length === 0) {
+      toast.error("Vui lòng tải lên ít nhất một hình ảnh");
+      setLoading(false);
+      return;
+    }
 
-      // Upload images
-      const uploadedImages = await uploadImages();
-      if (!uploadedImages || uploadedImages.length === 0) {
-        toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
-        setLoading(false);
-        return;
-      }
+    // Upload images
+    const uploadedImages = await uploadImages();
+    console.log("Uploaded Images:", uploadedImages);
+    if (!uploadedImages || uploadedImages.length === 0) {
+      toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
+      setLoading(false);
+      return;
+    }
 
-      // Set uploaded images to form data
-      data.images = uploadedImages;
+    // Set uploaded images to form data
+    data.images = uploadedImages;
+    console.log("Data with Images:", data);
 
-      // Ensure selfManaged is boolean
-      data.selfManaged =
-        typeof data.selfManaged === "string"
-          ? data.selfManaged === "true"
-          : Boolean(data.selfManaged);
+    // Ensure selfManaged is boolean
+    data.selfManaged =
+      typeof data.selfManaged === "string"
+        ? data.selfManaged === "true"
+        : Boolean(data.selfManaged);
 
-      // Submit data
-      createRoomMutation.mutate(data, {
-        onSuccess: async (data) => {
-          
-      toast.success("Đăng tin thành công!");
-      navigate("/post-room");
-        }
-       })
-
+    // Submit data
+    createRoomMutation.mutate(data, {
+      onSuccess: async (data) => {
+        console.log("Mutation Success Response:", data);
+        toast.success("Đăng tin thành công!");
+        navigate("/post-room");
+      },
+      onError: (error) => {
+        console.error("Mutation Error:", error);
+        toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
+      },
+    });
   });
 
   // Fetch required data
@@ -167,6 +188,13 @@ const StepOne = () => {
         const surroundingAreasLS = localStorage.getItem(`surroundingAreas`);
         const provincesLS = localStorage.getItem("provinces");
 
+        console.log("Local Storage Data:", {
+          amenitiesLS,
+          targetAudiencesLS,
+          surroundingAreasLS,
+          provincesLS,
+        });
+
         // Check if all data is available in localStorage
         if (
           amenitiesLS &&
@@ -178,6 +206,12 @@ const StepOne = () => {
           setTargetAudiencesList(JSON.parse(targetAudiencesLS));
           setSurroundingAreasList(JSON.parse(surroundingAreasLS));
           setProvinces(JSON.parse(provincesLS));
+          console.log("Loaded from Local Storage:", {
+            amenitiesList,
+            targetAudiencesList,
+            surroundingAreasList,
+            provinces,
+          });
           setLoading(false);
           return;
         }
@@ -190,6 +224,12 @@ const StepOne = () => {
             roomApi.getSurroundingAreas(),
             addressAPI.getProvinces(),
           ]);
+        console.log("API Responses:", {
+          amenitiesRes,
+          audiencesRes,
+          areasRes,
+          provincesRes,
+        });
 
         if (amenitiesRes.data?.data) {
           setAmenitiesList(amenitiesRes.data.data);
@@ -349,6 +389,7 @@ const StepOne = () => {
       if (imageFiles.length === 1) {
         // Upload single file
         const response = await mediaAPI.uploadFile(imageFiles[0]);
+        console.log("Single Image Upload Response:", response);
         const mediaItem = response.data.data;
         uploadedImages = [
           {
@@ -359,6 +400,7 @@ const StepOne = () => {
       } else {
         // Upload multiple files
         const response = await mediaAPI.uploadFiles(imageFiles);
+        console.log("Multiple Images Upload Response:", response);
         uploadedImages = response.data.data.map((media) => ({
           publicId: media.publicId,
           imageUrl: media.imageUrl,
@@ -397,7 +439,12 @@ const StepOne = () => {
           </Col>
 
           {/* Main Content */}
-          <Col md={8} lg={10} className="ms-auto position-relative" style={{ right: "-86px" }}>
+          <Col
+            md={8}
+            lg={10}
+            className="ms-auto position-relative"
+            style={{ right: "-86px" }}
+          >
             <div className="mb-4">
               <h2 className="mb-1">Đăng tin mới</h2>
               <p className="text-muted">

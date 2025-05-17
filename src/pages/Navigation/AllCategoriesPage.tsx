@@ -33,6 +33,9 @@ const AllCategoriesPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchParams, setSearchParams] = useState<any>(null);
+  const [filterError, setFilterError] = useState<string | null>(null); // Lỗi khi lấy bộ lọc
+  const [searchError, setSearchError] = useState<string | null>(null); // Lỗi khi tìm kiếm
+  const maxRetries = 3; // Số lần retry tối đa
 
   // API data states
   const [amenities, setAmenities] = useState<Amenity[]>([]);
@@ -75,8 +78,9 @@ const AllCategoriesPage = () => {
       }
     }
 
-    const fetchFilters = async () => {
+    const fetchFilters = async (attempt = 1) => {
       setIsLoading(true);
+      setFilterError(null); // Reset filter error state
       try {
         // Fetch amenities
         const amenitiesResponse = await roomApi.getAmenities();
@@ -112,6 +116,12 @@ const AllCategoriesPage = () => {
         }
       } catch (error) {
         console.error("Error fetching filters:", error);
+        if (attempt <= maxRetries) {
+          const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+          setTimeout(() => fetchFilters(attempt + 1), delay);
+        } else {
+          setFilterError("Không thể tải bộ lọc. Vui lòng thử lại sau.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -154,8 +164,9 @@ const AllCategoriesPage = () => {
   };
 
   // Perform search with given params
-  const performSearch = async (params: any) => {
+  const performSearch = async (params: any, attempt = 1) => {
     setIsSearching(true);
+    setSearchError(null); // Reset search error state
     try {
       const searchRoomParams: RoomSearchParams = {
         page: 0,
@@ -213,6 +224,12 @@ const AllCategoriesPage = () => {
       }
     } catch (error) {
       console.error("Error searching rooms:", error);
+      if (attempt <= maxRetries) {
+        const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+        setTimeout(() => performSearch(params, attempt + 1), delay);
+      } else {
+        setSearchError("Không thể tìm kiếm phòng. Vui lòng thử lại sau.");
+      }
     } finally {
       setIsSearching(false);
     }
@@ -314,6 +331,58 @@ const AllCategoriesPage = () => {
 
     setFilteredListings(result);
   };
+
+  // Expose fetchFilters for retry button in filter error alert
+  function fetchFilters(attempt = 1): void {
+    setIsLoading(true);
+    setFilterError(null);
+    roomApi
+      .getAmenities()
+      .then((amenitiesResponse) => {
+        if (amenitiesResponse.data && amenitiesResponse.data.data) {
+          localStorage.setItem(
+            `amenities`,
+            JSON.stringify(amenitiesResponse.data.data)
+          );
+          setAmenities(amenitiesResponse.data.data);
+        }
+        return roomApi.getTargetAudiences();
+      })
+      .then((targetAudiencesResponse) => {
+        if (targetAudiencesResponse.data && targetAudiencesResponse.data.data) {
+          localStorage.setItem(
+            `targetAudiences`,
+            JSON.stringify(targetAudiencesResponse.data.data)
+          );
+          setTargetAudiences(targetAudiencesResponse.data.data);
+        }
+        return roomApi.getSurroundingAreas();
+      })
+      .then((surroundingAreasResponse) => {
+        if (
+          surroundingAreasResponse.data &&
+          surroundingAreasResponse.data.data
+        ) {
+          localStorage.setItem(
+            `surroundingAreas`,
+            JSON.stringify(surroundingAreasResponse.data.data)
+          );
+          setSurroundingAreas(surroundingAreasResponse.data.data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching filters:", error);
+        if (attempt < maxRetries) {
+          const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+          setTimeout(() => fetchFilters(attempt + 1), delay);
+        } else {
+          setFilterError("Không thể tải bộ lọc. Vui lòng thử lại sau.");
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
 
   return (
     <div>
@@ -547,6 +616,21 @@ const AllCategoriesPage = () => {
                 Lọc tìm kiếm
               </h5>
 
+              {/* Hiển thị lỗi nếu không tải được bộ lọc */}
+              {filterError && (
+                <div className="alert alert-danger mb-3">
+                  {filterError}
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="ms-2"
+                    onClick={() => fetchFilters()}
+                  >
+                    Thử lại
+                  </Button>
+                </div>
+              )}
+
               {/* Area filters */}
               <div className="mb-4">
                 <h6 className="fw-bold mb-2">Diện tích</h6>
@@ -651,92 +735,106 @@ const AllCategoriesPage = () => {
               </div>
             )}
 
+            {/* Hiển thị lỗi nếu không tìm kiếm được */}
+            {searchError && !isSearching && (
+              <div className="alert alert-danger mb-3">
+                {searchError}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="ms-2"
+                  onClick={() => performSearch(searchParams || {})}
+                >
+                  Thử lại
+                </Button>
+              </div>
+            )}
+
             {/* Listing results */}
-            {!isSearching && filteredListings.length === 0 && (
+            {!isSearching && !searchError && filteredListings.length === 0 && (
               <div className="alert alert-warning">
                 Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu
                 chí khác.
               </div>
             )}
 
-            {!isSearching &&
-              filteredListings.map((listing, index) => (
-                <Card key={index} className="mb-3 border-0 shadow-sm">
-                  <div className="position-relative">
-                    {/* HOT label */}
-                    <div
-                      className="position-absolute bg-danger text-white px-2 py-1"
-                      style={{ top: "10px", left: "0" }}
-                    >
-                      HOT
-                    </div>
-
-                    <Row className="g-0">
-                      {/* Left - Image */}
-                      <Col md={4}>
-                        <Card.Img
-                          src={listing.image}
-                          alt={listing.title}
-                          style={{ height: "100%", objectFit: "cover" }}
-                        />
-                      </Col>
-
-                      {/* Right - Content */}
-                      <Col md={8}>
-                        <Card.Body>
-                          <div className="d-flex justify-content-between">
-                            <Card.Title className="fw-bold mb-2">
-                              {listing.title}
-                            </Card.Title>
-                            <FaHeart
-                              className="text-muted"
-                              style={{ cursor: "pointer" }}
-                            />
-                          </div>
-
-                          <Card.Text className="text-danger fw-bold mb-2">
-                            {listing.price} triệu/tháng
-                          </Card.Text>
-
-                          <div className="d-flex mb-2">
-                            <span className="me-3">{listing.area}m²</span>
-                            <span className="badge bg-info text-white me-2">
-                              {(listing as any).type === "BOARDING_HOUSE"
-                                ? "Phòng trọ"
-                                : (listing as any).type === "WHOLE_HOUSE"
-                                ? "Nhà nguyên căn"
-                                : "Căn hộ"}
-                            </span>
-                          </div>
-
-                          <div className="d-flex align-items-center text-muted mb-2">
-                            <FaMapMarkerAlt className="me-1" />
-                            {listing.location}
-                          </div>
-
-                          <Link
-                            to={`/phong-tro/${index}`}
-                            className="text-decoration-none"
-                          >
-                            <Button variant="primary" className="mt-1">
-                              Xem chi tiết
-                            </Button>
-                          </Link>
-                        </Card.Body>
-                      </Col>
-                    </Row>
+            {!isSearching && !searchError && filteredListings.map((listing, index) => (
+              <Card key={index} className="mb-3 border-0 shadow-sm">
+                <div className="position-relative">
+                  {/* HOT label */}
+                  <div
+                    className="position-absolute bg-danger text-white px-2 py-1"
+                    style={{ top: "10px", left: "0" }}
+                  >
+                    HOT
                   </div>
-                </Card>
-              ))}
+
+                  <Row className="g-0">
+                    {/* Left - Image */}
+                    <Col md={4}>
+                      <Card.Img
+                        src={listing.image}
+                        alt={listing.title}
+                        style={{ height: "100%", objectFit: "cover" }}
+                      />
+                    </Col>
+
+                    {/* Right - Content */}
+                    <Col md={8}>
+                      <Card.Body>
+                        <div className="d-flex justify-content-between">
+                          <Card.Title className="fw-bold mb-2">
+                            {listing.title}
+                          </Card.Title>
+                          <FaHeart
+                            className="text-muted"
+                            style={{ cursor: "pointer" }}
+                          />
+                        </div>
+
+                        <Card.Text className="text-danger fw-bold mb-2">
+                          {listing.price} triệu/tháng
+                        </Card.Text>
+
+                        <div className="d-flex mb-2">
+                          <span className="me-3">{listing.area}m²</span>
+                          <span className="badge bg-info text-white me-2">
+                            {(listing as any).type === "BOARDING_HOUSE"
+                              ? "Phòng trọ"
+                              : (listing as any).type === "WHOLE_HOUSE"
+                              ? "Nhà nguyên căn"
+                              : "Căn hộ"}
+                          </span>
+                        </div>
+
+                        <div className="d-flex align-items-center text-muted mb-2">
+                          <FaMapMarkerAlt className="me-1" />
+                          {listing.location}
+                        </div>
+
+                        <Link
+                          to={`/phong-tro/${index}`}
+                          className="text-decoration-none"
+                        >
+                          <Button variant="primary" className="mt-1">
+                            Xem chi tiết
+                          </Button>
+                        </Link>
+                      </Card.Body>
+                    </Col>
+                  </Row>
+                </div>
+              </Card>
+            ))}
 
             {/* Pagination */}
-            {filteredListings.length > 0 && (
+            {filteredListings.length > 0 && !searchError && (
               <div className="d-flex justify-content-center mt-4">
                 <nav aria-label="Page navigation">
                   <ul className="pagination">
                     <li className="page-item">
                       <a className="page-link" href="#" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
+                        <span aria-hidden="true">«</span>
                       </a>
                     </li>
                     <li className="page-item active">
@@ -756,7 +854,7 @@ const AllCategoriesPage = () => {
                     </li>
                     <li className="page-item">
                       <a className="page-link" href="#" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
+                        <span aria-hidden="true">»</span>
                       </a>
                     </li>
                   </ul>

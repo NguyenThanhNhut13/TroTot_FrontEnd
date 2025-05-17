@@ -41,7 +41,7 @@ export class Http {
     this.refreshTokenRequest = null;
     this.instance = axios.create({
       baseURL: config.baseUrl,
-      timeout: 20000,
+      timeout: 60000,
       headers: {
         "Content-Type": "application/json",
         "expire-access-token": 60 * 60 * 24, // 1 ngày
