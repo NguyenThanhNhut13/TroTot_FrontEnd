@@ -3,9 +3,8 @@ import { Container, Row, Col, Card, Badge, Spinner } from "react-bootstrap";
 import Sidebar from "../MainPage/SidebarPersion";
 import { FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import "./SavedRoom.css";
-import axios from "axios";
 import { toast } from "react-toastify";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 
 interface Room {
   id: number;
@@ -65,11 +64,23 @@ export default function SavedRoom() {
     fetchSavedRooms();
   }, []);
 
-  const handleRemoveSaved = (id: number) => {
-    // You can implement API call to remove item here
-    // For now, just filter it out from the state
-    setSavedRooms(savedRooms.filter((room) => room.id !== id));
-    toast.success("Đã xóa trọ khỏi danh sách yêu thích!");
+  // Cập nhật hàm handleRemoveSaved
+  const handleRemoveSaved = async (event: React.MouseEvent, id: number) => {
+    // Ngăn không cho sự kiện click lan truyền đến card (tránh chuyển trang)
+    event.stopPropagation();
+    
+    try {
+      // Gọi API để xóa phòng khỏi danh sách yêu thích
+      await roomApi.removeFromWishList(id);
+      
+      // Cập nhật UI bằng cách xóa khỏi state local
+      setSavedRooms(savedRooms.filter((room) => room.id !== id));
+      
+      toast.success("Đã xóa trọ khỏi danh sách yêu thích!");
+    } catch (error) {
+      console.error("Error removing room from wishlist:", error);
+      toast.error("Có lỗi xảy ra khi xóa trọ khỏi danh sách yêu thích!");
+    }
   };
 
   return (
@@ -111,7 +122,7 @@ export default function SavedRoom() {
                     )}
                     <div
                       className="favorite-icon position-absolute"
-                      onClick={() => handleRemoveSaved(room.id)}
+                      onClick={(e) => handleRemoveSaved(e, room.id)}
                     >
                       <FaHeart className="text-danger" size={24} />
                     </div>

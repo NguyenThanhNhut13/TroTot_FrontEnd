@@ -15,7 +15,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { formCreateRoom, FormCreateRoomSchema } from "../../utils/rules";
 import { useMutation } from "@tanstack/react-query";
 import { AppContext } from "../../contexts/app.context";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 import mediaAPI from "../../apis/media.api";
 import {
   Amenity,

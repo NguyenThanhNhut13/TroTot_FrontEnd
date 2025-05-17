@@ -8,13 +8,14 @@ import {
   TargetAudience,
 } from "../types/room.type";
 import axios from "axios";
-import { add } from "lodash";
 
 export const URL_GET_ROOMS = "api/v1/rooms";
 export const URL_SEARCH_ROOMS = "api/v1/rooms/search";
 export const URL_GET_WISH_LIST = "api/v1/users/wish-list";
 export const URL_GET_ROOM_BY_ID = "api/v1/rooms";
 export const URL_ADD_TO_WISH_LIST = "api/v1/users/wish-list";
+export const URL_REMOVE_FROM_WISH_LIST = "api/v1/users/wish-list";
+export const URL_GET_ROOM_BY_ID_WISH_LIST = "api/v1/users/wish-list/ids";
 
 const externalHttp = axios.create({
   baseURL: "http://localhost:5000/",
@@ -101,21 +102,29 @@ const roomApi = {
     });
   },
 
+  getRoomById(id: number) {
+    return http.get<SuccessResponse<RoomGetByID>>(`${URL_GET_ROOMS}/${id}`);
+  },
+
+  // Wish List
   getWishList(params: { page?: number; size?: number } = {}) {
     const { page = 0, size = 25 } = params;
     return http.get<GetRoomsResponse>(URL_GET_WISH_LIST, {
       params: { page, size },
     });
   },
-
-
-  getRoomById(id: number) {
-    return http.get<SuccessResponse<RoomGetByID>>(`${URL_GET_ROOMS}/${id}`);
-  },
+  
   addToWishList(id: number) {
     return http.post<SuccessResponse<any>>(`${URL_ADD_TO_WISH_LIST}/${id}`);
-  }
-  ,
+  },
+
+  removeFromWishList(id: number) {
+    return http.delete<SuccessResponse<any>>(`${URL_REMOVE_FROM_WISH_LIST}/${id}`);
+  },
+  
+  getSavedRoomIds() {
+    return http.get<SuccessResponse<{ roomIds: number[] }>>(`${URL_GET_ROOM_BY_ID_WISH_LIST}`);
+  },
 
   aiGetSimilarRoom(id: number) {
     return externalHttp.get<SuccessResponse<any>>(`${AI_SIMILAR_ROOM}/${id}`);
