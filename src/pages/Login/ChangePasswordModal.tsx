@@ -35,8 +35,13 @@ interface ChangePasswordModalProps {
   handleClose: () => void;
 }
 
-const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ show, handleClose }) => {
-  const [step, setStep] = useState<"credential" | "otp" | "reset">("credential");
+const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
+  show,
+  handleClose,
+}) => {
+  const [step, setStep] = useState<"credential" | "otp" | "reset">(
+    "credential"
+  );
   const [credential, setCredential] = useState("");
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -78,11 +83,11 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ show, handleC
   });
 
   // Callback khi OTPModal xác minh thành công
-  const handleOtpVerifySuccess = (token: string) => {
-    setToken(token); // Lưu token từ OTPModal
-    setShowOTPModal(false); // Đóng OTPModal
-    setStep("reset"); // Chuyển sang bước reset
-  };
+ const handleOtpVerifySuccess = (token: string) => {
+  setToken(token)
+  setShowOTPModal(false)
+  setStep("reset")
+}
 
   // Bước 3: Reset mật khẩu
   const onSubmitReset = handleSubmitReset(async (data) => {
@@ -95,7 +100,11 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ show, handleC
       });
       handleClose(); // Đóng modal sau khi thành công
     } catch (error) {
-      if (isAxiosUnprocessableEntityError<ErrorResponse<ResetPasswordFormData>>(error)) {
+      if (
+        isAxiosUnprocessableEntityError<ErrorResponse<ResetPasswordFormData>>(
+          error
+        )
+      ) {
         const formError = error.response?.data.data;
         if (formError) {
           Object.keys(formError).forEach((key) => {
@@ -219,13 +228,13 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ show, handleC
 
       {/* Tích hợp OTPModal trong bước otp */}
       {step === "otp" && (
-        <OTPModal
-          show={showOTPModal}
-          handleClose={() => setShowOTPModal(false)}
-          credential={credential}
-          onVerifySuccess={handleOtpVerifySuccess} // Callback để nhận token và chuyển bước
-        />
-      )}
+  <OTPModal
+    show={showOTPModal}
+    handleClose={() => setShowOTPModal(false)}
+    credential={credential}
+    onVerifySuccess={handleOtpVerifySuccess} // Pass the callback
+  />
+)}
     </>
   );
 };
