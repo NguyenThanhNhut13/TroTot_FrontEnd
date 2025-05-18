@@ -17,7 +17,7 @@ import {
   SurroundingArea,
   TargetAudience,
 } from "../../types/room.type";
-import roomApi from "../../apis/room.api.";
+import roomApi from "../../apis/room.api";
 import { District, Province, Ward } from "../../types/address.type";
 import addressAPI from "../../apis/address.api";
 import { toast } from "react-toastify";

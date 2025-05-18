@@ -9,20 +9,49 @@ type OTPModalProps = {
   show: boolean
   handleClose: () => void
   credential: string
+  onVerifySuccess?: (token: string) => void // Optional callback for forgot password flow
 }
 
-const OTPModal: React.FC<OTPModalProps> = ({ show, handleClose, credential }) => {
-const navigate = useNavigate()
+const OTPModal: React.FC<OTPModalProps> = ({ show, handleClose, credential, onVerifySuccess }) => {
+  const navigate = useNavigate()
   const [otp, setOtp] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const verifyOtpMutation = useMutation({
-    mutationFn: (body: { credential: string; otp: string }) =>
-      authApi.verifyOtp(body),
-    onSuccess: () => {
+    mutationFn: async (body: { credential: string; otp: string }) => {
+      if (onVerifySuccess) {
+        // Forgot password flow
+        const res = await authApi.forgotPasswordVerifyOtp({ type: 'forgot-password', credential: body.credential, otp: body.otp });
+        // Normalize to SuccessResponse<string>
+        return {
+          ...res,
+          data: {
+            data: res.data.data,
+            message: res.data.message
+          }
+        };
+      } else {
+        // Registration flow
+        // Assume authApi.verifyOtp returns AxiosResponse<SuccessResponse<string>>
+        return authApi.verifyOtp({ credential: body.credential, otp: body.otp });
+      }
+    },
+    onSuccess: (data) => {
       toast.success('Xác minh OTP thành công!')
-      handleClose()
+      if (onVerifySuccess) {
+        // For forgot password flow, pass the token back
+        const token = data.data.data
+        // Ensure token is a string before passing to onVerifySuccess
+        if (typeof token === 'string') {
+          onVerifySuccess(token)
+        } else if (token && typeof token === 'object' && 'accessToken' in token) {
+          onVerifySuccess(token.accessToken)
+        }
+      } else {
+        // For registration flow, navigate to homepage
+        handleClose()
         navigate('/')
+      }
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Xác minh thất bại')
