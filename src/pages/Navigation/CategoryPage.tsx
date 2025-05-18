@@ -29,10 +29,12 @@ const CategoryPage = () => {
   return (
     <div>
       {/* ✅ Breadcrumb */}
-      <p className="text-muted mb-3">
-        <Link to="/">Trang chủ</Link> / <Link to="/category">Danh mục</Link> /{" "}
-        <strong>{categoryName}</strong>
-      </p>
+<p className="text-muted mb-3">
+  <Link to="/" className="text-primary text-decoration-none fw-bold" >Trang chủ</Link> /{" "}
+  <Link to="/category" className="text-muted text-decoration-none fw-bold">Danh mục</Link> /{" "}
+  <strong>{categoryName}</strong>
+</p>
+
 
       {/* ✅ Giao diện tùy loại */}
       {type === "tat-ca" && <AllCategoriesPage />}
