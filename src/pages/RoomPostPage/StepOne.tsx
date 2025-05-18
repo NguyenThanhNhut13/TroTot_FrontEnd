@@ -35,9 +35,16 @@ import {
   FaUtensils,
   FaCouch,
   FaUser,
-  FaUserFriends,
   FaHome,
 } from "react-icons/fa";
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
+import "@tensorflow/tfjs";
+
+type ImageFeedback = {
+  url: string;
+  feedback: string;
+  objectFlags: Record<string, boolean>;
+};
 
 const StepOne = () => {
   const navigate = useNavigate();
@@ -60,6 +67,14 @@ const StepOne = () => {
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
+  const [imageFeedbacks, setImageFeedbacks] = useState<ImageFeedback[]>([]);
+  const [missingSuggestions, setMissingSuggestions] = useState<string>("");
+
+  useEffect(() => {
+    cocoSsd.load().then(setModel);
+  }, []);
 
   // Set up form with validation
   const {
@@ -188,13 +203,6 @@ const StepOne = () => {
         const surroundingAreasLS = localStorage.getItem(`surroundingAreas`);
         const provincesLS = localStorage.getItem("provinces");
 
-        console.log("Local Storage Data:", {
-          amenitiesLS,
-          targetAudiencesLS,
-          surroundingAreasLS,
-          provincesLS,
-        });
-
         // Check if all data is available in localStorage
         if (
           amenitiesLS &&
@@ -206,12 +214,6 @@ const StepOne = () => {
           setTargetAudiencesList(JSON.parse(targetAudiencesLS));
           setSurroundingAreasList(JSON.parse(surroundingAreasLS));
           setProvinces(JSON.parse(provincesLS));
-          console.log("Loaded from Local Storage:", {
-            amenitiesList,
-            targetAudiencesList,
-            surroundingAreasList,
-            provinces,
-          });
           setLoading(false);
           return;
         }
@@ -224,12 +226,6 @@ const StepOne = () => {
             roomApi.getSurroundingAreas(),
             addressAPI.getProvinces(),
           ]);
-        console.log("API Responses:", {
-          amenitiesRes,
-          audiencesRes,
-          areasRes,
-          provincesRes,
-        });
 
         if (amenitiesRes.data?.data) {
           setAmenitiesList(amenitiesRes.data.data);
@@ -349,10 +345,115 @@ const StepOne = () => {
     }
   };
 
+  const analyzeImage = (file: File, url: string): Promise<ImageFeedback> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = url;
+
+      img.onload = async () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d")!;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const predictions = await model!.detect(img);
+        const classes = predictions.map((p) => p.class);
+
+        const objectFlags: Record<string, boolean> = {
+          bed: false,
+          chair: false,
+          table: false,
+          tv: false,
+          refrigerator: false,
+          window: false,
+          sink: false,
+          toilet: false,
+          microwave: false,
+          laptop: false,
+        };
+
+        classes.forEach((cls) => {
+          if (objectFlags.hasOwnProperty(cls)) objectFlags[cls] = true;
+        });
+
+        const detected: string[] = [];
+        if (objectFlags.bed) detected.push("Giường");
+        if (objectFlags.table || objectFlags.chair) detected.push("Bàn/Ghế");
+        if (objectFlags.tv) detected.push("TV");
+        if (objectFlags.refrigerator) detected.push("Tủ lạnh");
+        if (objectFlags.window) detected.push("Cửa sổ");
+        if (objectFlags.sink || objectFlags.toilet)
+          detected.push("Nhà vệ sinh");
+        if (objectFlags.microwave) detected.push("Bếp điện");
+        if (objectFlags.laptop) detected.push("Bàn làm việc");
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        let totalBrightness = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          totalBrightness += (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+        }
+        const avgBrightness = totalBrightness / (pixels.length / 4);
+
+        let feedback = `✅ Vật thể phát hiện: ${
+          detected.join(", ") || "Không rõ vật thể chính"
+        }.\n`;
+        feedback +=
+          avgBrightness < 100
+            ? "⚠️ Ảnh hơi tối. Nên chụp lại với ánh sáng tốt hơn.\n"
+            : "💡 Ảnh đủ sáng.\n";
+
+        resolve({ url, feedback, objectFlags });
+      };
+    });
+  };
+
   // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files || files.length === 0 || !model) return;
+
+    const newFeedbacks: ImageFeedback[] = [];
+    const allDetectedFlags: Record<string, boolean> = {
+      bed: false,
+      chair: false,
+      table: false,
+      tv: false,
+      refrigerator: false,
+      window: false,
+      sink: false,
+      toilet: false,
+      microwave: false,
+      laptop: false,
+    };
+
+    for (const file of files) {
+      const url = URL.createObjectURL(file);
+      const result = await analyzeImage(file, url);
+      newFeedbacks.push(result);
+
+      // Cập nhật cờ tổng hợp
+      Object.keys(result.objectFlags).forEach((key) => {
+        allDetectedFlags[key] ||= result.objectFlags[key];
+      });
+    }
+
+    setImageFeedbacks((prev) => [...prev, ...newFeedbacks]);
+
+    const missing: string[] = [];
+    if (!allDetectedFlags.window) missing.push("cửa sổ");
+    if (!allDetectedFlags.bed) missing.push("giường");
+    if (!allDetectedFlags.tv && !allDetectedFlags.refrigerator)
+      missing.push("TV hoặc Tủ lạnh");
+    if (!allDetectedFlags.sink && !allDetectedFlags.toilet)
+      missing.push("hình ảnh nhà vệ sinh");
+
+    if (missing.length > 0) {
+      setMissingSuggestions(`📌 Gợi ý bổ sung: ${missing.join(", ")}.`);
+    } else {
+      setMissingSuggestions("👍 Bộ ảnh đã khá đầy đủ cho việc đăng trọ.");
+    }
 
     // Max 10 images
     const fileArray = Array.from(files).slice(0, 10);
@@ -371,6 +472,43 @@ const StepOne = () => {
     const newPreviews = [...imagePreviews];
     URL.revokeObjectURL(newPreviews[index]);
     newPreviews.splice(index, 1);
+
+    // Cập nhật lại gợi ý nếu còn ảnh
+    const filteredFeedbacks = imageFeedbacks.filter((_, i) => i !== index);
+    setImageFeedbacks(filteredFeedbacks);
+    if (filteredFeedbacks.length > 0) {
+      const combinedFlags: Record<string, boolean> = {
+        bed: false,
+        chair: false,
+        table: false,
+        tv: false,
+        refrigerator: false,
+        window: false,
+        sink: false,
+        toilet: false,
+        microwave: false,
+        laptop: false,
+      };
+      filteredFeedbacks.forEach((item) => {
+        Object.keys(item.objectFlags).forEach((key) => {
+          combinedFlags[key] ||= item.objectFlags[key];
+        });
+      });
+
+      const missing: string[] = [];
+      if (!combinedFlags.window) missing.push("cửa sổ");
+      if (!combinedFlags.bed) missing.push("giường");
+      if (!combinedFlags.tv && !combinedFlags.refrigerator) missing.push("TV hoặc Tủ lạnh");
+      if (!combinedFlags.sink && !combinedFlags.toilet) missing.push("hình ảnh nhà vệ sinh");
+
+      if (missing.length > 0) {
+        setMissingSuggestions(`📌 Gợi ý bổ sung: ${missing.join(", ")}.`);
+      } else {
+        setMissingSuggestions("👍 Bộ ảnh đã khá đầy đủ cho việc đăng trọ.");
+      }
+    } else {
+      setMissingSuggestions("");
+    }
 
     // Remove from files
     const newFiles = [...imageFiles];
@@ -1084,6 +1222,19 @@ const StepOne = () => {
                             </Col>
                           ))}
                         </Row>
+                      </div>
+                    )}
+
+                    {imageFeedbacks.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: 20,
+                          background: "#f0f0f0",
+                          padding: 10,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <strong>{missingSuggestions}</strong>
                       </div>
                     )}
                   </div>
