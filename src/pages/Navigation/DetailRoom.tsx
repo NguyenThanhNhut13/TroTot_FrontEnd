@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Removed unused 'use' import
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Container,
@@ -11,6 +11,8 @@ import {
   Table,
   ListGroup,
   Spinner,
+  Modal,
+  Form,
 } from "react-bootstrap";
 import {
   FaMapMarkerAlt,
@@ -22,9 +24,12 @@ import {
   FaRegCalendarAlt,
   FaUserAlt,
   FaAngleRight,
+  FaStar,
 } from "react-icons/fa";
 import roomApi from "../../apis/room.api";
-import { RoomGetByID } from "../../types/room.type";
+import reviewAPI from "../../apis/review.api";
+import userApi from "../../apis/user.api";
+import { RoomGetByID, RoomImage } from "../../types/room.type";
 import { toast } from "react-toastify";
 import RoomMap from "../../components/common/Map/RoomMap";
 import addressAPI from "../../apis/address.api";
@@ -40,10 +45,20 @@ export default function DetailRoom() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [latitude, setLatitude] = useState(0);
-  const [similarRoomsError, setSimilarRoomsError] = useState<string | null>(
-    null
-  ); // Lỗi cho similar rooms
+  const [similarRoomsError, setSimilarRoomsError] = useState<string | null>(null);
   const maxRetries = 3;
+
+  // State cho modal đánh giá
+  const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>("");
+  const [images, setImages] = useState<File[]>([]);
+
+  // State cho modal thông báo thành công
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+
+  // State để lưu userId
+  const [userId, setUserId] = useState<number | null>(null);
 
   // Fetch room details by ID
   useEffect(() => {
@@ -60,7 +75,7 @@ export default function DetailRoom() {
       } catch (error) {
         console.error("Error fetching room details:", error);
         if (attempt <= maxRetries) {
-          const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+          const delay = 3000 + (attempt - 1) * 1000;
           setTimeout(() => fetchRoomDetails(attempt + 1), delay);
         } else {
           setError("Không thể tải thông tin phòng. Vui lòng thử lại sau.");
@@ -73,19 +88,43 @@ export default function DetailRoom() {
     fetchRoomDetails();
   }, [id]);
 
+  // Fetch user profile to get userId
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        console.log("No access token found, user not logged in.");
+        return;
+      }
+
+      try {
+        const response = await userApi.getProfile();
+        if (response.data.success) {
+          setUserId(response.data.data.id);
+        } else {
+          throw new Error(response.data.message || "Lỗi khi lấy thông tin người dùng");
+        }
+      } catch (error: any) {
+        console.error("Error fetching user profile:", error);
+        toast.error("Không thể lấy thông tin người dùng. Vui lòng thử lại.");
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   const [similarRooms, setSimilarRooms] = useState<any[]>([]);
-  // Define getSimilarRoom outside useEffect
   const getSimilarRoom = async (attempt = 1) => {
     try {
       console.log(`Attempt ${attempt}: Loading similar rooms data...`);
       const response = await roomApi.aiGetSimilarRoom(room!.id);
       setSimilarRooms(response.data.data);
-      setSimilarRoomsError(null); // Reset error on success
+      setSimilarRoomsError(null);
       console.log("Successfully loaded similar rooms");
     } catch (error) {
       console.error("Error fetching similar rooms:", error);
       if (attempt <= maxRetries) {
-        const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
+        const delay = 3000 + (attempt - 1) * 1000;
         setTimeout(() => getSimilarRoom(attempt + 1), delay);
       } else {
         setSimilarRoomsError(
@@ -95,7 +134,6 @@ export default function DetailRoom() {
     }
   };
 
-  // Fetch similar rooms when room is available
   useEffect(() => {
     if (!room) return;
     getSimilarRoom();
@@ -104,14 +142,14 @@ export default function DetailRoom() {
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       if (!room) return;
-      
-      const accessToken = localStorage.getItem('accessToken');
+
+      const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) return;
-      
+
       try {
         const response = await roomApi.getSavedRoomIds();
         console.log("Saved rooms response:", response.data);
-        
+
         if (response.data?.data?.roomIds) {
           const isSaved = response.data.data.roomIds.includes(room.id);
           console.log(`Room ${room.id} saved status:`, isSaved);
@@ -121,33 +159,27 @@ export default function DetailRoom() {
         console.error("Error checking favorite status:", error);
       }
     };
-    
+
     checkFavoriteStatus();
   }, [room]);
 
-  // Handle favorite toggle
   const handleToggleFavorite = async () => {
     if (!room) return;
 
-    // Kiểm tra đăng nhập thực tế
-    const isLoggedIn = localStorage.getItem('accessToken');
+    const isLoggedIn = localStorage.getItem("accessToken");
     if (!isLoggedIn) {
       toast.info("Vui lòng đăng nhập để lưu phòng trọ yêu thích");
       return;
     }
-  
+
     try {
-      // Gọi API tương ứng dựa vào trạng thái hiện tại
       if (!isFavorite) {
         await roomApi.addToWishList(room.id);
         toast.success("Đã lưu tin thành công");
       } else {
-        // Gọi API xóa khỏi danh sách yêu thích
         await roomApi.removeFromWishList(room.id);
         toast.success("Đã xóa tin khỏi danh sách yêu thích");
       }
-      
-      // Cập nhật trạng thái hiển thị
       setIsFavorite(!isFavorite);
     } catch (error) {
       console.error("Error updating wishlist:", error);
@@ -155,7 +187,6 @@ export default function DetailRoom() {
     }
   };
 
-  // Handle share button click
   const handleShare = () => {
     if (navigator.share) {
       navigator
@@ -166,7 +197,6 @@ export default function DetailRoom() {
         })
         .catch((error) => console.log("Error sharing", error));
     } else {
-      // Fallback for browsers that don't support navigator.share
       navigator.clipboard
         .writeText(window.location.href)
         .then(() => toast.success("Đã sao chép liên kết vào clipboard"))
@@ -174,7 +204,73 @@ export default function DetailRoom() {
     }
   };
 
-  // Show loading spinner when data is being fetched
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setImages(files);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!room) return;
+
+    // Kiểm tra đăng nhập
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      toast.info("Vui lòng đăng nhập để gửi đánh giá");
+      setShowReviewModal(false);
+      return;
+    }
+
+    // Kiểm tra userId
+    if (!userId) {
+      toast.error("Không thể xác định thông tin người dùng. Vui lòng thử lại.");
+      setShowReviewModal(false);
+      return;
+    }
+
+    // Kiểm tra dữ liệu nhập
+    if (rating < 1 || rating > 5) {
+      toast.error("Vui lòng chọn điểm số từ 1 đến 5");
+      return;
+    }
+    if (!comment.trim()) {
+      toast.error("Vui lòng nhập bình luận");
+      return;
+    }
+
+    try {
+      const uploadedImages: RoomImage[] = images.map((file, index) => ({
+        publicId: `local-${index}-${file.name}`,
+        imageUrl: URL.createObjectURL(file),
+      }));
+
+      const reviewData = {
+        roomId: room.id,
+        userId: userId,
+        rating: rating,
+        comment: comment,
+        images: uploadedImages,
+      };
+
+      const response = await reviewAPI.createReview(reviewData);
+      if (response.data.success) {
+        // Đóng modal đánh giá và mở modal thông báo thành công
+        setShowReviewModal(false);
+        setShowSuccessModal(true);
+        // Reset các trường
+        setRating(0);
+        setComment("");
+        setImages([]);
+      } else {
+        throw new Error(response.data.message || "Lỗi khi gửi đánh giá");
+      }
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
+      toast.error(error.message || "Có lỗi xảy ra. Vui lòng thử lại sau.");
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -186,7 +282,6 @@ export default function DetailRoom() {
     );
   }
 
-  // Show error message if there was an error
   if (error) {
     return (
       <Container className="py-5">
@@ -195,7 +290,6 @@ export default function DetailRoom() {
     );
   }
 
-  // Show not found message if room is null
   if (!room) {
     return (
       <Container className="py-5">
@@ -203,21 +297,6 @@ export default function DetailRoom() {
       </Container>
     );
   }
-
-  // if (room) {
-  //   const getMapForWard = async () => {
-
-  //     const reponseForward = await addressAPI.getMapForward(`${ room.address.houseNumber }, ${room.address.street},${room.address.ward}, ${room.address.district},${" "}${room.address.province}`);
-  //     setLongitude(reponseForward.data.data.longitude);
-  //     setLatitude(reponseForward.data.data.latitude);
-  //     console.log(longitude, latitude);
-  //   }
-
-  //   getMapForWard()
-  // }
-
-  // Create an array of imageUrls for the carousel
-  const imageUrls = room.images.map((image) => image.imageUrl);
 
   return (
     <Container className="py-4">
@@ -274,7 +353,7 @@ export default function DetailRoom() {
               interval={null}
               className="room-carousel"
             >
-              {imageUrls.map((image, index) => (
+              {room.images.map((image, index) => (
                 <Carousel.Item key={index}>
                   <div
                     style={{
@@ -285,7 +364,7 @@ export default function DetailRoom() {
                   >
                     <img
                       className="d-block w-100 h-100"
-                      src={image}
+                      src={image.imageUrl}
                       alt={`Hình ${index + 1} của ${room.title}`}
                       style={{ objectFit: "contain" }}
                     />
@@ -294,9 +373,8 @@ export default function DetailRoom() {
               ))}
             </Carousel>
 
-            {/* Thumbnail Preview */}
             <div className="d-flex mt-2 p-2 justify-content-start overflow-auto">
-              {imageUrls.map((image, index) => (
+              {room.images.map((image, index) => (
                 <div
                   key={index}
                   onClick={() => setActiveIndex(index)}
@@ -313,7 +391,7 @@ export default function DetailRoom() {
                   }}
                 >
                   <img
-                    src={image}
+                    src={image.imageUrl}
                     alt={`Thumbnail ${index}`}
                     style={{
                       width: "100%",
@@ -357,6 +435,14 @@ export default function DetailRoom() {
               </Card>
             </Col>
           </Row>
+
+          {/* Nút Đánh giá phòng */}
+          <div className="mb-4">
+            <Button variant="success" onClick={() => setShowReviewModal(true)}>
+              <FaStar className="me-2" />
+              Đánh giá phòng
+            </Button>
+          </div>
 
           {/* Room Specification */}
           <h4 className="mb-3 fw-bold">Thông tin mô tả</h4>
@@ -480,7 +566,7 @@ export default function DetailRoom() {
             </Card.Body>
           </Card>
 
-          {/* Location Map (placeholder) */}
+          {/* Location Map */}
           <h4 className="mb-3 fw-bold">Vị trí trên bản đồ</h4>
           <Card className="border-0 shadow-sm mb-4">
             <Card.Body>
@@ -505,7 +591,6 @@ export default function DetailRoom() {
 
         {/* Sidebar */}
         <Col lg={3}>
-          {/* Contact Info */}
           <Card className="border-0 shadow-sm mb-4">
             <Card.Body>
               <div className="d-flex mb-3">
@@ -537,29 +622,7 @@ export default function DetailRoom() {
                 <Button
                   variant={isFavorite ? "danger" : "outline-danger"}
                   className="w-100 mb-2"
-                  onClick={async () => {
-                    // If not logged in, show login prompt
-                    const isLoggedIn = localStorage.getItem("accessToken"); // Basic auth check
-                    if (!isLoggedIn) {
-                      toast.info(
-                        "Vui lòng đăng nhập để lưu phòng trọ yêu thích"
-                      );
-                      return;
-                    }
-
-                    try {
-                      if (!isFavorite) {
-                        await roomApi.addToWishList(room.id);
-                        toast.success("Đã lưu tin thành công");
-                      } else {
-                        toast.success("Đã xóa tin khỏi danh sách yêu thích");
-                      }
-                      setIsFavorite(!isFavorite);
-                    } catch (error) {
-                      console.error("Error updating wishlist:", error);
-                      toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
-                    }
-                  }}
+                  onClick={handleToggleFavorite}
                 >
                   {isFavorite ? (
                     <FaHeart className="me-2" />
@@ -580,7 +643,6 @@ export default function DetailRoom() {
             </Card.Body>
           </Card>
 
-          {/* Similar Rooms Recommendations (placeholder) */}
           <Card className="border-0 shadow-sm mb-4">
             <Card.Header className="bg-primary text-white py-3">
               <h5 className="mb-0">Phòng trọ tương tự</h5>
@@ -600,7 +662,7 @@ export default function DetailRoom() {
             ) : (
               <ListGroup variant="flush">
                 {similarRooms.length > 0
-                  ? similarRooms.map((similarRoom, index) => (
+                  ? similarRooms.map((similarRoom) => (
                       <ListGroup.Item
                         key={similarRoom.id}
                         action
@@ -688,6 +750,66 @@ export default function DetailRoom() {
           </Card>
         </Col>
       </Row>
+
+      {/* Review Modal */}
+      <Modal show={showReviewModal} onHide={() => setShowReviewModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Đánh giá phòng trọ</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Điểm số (1-5)</Form.Label>
+              <div className="d-flex align-items-center">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar
+                    key={star}
+                    size={24}
+                    className="me-1"
+                    color={star <= rating ? "#ffc107" : "#e4e5e9"}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setRating(star)}
+                  />
+                ))}
+              </div>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Bình luận</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Nhập bình luận của bạn..."
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowReviewModal(false)}>
+            Đóng
+          </Button>
+          <Button variant="primary" onClick={handleSubmitReview}>
+            Gửi đánh giá
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Thông báo</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-success">Đánh giá của bạn đã được gửi thành công!</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowSuccessModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }
