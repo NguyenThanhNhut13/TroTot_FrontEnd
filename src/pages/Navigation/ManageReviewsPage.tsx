@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Container, Row, Col, Card, Table, Spinner, Alert, Button, Modal, Form } from "react-bootstrap";
 import { AppContext } from "../../contexts/app.context";
 import reportAPI, { REPORT_TYPES, REPORT_STATUSES } from "../../apis/report.api";
+import reviewAPI from "../../apis/review.api"; // Import reviewAPI
 import { toast } from "react-toastify";
 import Sidebar from "../MainPage/Sidebar";
 import "../../assets/styles/ManageReviewsPage.css";
@@ -66,7 +67,7 @@ const ManageReviewsPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Giả định API lấy danh sách đánh giá
+        // Lấy danh sách đánh giá từ API
         const reviewsResponse = await fetchReviews();
         setReviews(reviewsResponse);
 
@@ -85,9 +86,9 @@ const ManageReviewsPage = () => {
         setTotalPendingReports(pending);
         setTotalProcessingReports(processing);
         setTotalResolvedReports(resolved);
-      } catch (err) {
-        setError("Lỗi khi lấy dữ liệu");
-        toast.error("Lỗi khi lấy dữ liệu");
+      } catch (err: any) {
+        setError(err.message || "Lỗi khi lấy dữ liệu");
+        toast.error(err.message || "Lỗi khi lấy dữ liệu");
       } finally {
         setLoading(false);
       }
@@ -101,12 +102,25 @@ const ManageReviewsPage = () => {
     }
   }, [profile]);
 
-  // Giả lập API lấy danh sách đánh giá
+  // Lấy danh sách đánh giá từ API
   const fetchReviews = async (): Promise<Review[]> => {
-    return [
-      { id: 1, roomId: 101, userId: profile?.id || 0, rating: 4, comment: "Phòng đẹp, sạch sẽ", createdAt: "2025-05-18T10:00:00" },
-      { id: 2, roomId: 102, userId: profile?.id || 0, rating: 3, comment: "Giá hơi cao", createdAt: "2025-05-17T15:00:00" },
-    ];
+    try {
+      const response = await reviewAPI.getReviewsByUseId({ userId: profile?.id });
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Lỗi khi lấy danh sách đánh giá");
+      }
+      // Ánh xạ dữ liệu từ ReviewDTO sang Review
+      return response.data.data.map((dto: any) => ({
+        id: dto.id,
+        roomId: dto.roomId,
+        userId: dto.user.id,
+        rating: dto.rating,
+        comment: dto.comment,
+        createdAt: dto.createAt, // Nếu backend trả về createdAt, đổi thành dto.createdAt
+      }));
+    } catch (error: any) {
+      throw new Error(error.message || "Lỗi khi lấy danh sách đánh giá");
+    }
   };
 
   const handleReportReview = (review: Review) => {
@@ -166,31 +180,31 @@ const ManageReviewsPage = () => {
   };
 
   const formatDate = (dateString: string) => {
-  if (!dateString || dateString.trim() === "") {
-    return "Chưa có dữ liệu";
-  }
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) {
-    return "Ngày không hợp lệ";
-  }
-  return date.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-const formatDates = (dateString: string) => {
-  const currentDate = new Date(); // Lấy ngày hiện tại: 05:25 PM +07, 19/05/2025
-  return currentDate.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    // hour: "2-digit",
-    // minute: "2-digit"
-  });
-};
+    if (!dateString || dateString.trim() === "") {
+      return "Chưa có dữ liệu";
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "Ngày không hợp lệ";
+    }
+    return date.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatDates = (dateString: string) => {
+    const currentDate = new Date();
+    return currentDate.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   // Chart data and options
   const chartData = {
     labels: ["Đang chờ xử lý", "Đang xử lý", "Đã giải quyết"],
@@ -467,10 +481,7 @@ const formatDates = (dateString: string) => {
                         ? "Đang xử lý"
                         : "Đã giải quyết"}
                     </td>
-                   
-                    <td>
-                      {formatDates(report.createAt)}
-                    </td>
+                    <td>{formatDates(report.createAt)}</td>
                     <td>
                       <Button
                         variant="danger"

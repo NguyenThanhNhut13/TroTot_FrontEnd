@@ -4,7 +4,7 @@ import { SuccessResponse } from "../types/utils.type";
 import { Review } from "../types/review.type";
 import { RoomImage } from "../types/room.type";
 
-export const BASE_URL = "api/reviews";
+export const BASE_URL = "api/v1/reviews";
 
 const reviewAPI = {
   getReviews(params: { userId?: number }) {
@@ -32,6 +32,9 @@ const reviewAPI = {
     deleteReview(id: number) {
         return http.delete<SuccessResponse<Review>>(`${BASE_URL}/${id}`);
     },
+    getReviewsByUseId(params: { userId?: number }) {
+    return http.get<SuccessResponse<Review[]>>(`${BASE_URL}/user/${params.userId}`);
+  },
 };
 
 export default reviewAPI;
