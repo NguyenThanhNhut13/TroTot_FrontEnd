@@ -13,6 +13,7 @@ import SavedRoom from "./pages/Profile/SavedRoom";
 import Notifications from "./pages/Profile/Notifycations";
 import ReviewRoom from "./pages/Profile/ReviewRoom";
 import DetailRoom from "./pages/Navigation/DetailRoom";
+import HistoryPage from "./pages/PayPage/HistoryPage";
 
 export default function useRouteElement() {
   const routeElement = useRoutes([
@@ -68,7 +69,11 @@ export default function useRouteElement() {
         {
           path: "/phong-tro/:id",
           element: <DetailRoom />, // thêm đường dẫn mới cho trang chi tiết phòng
-        }
+        },
+        {
+          path: "/history",
+          element: <HistoryPage />, // Lịch sử giao dịch
+        },
       ],
     },
   ]);
