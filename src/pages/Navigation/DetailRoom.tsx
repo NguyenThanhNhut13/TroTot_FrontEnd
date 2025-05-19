@@ -45,7 +45,9 @@ export default function DetailRoom() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [latitude, setLatitude] = useState(0);
-  const [similarRoomsError, setSimilarRoomsError] = useState<string | null>(null);
+  const [similarRoomsError, setSimilarRoomsError] = useState<string | null>(
+    null
+  );
   const maxRetries = 3;
 
   // State cho modal đánh giá
@@ -102,7 +104,9 @@ export default function DetailRoom() {
         if (response.data.success) {
           setUserId(response.data.data.id);
         } else {
-          throw new Error(response.data.message || "Lỗi khi lấy thông tin người dùng");
+          throw new Error(
+            response.data.message || "Lỗi khi lấy thông tin người dùng"
+          );
         }
       } catch (error: any) {
         console.error("Error fetching user profile:", error);
@@ -307,13 +311,19 @@ export default function DetailRoom() {
           <nav aria-label="breadcrumb" className="mb-3">
             <ol className="breadcrumb">
               <li className="breadcrumb-item">
-                <Link to="/">Trang chủ</Link>
+                <Link
+                  to="/"
+                  className="text-primary text-decoration-none fw-bold"
+                >
+                  Trang chủ
+                </Link>
               </li>
               <li className="breadcrumb-item">
                 <Link
-                  to={`/${
+                  className="text-muted text-decoration-none fw-bold"
+                  to={`/category/${
                     room.roomType === "BOARDING_HOUSE"
-                      ? "phong-tro"
+                      ? "nha-tro-phong-tro"
                       : room.roomType === "WHOLE_HOUSE"
                       ? "nha-nguyen-can"
                       : "can-ho"
@@ -326,7 +336,7 @@ export default function DetailRoom() {
                     : "Căn hộ"}
                 </Link>
               </li>
-              <li className="breadcrumb-item active" aria-current="page">
+              <li className="breadcrumb-item active text-muted text-decoration-none fw-bold" aria-current="page" >
                 {room.title}
               </li>
             </ol>
@@ -802,7 +812,9 @@ export default function DetailRoom() {
           <Modal.Title>Thông báo</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p className="text-success">Đánh giá của bạn đã được gửi thành công!</p>
+          <p className="text-success">
+            Đánh giá của bạn đã được gửi thành công!
+          </p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={() => setShowSuccessModal(false)}>
