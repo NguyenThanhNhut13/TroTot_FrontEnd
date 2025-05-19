@@ -83,7 +83,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
             });
           } else {
             // Hiển thị thông báo lỗi chung (ví dụ: "You are already logged in")
-            toast.error(error.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại!");
+            toast.error(
+              error.response?.data?.message ||
+                "Đăng nhập thất bại. Vui lòng thử lại!"
+            );
           }
         } else {
           toast.error("Có lỗi xảy ra. Vui lòng thử lại sau!");
@@ -106,7 +109,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
     <>
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton className="border-0">
-          <Modal.Title className="d-none">Chào mừng bạn đến với Trọ Mới</Modal.Title>
+          <Modal.Title className="d-none">
+            Chào mừng bạn đến với Trọ Mới
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body className="px-4 pt-0 pb-4">
           <div className="text-center mb-4">
@@ -157,7 +162,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
               <button
                 type="button"
                 className="text-decoration-none"
-                style={{ color: "#0066cc", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                style={{
+                  color: "#0066cc",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
                 onClick={() => setShowChangePassword(true)}
               >
                 Quên mật khẩu?
@@ -182,7 +193,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose }) => {
               type="button"
               className="text-decoration-none fw-semibold border-0 bg-transparent p-0"
               style={{ color: "#0066cc" }}
-              onClick={() => setShowRegister(true)}
+              onClick={() => {
+                handleClose(); // Đóng LoginModal
+                setShowRegister(true); // Mở RegisterModal
+              }}
             >
               Đăng ký ngay
             </button>
