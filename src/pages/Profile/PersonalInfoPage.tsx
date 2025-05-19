@@ -114,19 +114,14 @@ const PersonalInfoPage = () => {
     <Container fluid className="p-0">
       <Row className="m-0">
         {/* Sidebar */}
-        <Col xs={12} md={3} lg={3}>
+        <Col xs={12} md={3} lg={3} className="p-0 min-vh-100">
           <Sidebar />
         </Col>
 
         {/* Main Content */}
-        <Col xs={12} md={9} lg={9} className="p-4 p-md-2">
-          <h3
-            className="text-primary fw-bold mb-2"
-            style={{ fontSize: "1.75rem" }}
-          >
-            THÔNG TIN CÁ NHÂN
-          </h3>
-          <p className="text-muted mb-2" style={{ fontSize: "0.9rem" }}>
+        <Col xs={12} md={9} lg={9} className="p-4 px-5">
+          <h2 className="text-primary fw-bold mb-2">THÔNG TIN CÁ NHÂN</h2>
+          <p className="text-muted mb-4" style={{ fontSize: "0.9rem" }}>
             Cập nhật thông tin cá nhân của bạn để tìm kiếm các thông tin phù hợp
             nhất.
           </p>
