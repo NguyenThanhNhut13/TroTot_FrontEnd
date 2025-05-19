@@ -14,6 +14,7 @@ import Notifications from "./pages/Profile/Notifycations";
 import ReviewRoom from "./pages/Profile/ReviewRoom";
 import DetailRoom from "./pages/Navigation/DetailRoom";
 import HistoryPage from "./pages/PayPage/HistoryPage";
+import ManageReviewsPage from "./pages/Navigation/ManageReviewsPage";
 
 export default function useRouteElement() {
   const routeElement = useRoutes([
@@ -73,6 +74,10 @@ export default function useRouteElement() {
         {
           path: "/history",
           element: <HistoryPage />, // Lịch sử giao dịch
+        },
+        {
+          path: "/manage-reviews",
+          element: <ManageReviewsPage />, // Quản lý đánh giá
         },
       ],
     },
