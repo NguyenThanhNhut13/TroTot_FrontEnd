@@ -19,7 +19,7 @@ export function isAxiosUnauthorizedError<UnauthorizedError>(error: unknown): err
 export function isAxiosExpiredTokenError<UnauthorizedError>(error: unknown): error is AxiosError<UnauthorizedError> {
   return (
     isAxiosUnauthorizedError<ErrorResponse<{ code: string; message: string }>>(error) &&
-    error.response?.data?.data?.code === 'UNAUTHORIZED'
+    error.response?.data?.data?.code === "INVALID_TOKEN"
   )
 }
 
