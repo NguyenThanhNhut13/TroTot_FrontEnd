@@ -829,9 +829,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfLivingRooms ? "is-invalid" : ""
                           }
-                          {...register("numberOfLivingRooms", {
-                        
-                          })}
+                          {...register("numberOfLivingRooms", {})}
                         />
                         {errors.numberOfLivingRooms && (
                           <div className="invalid-feedback">
@@ -852,9 +850,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfBedrooms ? "is-invalid" : ""
                           }
-                          {...register("numberOfBedrooms", {
-                        
-                          })}
+                          {...register("numberOfBedrooms", {})}
                         />
                         {errors.numberOfBedrooms && (
                           <div className="invalid-feedback">
@@ -875,9 +871,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfBathrooms ? "is-invalid" : ""
                           }
-                          {...register("numberOfBathrooms", {
-                        
-                          })}
+                          {...register("numberOfBathrooms", {})}
                         />
                         {errors.numberOfBathrooms && (
                           <div className="invalid-feedback">
@@ -898,9 +892,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfKitchens ? "is-invalid" : ""
                           }
-                          {...register("numberOfKitchens", {
-                        
-                          })}
+                          {...register("numberOfKitchens", {})}
                         />
                         {errors.numberOfKitchens && (
                           <div className="invalid-feedback">
