@@ -85,19 +85,16 @@ const StepOne = () => {
     formState: { errors, isSubmitting },
   } = useForm<FormCreateRoomSchema>({
     resolver: yupResolver(formCreateRoom) as Resolver<FormCreateRoomSchema>,
-    defaultValues:{
-      // address: {
-      //   id: 0,
-      //   // province: "",
-      //   // district: "",
-      //   // ward: "",
-      //   street: "",
-      //   houseNumber: "",
-      //       latitude: 0,
-      //       longitude: 0,
-        
-      // }
-    }
+    defaultValues: {
+      address: {
+        id: 77,
+        province: "",
+        district: "",
+        ward: "",
+        street: "",
+        houseNumber: "",
+      }
+    },
   });
 
   // Create mutation for room creation
@@ -615,25 +612,20 @@ const StepOne = () => {
                 className={errors.userId ? "is-invalid d-none" : "d-none"}
                 {...register("userId")}
               />
-              {/* <Form.Control
-                type="number"
-                value={profile?.id}
-                className={errors.address?.id ? "is-invalid d-none" : "d-none"}
-                {...register("address.id")}
+              <Form.Control
+                type="text"
+                value={new Date().toISOString()}
+                className={errors.createdAt ? "is-invalid d-none" : "d-none"}
+                {...register("createdAt")}
               />
               <Form.Control
-                type="number"
-                value={profile?.id}
-                className={errors.address?.latitude ? "is-invalid d-none" : "d-none"}
-                {...register("address.latitude")}
+                type="text"
+                value={new Date().toISOString()}
+                className={errors.updatedAt ? "is-invalid d-none" : "d-none"}
+                {...register("updatedAt")}
               />
-              <Form.Control
-                type="number"
-                value={profile?.id}
-                className={errors.address?.longitude ? "is-invalid d-none" : "d-none"}
-                {...register("address.longitude")}
-              /> */}
               
+
               {/* Basic Information Card */}
               <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
@@ -938,7 +930,7 @@ const StepOne = () => {
               </Card>
 
               {/* Address Card */}
-              {/* <Card className="mb-4 shadow-sm">
+              <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0 d-flex align-items-center">
                     <FaMapMarkerAlt className="me-2" /> Địa chỉ cho thuê
@@ -952,12 +944,14 @@ const StepOne = () => {
                           Tỉnh/Thành phố
                         </Form.Label>
                         <Form.Select
+                          {...register("address.province")}
                           value={selectedProvince}
-                          onChange={(e) => setSelectedProvince(e.target.value)}
+                          onChange={(e) => {
+                            setSelectedProvince(e.target.value);
+                            setValue("address.province", e.target.value); // cập nhật react-hook-form
+                          }}
                           className={
-                            !selectedProvince && errors.address?.province
-                              ? "is-invalid"
-                              : ""
+                            errors.address?.province ? "is-invalid" : ""
                           }
                         >
                           <option value="">Chọn Tỉnh/Thành phố</option>
@@ -967,7 +961,7 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {!selectedProvince && errors.address?.province && (
+                        {errors.address?.province && (
                           <div className="invalid-feedback">
                             {errors.address.province.message}
                           </div>
@@ -980,14 +974,14 @@ const StepOne = () => {
                         <Form.Label className="fw-bold">Quận/Huyện</Form.Label>
                         <Form.Select
                           value={selectedDistrict}
-                          onChange={(e) => setSelectedDistrict(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedDistrict(value);
+                            setValue("address.district", value); // cập nhật React Hook Form
+                          }}
                           disabled={!selectedProvince}
                           className={
-                            selectedProvince &&
-                            !selectedDistrict &&
-                            errors.address?.district
-                              ? "is-invalid"
-                              : ""
+                            errors.address?.district ? "is-invalid" : ""
                           }
                         >
                           <option value="">Chọn Quận/Huyện</option>
@@ -997,13 +991,11 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {selectedProvince &&
-                          !selectedDistrict &&
-                          errors.address?.district && (
-                            <div className="invalid-feedback">
-                              {errors.address.district.message}
-                            </div>
-                          )}
+                        {errors.address?.district && (
+                          <div className="invalid-feedback">
+                            {errors.address.district.message}
+                          </div>
+                        )}
                       </Form.Group>
                     </Col>
 
@@ -1012,15 +1004,13 @@ const StepOne = () => {
                         <Form.Label className="fw-bold">Phường/Xã</Form.Label>
                         <Form.Select
                           value={selectedWard}
-                          onChange={(e) => setSelectedWard(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedWard(value);
+                            setValue("address.ward", value); // cập nhật React Hook Form
+                          }}
                           disabled={!selectedDistrict}
-                          className={
-                            selectedDistrict &&
-                            !selectedWard &&
-                            errors.address?.ward
-                              ? "is-invalid"
-                              : ""
-                          }
+                          className={errors.address?.ward ? "is-invalid" : ""}
                         >
                           <option value="">Chọn Phường/Xã</option>
                           {wards.map((ward) => (
@@ -1029,13 +1019,11 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {selectedDistrict &&
-                          !selectedWard &&
-                          errors.address?.ward && (
-                            <div className="invalid-feedback">
-                              {errors.address.ward.message}
-                            </div>
-                          )}
+                        {errors.address?.ward && (
+                          <div className="invalid-feedback">
+                            {errors.address.ward.message}
+                          </div>
+                        )}
                       </Form.Group>
                     </Col>
                   </Row>
@@ -1078,7 +1066,7 @@ const StepOne = () => {
                     </Col>
                   </Row>
                 </Card.Body>
-              </Card> */}
+              </Card>
 
               {/* Amenities Card */}
               <Card className="mb-4 shadow-sm">

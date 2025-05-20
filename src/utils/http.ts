@@ -112,13 +112,9 @@ export class Http {
         ) {
           const config = error.response?.config || { headers: {}, url: "" };
           const { url } = config;
-          console.log("chay toi ne");
-          console.log(url)
-          console.log(error)
           // Trường hợp Token hết hạn và request đó không phải là của request refresh token
           // thì chúng ta mới tiến hành gọi refresh token
           if (isAxiosExpiredTokenError(error) && url !== URL_REFRESH_TOKEN) {
-            console.log("chay toi ne 2");
             // Hạn chế gọi 2 lần handleRefreshToken
             this.refreshTokenRequest = this.refreshTokenRequest
               ? this.refreshTokenRequest

@@ -107,24 +107,24 @@ export const formCreateRoom = yup.object({
     )
     .required("User ID là bắt buộc"),
   address: yup.object({
-    // id: yup.number().required("ID địa chỉ là bắt buộc"),
-    // province: yup.string().required("Tỉnh/Thành phố là bắt buộc"),
-    // district: yup.string().required("Quận/Huyện là bắt buộc"),
-    // ward: yup.string().required("Phường/Xã là bắt buộc"),
-    // street: yup.string().required("Đường là bắt buộc"),
-    // houseNumber: yup.string().required("Số nhà là bắt buộc"),
-    latitude: yup
-      .number()
-      .transform((value, originalValue) =>
-        String(originalValue).trim() === "" ? undefined : value
-      )
-      .positive("Vĩ độ phải là số dương"),
-    longitude: yup
-      .number()
-      .transform((value, originalValue) =>
-        String(originalValue).trim() === "" ? undefined : value
-      )
-      .positive("Kinh độ phải là số dương"),
+    id: yup.number().required("ID địa chỉ là bắt buộc"),
+    province: yup.string().required("Tỉnh/Thành phố là bắt buộc"),
+    district: yup.string().required("Quận/Huyện là bắt buộc"),
+    ward: yup.string().required("Phường/Xã là bắt buộc"),
+    street: yup.string().required("Đường là bắt buộc"),
+    houseNumber: yup.string().required("Số nhà là bắt buộc"),
+    // latitude: yup
+    //   .number()
+    //   .transform((value, originalValue) =>
+    //     String(originalValue).trim() === "" ? undefined : value
+    //   )
+    //   .positive("Vĩ độ phải là số dương"),
+    // longitude: yup
+    //   .number()
+    //   .transform((value, originalValue) =>
+    //     String(originalValue).trim() === "" ? undefined : value
+    //   )
+    //   .positive("Kinh độ phải là số dương"),
   }),
   title: yup
     .string()
@@ -252,8 +252,8 @@ export const formCreateRoom = yup.object({
     .required("Số phòng ngủ là bắt buộc")
     .min(0, "Số phòng ngủ không được âm")
     .integer("Số phòng ngủ phải là số nguyên"),
-  // createdAt: yup.string(),
-  // updatedAt: yup.string(),
+  createdAt: yup.string(),
+  updatedAt: yup.string(),
 });
 
 export type FormCreateRoomSchema = yup.InferType<typeof formCreateRoom>;
