@@ -113,18 +113,8 @@ export const formCreateRoom = yup.object({
     ward: yup.string().required("Phường/Xã là bắt buộc"),
     street: yup.string().required("Đường là bắt buộc"),
     houseNumber: yup.string().required("Số nhà là bắt buộc"),
-    // latitude: yup
-    //   .number()
-    //   .transform((value, originalValue) =>
-    //     String(originalValue).trim() === "" ? undefined : value
-    //   )
-    //   .positive("Vĩ độ phải là số dương"),
-    // longitude: yup
-    //   .number()
-    //   .transform((value, originalValue) =>
-    //     String(originalValue).trim() === "" ? undefined : value
-    //   )
-    //   .positive("Kinh độ phải là số dương"),
+    latitude: yup.number(),
+    longitude: yup.number(),
   }),
   title: yup
     .string()

@@ -60,30 +60,55 @@ export type RoomImage = {
     last: boolean;
   };
 
-  export type CreateRoomDTO = {
-    userId: number;
-    address: string | null;
-    title: string;
-    description: string;
-    price: number;
-    area: number;
-    selfManaged: boolean;
-    totalRooms: number;
-    maxPeople: number;
-    forGender: "ALL" | "MALE" | "FEMALE";
-    deposit: number;
-    posterName: string;
-    posterPhone: string;
-    images: RoomImage[];
-    roomType: "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE";
-    amenities: number[]; // Array of IDs
-    surroundingAreas: number[]; // Array of IDs
-    targetAudiences: number[]; // Array of IDs
-    numberOfLivingRooms: number;
-    numberOfKitchens: number;
-    numberOfBathrooms: number;
-    numberOfBedrooms: number;
+export type CreateRoomDTO = {
+  userId: number;
+  address: {
+    id: number;
+    province: string;
+    district: string;
+    ward: string;
+    street: string;
+    houseNumber: string;
+    latitude?: number;
+    longitude?: number;
   };
+  title: string;
+  description: string;
+  price: number;
+  area: number;
+  selfManaged: boolean;
+  totalRooms: number;
+  maxPeople: number;
+  forGender: "ALL" | "MALE" | "FEMALE" | "OTHER";
+  deposit: number;
+  posterName: string;
+  posterPhone: string;
+  images: {
+    id: number;
+    publicId?: string;
+    imageUrl?: string;
+  }[];
+  roomType: "APARTMENT" | "WHOLE_HOUSE" | "BOARDING_HOUSE";
+  amenities: {
+    id: number;
+    name: string;
+  }[];
+  surroundingAreas: {
+    id: number;
+    name: string;
+  }[];
+  targetAudiences: {
+    id: number;
+    name: string;
+  }[];
+  numberOfLivingRooms: number;
+  numberOfKitchens: number;
+  numberOfBathrooms: number;
+  numberOfBedrooms: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 
 // Search params interface
 export interface RoomSearchParams {

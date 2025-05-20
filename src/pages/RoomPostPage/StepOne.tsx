@@ -39,6 +39,7 @@ import {
 } from "react-icons/fa";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
+import { SiCommonworkflowlanguage } from "react-icons/si";
 
 type ImageFeedback = {
   url: string;
@@ -93,7 +94,9 @@ const StepOne = () => {
         ward: "",
         street: "",
         houseNumber: "",
-      }
+        latitude: 1,
+        longitude: 1,
+      },
     },
   });
 
@@ -102,27 +105,31 @@ const StepOne = () => {
     mutationFn: (body: FormCreateRoomSchema) => {
       const formData = new FormData();
 
-      // Convert form data to FormData object
-      Object.entries(body).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (typeof value === "object" && !Array.isArray(value)) {
-            // Handle nested objects like address
-            Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-              if (nestedValue !== undefined && nestedValue !== null) {
-                formData.append(`${key}.${nestedKey}`, String(nestedValue));
-              }
-            });
-          } else if (Array.isArray(value)) {
-            // Handle arrays like amenities, targetAudiences, surroundingAreas, images
-            formData.append(`${key}`, JSON.stringify(value));
-          } else {
-            // Handle primitive values
-            formData.append(key, String(value));
-          }
+Object.entries(body).forEach(([key, value]) => {
+  if (value !== undefined && value !== null) {
+    if (key === "address") {
+      // Parse object thành từng trường
+      Object.entries(value).forEach(([subKey, subValue]) => {
+        formData.append(`address.${subKey}`, String(subValue));
+      });
+    } else if (["amenities", "targetAudiences", "surroundingAreas", "images"].includes(key) && Array.isArray(value)) {
+      value.forEach((item, index) => {
+        if (typeof item === "object") {
+          Object.entries(item).forEach(([k, v]) => {
+            formData.append(`${key}[${index}].${k}`, String(v));
+          });
+        } else {
+          formData.append(`${key}[${index}]`, String(item));
         }
       });
+    } else {
+      formData.append(key, String(value));
+    }
+  }
+});
 
-      return roomApi.createRoom(formData);
+return roomApi.createRoom(formData);
+
     },
     retry: 3, // Số lần retry tối đa
     retryDelay: (attempt) => 3000 + (attempt - 1) * 1000, // 3s, 4s, 5s
@@ -138,72 +145,44 @@ const StepOne = () => {
   });
 
   const onSubmit = async (data: FormCreateRoomSchema) => {
-    console.log("Form Data Before Submission:", data);
+    // Validate image upload
+    if (imageFiles.length === 0) {
+      toast.error("Vui lòng tải lên ít nhất một hình ảnh");
+      setLoading(false);
+      return;
+    }
+
+    // Upload images
+    const uploadedImages = await uploadImages();
+    if (!uploadedImages || uploadedImages.length === 0) {
+      toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
+      setLoading(false);
+      return;
+    }
+
+    // Set uploaded images to form data
+    data.images = uploadedImages;
+
+    // Ensure selfManaged is boolean
+    data.selfManaged =
+      typeof data.selfManaged === "string"
+        ? data.selfManaged === "true"
+        : Boolean(data.selfManaged);
+
+    // Submit data
+    createRoomMutation.mutate(data, {
+      onSuccess: async (data) => {
+        console.log("Mutation Success Response:", data);
+        toast.success("Đăng tin thành công!");
+        navigate("/post-room");
+      },
+      onError: (error) => {
+        console.error("Mutation Error:", error);
+        console.log(data);
+        toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
+      },
+    });
   };
-
-  // const onSubmit = async (data: FormCreateRoomSchema) => {
-  //   setLoading(true);
-  //   console.log("Form Data Before Submission:", data);
-  //   // Set address values
-  //   data.address.province = selectedProvince;
-  //   data.address.district = selectedDistrict;
-  //   data.address.ward = selectedWard;
-  //   console.log("Address Data:", {
-  //     province: selectedProvince,
-  //     district: selectedDistrict,
-  //     ward: selectedWard,
-  //   });
-
-  //   // Validate required fields
-  //   if (
-  //     !data.address.province ||
-  //     !data.address.district ||
-  //     !data.address.ward
-  //   ) {
-  //     toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   // Validate image upload
-  //   if (imageFiles.length === 0) {
-  //     toast.error("Vui lòng tải lên ít nhất một hình ảnh");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   // Upload images
-  //   const uploadedImages = await uploadImages();
-  //   console.log("Uploaded Images:", uploadedImages);
-  //   if (!uploadedImages || uploadedImages.length === 0) {
-  //     toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   // Set uploaded images to form data
-  //   data.images = uploadedImages;
-  //   console.log("Data with Images:", data);
-
-  //   // Ensure selfManaged is boolean
-  //   data.selfManaged =
-  //     typeof data.selfManaged === "string"
-  //       ? data.selfManaged === "true"
-  //       : Boolean(data.selfManaged);
-
-  //   // Submit data
-  //   createRoomMutation.mutate(data, {
-  //     onSuccess: async (data) => {
-  //       console.log("Mutation Success Response:", data);
-  //       toast.success("Đăng tin thành công!");
-  //       navigate("/post-room");
-  //     },
-  //     onError: (error) => {
-  //       console.error("Mutation Error:", error);
-  //       toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
-  //     },
-  //   });
-  // };
 
   // Fetch required data
   useEffect(() => {
@@ -547,6 +526,7 @@ const StepOne = () => {
         const mediaItem = response.data.data;
         uploadedImages = [
           {
+            id: 30,
             publicId: mediaItem.publicId,
             imageUrl: mediaItem.imageUrl,
           },
@@ -556,6 +536,7 @@ const StepOne = () => {
         const response = await mediaAPI.uploadFiles(imageFiles);
         console.log("Multiple Images Upload Response:", response);
         uploadedImages = response.data.data.map((media) => ({
+          id: 30,
           publicId: media.publicId,
           imageUrl: media.imageUrl,
         }));
@@ -624,7 +605,6 @@ const StepOne = () => {
                 className={errors.updatedAt ? "is-invalid d-none" : "d-none"}
                 {...register("updatedAt")}
               />
-              
 
               {/* Basic Information Card */}
               <Card className="mb-4 shadow-sm">
@@ -944,11 +924,14 @@ const StepOne = () => {
                           Tỉnh/Thành phố
                         </Form.Label>
                         <Form.Select
-                          {...register("address.province")}
                           value={selectedProvince}
                           onChange={(e) => {
-                            setSelectedProvince(e.target.value);
-                            setValue("address.province", e.target.value); // cập nhật react-hook-form
+                            const selectedCode = e.target.value;
+                            const selected = provinces.find(
+                              (p) => p.code.toString() === selectedCode
+                            );
+                            setSelectedProvince(selectedCode);
+                            setValue("address.province", selected?.name || ""); // lưu tên
                           }}
                           className={
                             errors.address?.province ? "is-invalid" : ""
@@ -961,6 +944,7 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
+
                         {errors.address?.province && (
                           <div className="invalid-feedback">
                             {errors.address.province.message}
@@ -976,8 +960,15 @@ const StepOne = () => {
                           value={selectedDistrict}
                           onChange={(e) => {
                             const value = e.target.value;
+                            const selected = districts.find(
+                              (d) => d.code.toString() === value
+                            );
+
                             setSelectedDistrict(value);
-                            setValue("address.district", value); // cập nhật React Hook Form
+                            setValue(
+                              "address.district",
+                              selected?.name_with_type || ""
+                            ); // lưu tên quận/huyện
                           }}
                           disabled={!selectedProvince}
                           className={
@@ -991,6 +982,7 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
+
                         {errors.address?.district && (
                           <div className="invalid-feedback">
                             {errors.address.district.message}
@@ -1006,8 +998,15 @@ const StepOne = () => {
                           value={selectedWard}
                           onChange={(e) => {
                             const value = e.target.value;
+                            const selected = wards.find(
+                              (w) => w.code.toString() === value
+                            );
+
                             setSelectedWard(value);
-                            setValue("address.ward", value); // cập nhật React Hook Form
+                            setValue(
+                              "address.ward",
+                              selected?.name_with_type || ""
+                            ); // lưu tên phường/xã
                           }}
                           disabled={!selectedDistrict}
                           className={errors.address?.ward ? "is-invalid" : ""}
@@ -1019,6 +1018,7 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
+
                         {errors.address?.ward && (
                           <div className="invalid-feedback">
                             {errors.address.ward.message}
