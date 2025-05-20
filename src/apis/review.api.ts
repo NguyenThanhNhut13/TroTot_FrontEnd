@@ -8,7 +8,7 @@ export const BASE_URL = "api/v1/reviews";
 
 const reviewAPI = {
   getReviews(params: { userId?: number }) {
-    return http.get<SuccessResponse<Review[]>>(`${BASE_URL}/${params.userId}`);
+    return http.get<SuccessResponse<Review[]>>(`${BASE_URL}/user/${params.userId}`);
   },
   createReview(body : {
     roomId: number;

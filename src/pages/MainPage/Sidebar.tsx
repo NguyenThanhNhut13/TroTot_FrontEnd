@@ -35,7 +35,7 @@ const Sidebar = () => {
     { icon: "📊", label: "Thông tin chung", path: "/profile" },
     { icon: "📋", label: "Quản lý tin", path: "/manage-posts" },
     { icon: "💬", label: "Quản lý đánh giá", path: "/manage-reviews" },
-    { icon: "⏳", label: "Lịch sử", path: "/history" },
+    { icon: "⏳", label: "Lịch sử giao dịch", path: "/history" },
   ];
 
   const handleSidebarClick = (path: string) => {
