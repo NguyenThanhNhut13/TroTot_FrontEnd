@@ -100,7 +100,12 @@ export const loginSchema = yup.object({
 });
 
 export const formCreateRoom = yup.object({
-  userId: yup.number().required("User ID là bắt buộc"),
+  userId: yup
+    .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
+    .required("User ID là bắt buộc"),
   address: yup.object({
     id: yup.number().required("ID địa chỉ là bắt buộc"),
     province: yup.string().required("Tỉnh/Thành phố là bắt buộc"),
@@ -173,25 +178,25 @@ export const formCreateRoom = yup.object({
     )
     .required("Tiền đặt cọc là bắt buộc")
     .min(0, "Tiền đặt cọc không được âm"),
-  posterName: yup
-    .string()
-    .required("Tên người đăng là bắt buộc")
-    .max(100, "Tên người đăng không được quá 100 ký tự"),
-  posterPhone: yup
-    .string()
-    .required("Số điện thoại người đăng là bắt buộc")
-    .matches(/^[0-9]{10,11}$/, "Số điện thoại không hợp lệ"),
-  // Simplify the images validation to make it work better
-  images: yup
-    .array()
-    .of(
-      yup.object({
-        // id: yup.number().required("ID hình ảnh là bắt buộc"),
-        publicId: yup.string(),
-        imageUrl: yup.string(),
-      })
-    )
-    .default([]), // Use default empty array
+  // posterName: yup
+  //   .string()
+  //   .required("Tên người đăng là bắt buộc")
+  //   .max(100, "Tên người đăng không được quá 100 ký tự"),
+  // posterPhone: yup
+  //   .string()
+  //   .required("Số điện thoại người đăng là bắt buộc")
+  //   .matches(/^[0-9]{10,11}$/, "Số điện thoại không hợp lệ"),
+  // // Simplify the images validation to make it work better
+  // images: yup
+  //   .array()
+  //   .of(
+  //     yup.object({
+  //       // id: yup.number().required("ID hình ảnh là bắt buộc"),
+  //       publicId: yup.string(),
+  //       imageUrl: yup.string(),
+  //     })
+  //   )
+  //   .default([]), // Use default empty array
   roomType: yup
     .string()
     .oneOf(
@@ -199,24 +204,24 @@ export const formCreateRoom = yup.object({
       "Loại phòng không hợp lệ"
     )
     .required("Loại phòng là bắt buộc"),
-  amenities: yup.array().of(
-    yup.object({
-      id: yup.number().required("ID tiện ích là bắt buộc"),
-      name: yup.string().required("Tên tiện ích là bắt buộc"),
-    })
-  ),
-  surroundingAreas: yup.array().of(
-    yup.object({
-      id: yup.number().required("ID khu vực xung quanh là bắt buộc"),
-      name: yup.string().required("Tên khu vực xung quanh là bắt buộc"),
-    })
-  ),
-  targetAudiences: yup.array().of(
-    yup.object({
-      id: yup.number().required("ID đối tượng mục tiêu là bắt buộc"),
-      name: yup.string().required("Tên đối tượng mục tiêu là bắt buộc"),
-    })
-  ),
+  // amenities: yup.array().of(
+  //   yup.object({
+  //     id: yup.number().required("ID tiện ích là bắt buộc"),
+  //     name: yup.string().required("Tên tiện ích là bắt buộc"),
+  //   })
+  // ),
+  // surroundingAreas: yup.array().of(
+  //   yup.object({
+  //     id: yup.number().required("ID khu vực xung quanh là bắt buộc"),
+  //     name: yup.string().required("Tên khu vực xung quanh là bắt buộc"),
+  //   })
+  // ),
+  // targetAudiences: yup.array().of(
+  //   yup.object({
+  //     id: yup.number().required("ID đối tượng mục tiêu là bắt buộc"),
+  //     name: yup.string().required("Tên đối tượng mục tiêu là bắt buộc"),
+  //   })
+  // ),
   numberOfLivingRooms: yup
     .number()
     .transform((value, originalValue) =>
@@ -249,8 +254,8 @@ export const formCreateRoom = yup.object({
     .required("Số phòng ngủ là bắt buộc")
     .min(0, "Số phòng ngủ không được âm")
     .integer("Số phòng ngủ phải là số nguyên"),
-  createdAt: yup.string(),
-  updatedAt: yup.string(),
+  // createdAt: yup.string(),
+  // updatedAt: yup.string(),
 });
 
 export type FormCreateRoomSchema = yup.InferType<typeof formCreateRoom>;

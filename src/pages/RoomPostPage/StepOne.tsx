@@ -128,68 +128,72 @@ const StepOne = () => {
   });
 
   const onSubmit = async (data: FormCreateRoomSchema) => {
-    setLoading(true);
     console.log("Form Data Before Submission:", data);
-    // Set address values
-    data.address.province = selectedProvince;
-    data.address.district = selectedDistrict;
-    data.address.ward = selectedWard;
-    console.log("Address Data:", {
-      province: selectedProvince,
-      district: selectedDistrict,
-      ward: selectedWard,
-    });
-
-    // Validate required fields
-    if (
-      !data.address.province ||
-      !data.address.district ||
-      !data.address.ward
-    ) {
-      toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
-      setLoading(false);
-      return;
-    }
-
-    // Validate image upload
-    if (imageFiles.length === 0) {
-      toast.error("Vui lòng tải lên ít nhất một hình ảnh");
-      setLoading(false);
-      return;
-    }
-
-    // Upload images
-    const uploadedImages = await uploadImages();
-    console.log("Uploaded Images:", uploadedImages);
-    if (!uploadedImages || uploadedImages.length === 0) {
-      toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
-      setLoading(false);
-      return;
-    }
-
-    // Set uploaded images to form data
-    data.images = uploadedImages;
-    console.log("Data with Images:", data);
-
-    // Ensure selfManaged is boolean
-    data.selfManaged =
-      typeof data.selfManaged === "string"
-        ? data.selfManaged === "true"
-        : Boolean(data.selfManaged);
-
-    // Submit data
-    createRoomMutation.mutate(data, {
-      onSuccess: async (data) => {
-        console.log("Mutation Success Response:", data);
-        toast.success("Đăng tin thành công!");
-        navigate("/post-room");
-      },
-      onError: (error) => {
-        console.error("Mutation Error:", error);
-        toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
-      },
-    });
   };
+
+  // const onSubmit = async (data: FormCreateRoomSchema) => {
+  //   setLoading(true);
+  //   console.log("Form Data Before Submission:", data);
+  //   // Set address values
+  //   data.address.province = selectedProvince;
+  //   data.address.district = selectedDistrict;
+  //   data.address.ward = selectedWard;
+  //   console.log("Address Data:", {
+  //     province: selectedProvince,
+  //     district: selectedDistrict,
+  //     ward: selectedWard,
+  //   });
+
+  //   // Validate required fields
+  //   if (
+  //     !data.address.province ||
+  //     !data.address.district ||
+  //     !data.address.ward
+  //   ) {
+  //     toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   // Validate image upload
+  //   if (imageFiles.length === 0) {
+  //     toast.error("Vui lòng tải lên ít nhất một hình ảnh");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   // Upload images
+  //   const uploadedImages = await uploadImages();
+  //   console.log("Uploaded Images:", uploadedImages);
+  //   if (!uploadedImages || uploadedImages.length === 0) {
+  //     toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   // Set uploaded images to form data
+  //   data.images = uploadedImages;
+  //   console.log("Data with Images:", data);
+
+  //   // Ensure selfManaged is boolean
+  //   data.selfManaged =
+  //     typeof data.selfManaged === "string"
+  //       ? data.selfManaged === "true"
+  //       : Boolean(data.selfManaged);
+
+  //   // Submit data
+  //   createRoomMutation.mutate(data, {
+  //     onSuccess: async (data) => {
+  //       console.log("Mutation Success Response:", data);
+  //       toast.success("Đăng tin thành công!");
+  //       navigate("/post-room");
+  //     },
+  //     onError: (error) => {
+  //       console.error("Mutation Error:", error);
+  //       toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
+  //     },
+  //   });
+  // };
 
   // Fetch required data
   useEffect(() => {
@@ -327,23 +331,23 @@ const StepOne = () => {
   }, [selectedDistrict]);
 
   // Handle checkbox changes for amenities, target audiences, surrounding areas
-  const handleCheckboxChange = (
-    id: number,
-    name: string,
-    type: "amenities" | "targetAudiences" | "surroundingAreas",
-    checked: boolean
-  ) => {
-    const currentValues = watch(type) || [];
+  // const handleCheckboxChange = (
+  //   id: number,
+  //   name: string,
+  //   type: "amenities" | "targetAudiences" | "surroundingAreas",
+  //   checked: boolean
+  // ) => {
+  //   const currentValues = watch(type) || [];
 
-    if (checked) {
-      setValue(type, [...currentValues, { id, name }]);
-    } else {
-      setValue(
-        type,
-        currentValues.filter((item) => item.id !== id)
-      );
-    }
-  };
+  //   if (checked) {
+  //     setValue(type, [...currentValues, { id, name }]);
+  //   } else {
+  //     setValue(
+  //       type,
+  //       currentValues.filter((item) => item.id !== id)
+  //     );
+  //   }
+  // };
 
   const analyzeImage = (file: File, url: string): Promise<ImageFeedback> => {
     return new Promise((resolve) => {
@@ -498,8 +502,10 @@ const StepOne = () => {
       const missing: string[] = [];
       if (!combinedFlags.window) missing.push("cửa sổ");
       if (!combinedFlags.bed) missing.push("giường");
-      if (!combinedFlags.tv && !combinedFlags.refrigerator) missing.push("TV hoặc Tủ lạnh");
-      if (!combinedFlags.sink && !combinedFlags.toilet) missing.push("hình ảnh nhà vệ sinh");
+      if (!combinedFlags.tv && !combinedFlags.refrigerator)
+        missing.push("TV hoặc Tủ lạnh");
+      if (!combinedFlags.sink && !combinedFlags.toilet)
+        missing.push("hình ảnh nhà vệ sinh");
 
       if (missing.length > 0) {
         setMissingSuggestions(`📌 Gợi ý bổ sung: ${missing.join(", ")}.`);
@@ -589,6 +595,13 @@ const StepOne = () => {
             </div>
 
             <Form onSubmit={handleSubmit(onSubmit)} noValidate>
+              {/* Hidden field */}
+              <Form.Control
+                type="number"
+                value={profile?.id}
+                className={errors.userId ? "is-invalid d-none" : "d-none"}
+                {...register("userId")}
+              />
               {/* Basic Information Card */}
               <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
@@ -1044,7 +1057,7 @@ const StepOne = () => {
               </Card>
 
               {/* Amenities Card */}
-              <Card className="mb-4 shadow-sm">
+              {/* <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0">Tiện ích</h5>
                 </Card.Header>
@@ -1078,10 +1091,10 @@ const StepOne = () => {
                     ))}
                   </Row>
                 </Card.Body>
-              </Card>
+              </Card> */}
 
               {/* Target Audiences Card */}
-              <Card className="mb-4 shadow-sm">
+              {/* <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0">Đối tượng phù hợp</h5>
                 </Card.Header>
@@ -1115,10 +1128,10 @@ const StepOne = () => {
                     ))}
                   </Row>
                 </Card.Body>
-              </Card>
+              </Card> */}
 
               {/* Surrounding Areas Card */}
-              <Card className="mb-4 shadow-sm">
+              {/* <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0">Khu vực xung quanh</h5>
                 </Card.Header>
@@ -1146,10 +1159,10 @@ const StepOne = () => {
                     ))}
                   </Row>
                 </Card.Body>
-              </Card>
+              </Card> */}
 
               {/* Images Card */}
-              <Card className="mb-4 shadow-sm">
+              {/* <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0 d-flex align-items-center">
                     <FaCamera className="me-2" /> Hình ảnh
@@ -1237,10 +1250,10 @@ const StepOne = () => {
                     )}
                   </div>
                 </Card.Body>
-              </Card>
+              </Card> */}
 
               {/* Contact Information Card */}
-              <Card className="mb-4 shadow-sm">
+              {/* <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0 d-flex align-items-center">
                     <FaUser className="me-2" /> Thông tin liên hệ
@@ -1288,7 +1301,7 @@ const StepOne = () => {
                     </Col>
                   </Row>
                 </Card.Body>
-              </Card>
+              </Card> */}
 
               {/* Submit Button */}
               <div className="d-flex justify-content-center mb-5">
