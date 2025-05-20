@@ -8,14 +8,16 @@ export const BASE_URL = "api/v1/reviews";
 
 const reviewAPI = {
   getReviews(params: { userId?: number }) {
-    return http.get<SuccessResponse<Review[]>>(`${BASE_URL}/user/${params.userId}`);
+    return http.get<SuccessResponse<Review[]>>(
+      `${BASE_URL}/user/${params.userId}`
+    );
   },
-  createReview(body : {
+  createReview(body: {
     roomId: number;
     userId: number;
     rating: number;
     comment: string;
-    images: RoomImage[]
+    images: RoomImage[];
   }) {
     return http.post<SuccessResponse<Review>>(`${BASE_URL}`, body);
   },
@@ -25,15 +27,17 @@ const reviewAPI = {
     userId: number;
     rating: number;
     comment: string;
-    images: RoomImage[]
+    images: RoomImage[];
   }) {
     return http.put<SuccessResponse<Review>>(`${BASE_URL}`, body);
   },
-    deleteReview(id: number) {
-        return http.delete<SuccessResponse<Review>>(`${BASE_URL}/${id}`);
-    },
-    getReviewsByUseId(params: { userId?: number }) {
-    return http.get<SuccessResponse<Review[]>>(`${BASE_URL}/user/${params.userId}`);
+  deleteReview(id: number) {
+    return http.delete<SuccessResponse<Review>>(`${BASE_URL}/${id}`);
+  },
+  getReviewsByUseId(params: { userId?: number }) {
+    return http.get<SuccessResponse<Review[]>>(
+      `${BASE_URL}/user/${params.userId}`
+    );
   },
 };
 
