@@ -85,6 +85,19 @@ const StepOne = () => {
     formState: { errors, isSubmitting },
   } = useForm<FormCreateRoomSchema>({
     resolver: yupResolver(formCreateRoom) as Resolver<FormCreateRoomSchema>,
+    defaultValues:{
+      // address: {
+      //   id: 0,
+      //   // province: "",
+      //   // district: "",
+      //   // ward: "",
+      //   street: "",
+      //   houseNumber: "",
+      //       latitude: 0,
+      //       longitude: 0,
+        
+      // }
+    }
   });
 
   // Create mutation for room creation
@@ -331,23 +344,23 @@ const StepOne = () => {
   }, [selectedDistrict]);
 
   // Handle checkbox changes for amenities, target audiences, surrounding areas
-  // const handleCheckboxChange = (
-  //   id: number,
-  //   name: string,
-  //   type: "amenities" | "targetAudiences" | "surroundingAreas",
-  //   checked: boolean
-  // ) => {
-  //   const currentValues = watch(type) || [];
+  const handleCheckboxChange = (
+    id: number,
+    name: string,
+    type: "amenities" | "targetAudiences" | "surroundingAreas",
+    checked: boolean
+  ) => {
+    const currentValues = watch(type) || [];
 
-  //   if (checked) {
-  //     setValue(type, [...currentValues, { id, name }]);
-  //   } else {
-  //     setValue(
-  //       type,
-  //       currentValues.filter((item) => item.id !== id)
-  //     );
-  //   }
-  // };
+    if (checked) {
+      setValue(type, [...currentValues, { id, name }]);
+    } else {
+      setValue(
+        type,
+        currentValues.filter((item) => item.id !== id)
+      );
+    }
+  };
 
   const analyzeImage = (file: File, url: string): Promise<ImageFeedback> => {
     return new Promise((resolve) => {
@@ -602,6 +615,25 @@ const StepOne = () => {
                 className={errors.userId ? "is-invalid d-none" : "d-none"}
                 {...register("userId")}
               />
+              {/* <Form.Control
+                type="number"
+                value={profile?.id}
+                className={errors.address?.id ? "is-invalid d-none" : "d-none"}
+                {...register("address.id")}
+              />
+              <Form.Control
+                type="number"
+                value={profile?.id}
+                className={errors.address?.latitude ? "is-invalid d-none" : "d-none"}
+                {...register("address.latitude")}
+              />
+              <Form.Control
+                type="number"
+                value={profile?.id}
+                className={errors.address?.longitude ? "is-invalid d-none" : "d-none"}
+                {...register("address.longitude")}
+              /> */}
+              
               {/* Basic Information Card */}
               <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
@@ -906,7 +938,7 @@ const StepOne = () => {
               </Card>
 
               {/* Address Card */}
-              <Card className="mb-4 shadow-sm">
+              {/* <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0 d-flex align-items-center">
                     <FaMapMarkerAlt className="me-2" /> Địa chỉ cho thuê
@@ -1046,10 +1078,10 @@ const StepOne = () => {
                     </Col>
                   </Row>
                 </Card.Body>
-              </Card>
+              </Card> */}
 
               {/* Amenities Card */}
-              {/* <Card className="mb-4 shadow-sm">
+              <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0">Tiện ích</h5>
                 </Card.Header>
@@ -1083,10 +1115,10 @@ const StepOne = () => {
                     ))}
                   </Row>
                 </Card.Body>
-              </Card> */}
+              </Card>
 
               {/* Target Audiences Card */}
-              {/* <Card className="mb-4 shadow-sm">
+              <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0">Đối tượng phù hợp</h5>
                 </Card.Header>
@@ -1120,10 +1152,10 @@ const StepOne = () => {
                     ))}
                   </Row>
                 </Card.Body>
-              </Card> */}
+              </Card>
 
               {/* Surrounding Areas Card */}
-              {/* <Card className="mb-4 shadow-sm">
+              <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0">Khu vực xung quanh</h5>
                 </Card.Header>
@@ -1151,10 +1183,10 @@ const StepOne = () => {
                     ))}
                   </Row>
                 </Card.Body>
-              </Card> */}
+              </Card>
 
               {/* Images Card */}
-              {/* <Card className="mb-4 shadow-sm">
+              <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0 d-flex align-items-center">
                     <FaCamera className="me-2" /> Hình ảnh
@@ -1242,10 +1274,10 @@ const StepOne = () => {
                     )}
                   </div>
                 </Card.Body>
-              </Card> */}
+              </Card>
 
               {/* Contact Information Card */}
-              {/* <Card className="mb-4 shadow-sm">
+              <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
                   <h5 className="mb-0 d-flex align-items-center">
                     <FaUser className="me-2" /> Thông tin liên hệ
@@ -1293,7 +1325,7 @@ const StepOne = () => {
                     </Col>
                   </Row>
                 </Card.Body>
-              </Card> */}
+              </Card>
 
               {/* Submit Button */}
               <div className="d-flex justify-content-center mb-5">
