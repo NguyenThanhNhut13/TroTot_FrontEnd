@@ -127,7 +127,7 @@ const StepOne = () => {
     },
   });
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = async (data: FormCreateRoomSchema) => {
     setLoading(true);
     console.log("Form Data Before Submission:", data);
     // Set address values
@@ -189,7 +189,7 @@ const StepOne = () => {
         toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
       },
     });
-  });
+  };
 
   // Fetch required data
   useEffect(() => {
@@ -552,8 +552,6 @@ const StepOne = () => {
     }
   };
 
-  // Form submission handler
-
   if (loading && !amenitiesList.length) {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
@@ -590,7 +588,7 @@ const StepOne = () => {
               </p>
             </div>
 
-            <Form onSubmit={onSubmit} noValidate>
+            <Form onSubmit={handleSubmit(onSubmit)} noValidate>
               {/* Basic Information Card */}
               <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
@@ -647,7 +645,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập giá thuê"
                           className={errors.price ? "is-invalid" : ""}
-                          {...register("price", { valueAsNumber: true })}
+                          {...register("price")}
                         />
                         {errors.price && (
                           <div className="invalid-feedback">
@@ -666,7 +664,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập diện tích"
                           className={errors.area ? "is-invalid" : ""}
-                          {...register("area", { valueAsNumber: true })}
+                          {...register("area")}
                         />
                         {errors.area && (
                           <div className="invalid-feedback">
@@ -685,7 +683,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập số tiền đặt cọc"
                           className={errors.deposit ? "is-invalid" : ""}
-                          {...register("deposit", { valueAsNumber: true })}
+                          {...register("deposit")}
                         />
                         {errors.deposit && (
                           <div className="invalid-feedback">
@@ -735,7 +733,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập số phòng"
                           className={errors.totalRooms ? "is-invalid" : ""}
-                          {...register("totalRooms", { valueAsNumber: true })}
+                          {...register("totalRooms")}
                         />
                         {errors.totalRooms && (
                           <div className="invalid-feedback">
@@ -754,7 +752,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập số người ở tối đa"
                           className={errors.maxPeople ? "is-invalid" : ""}
-                          {...register("maxPeople", { valueAsNumber: true })}
+                          {...register("maxPeople")}
                         />
                         {errors.maxPeople && (
                           <div className="invalid-feedback">
@@ -819,7 +817,7 @@ const StepOne = () => {
                             errors.numberOfLivingRooms ? "is-invalid" : ""
                           }
                           {...register("numberOfLivingRooms", {
-                            valueAsNumber: true,
+                        
                           })}
                         />
                         {errors.numberOfLivingRooms && (
@@ -842,7 +840,7 @@ const StepOne = () => {
                             errors.numberOfBedrooms ? "is-invalid" : ""
                           }
                           {...register("numberOfBedrooms", {
-                            valueAsNumber: true,
+                        
                           })}
                         />
                         {errors.numberOfBedrooms && (
@@ -865,7 +863,7 @@ const StepOne = () => {
                             errors.numberOfBathrooms ? "is-invalid" : ""
                           }
                           {...register("numberOfBathrooms", {
-                            valueAsNumber: true,
+                        
                           })}
                         />
                         {errors.numberOfBathrooms && (
@@ -888,7 +886,7 @@ const StepOne = () => {
                             errors.numberOfKitchens ? "is-invalid" : ""
                           }
                           {...register("numberOfKitchens", {
-                            valueAsNumber: true,
+                        
                           })}
                         />
                         {errors.numberOfKitchens && (

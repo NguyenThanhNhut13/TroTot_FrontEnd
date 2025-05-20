@@ -28,14 +28,14 @@ const PostRoomPage = () => {
       title: "Nhà nguyên căn",
       description:
         "Cho thuê nhà nguyên căn rộng rãi, sạch sẽ, an ninh đảm bảo, lý tưởng cho gia đình hoặc nhóm người thuê dài hạn.",
-      link: "/post-room",
+      link: "/post-room/nha-tro-phong-tro",
     },
     {
       icon: "https://i.postimg.cc/nzQjDnVF/canho.png",
       title: "Căn hộ",
       description:
         "Cho thuê căn hộ tiện nghi, hiện đại, an ninh tốt, sạch sẽ, phù hợp cho gia đình hoặc người thuê dài hạn.",
-      link: "/post-room",
+      link: "/post-room/nha-tro-phong-tro",
     },
   ];
 
