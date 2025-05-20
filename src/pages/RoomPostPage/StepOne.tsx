@@ -105,31 +105,38 @@ const StepOne = () => {
     mutationFn: (body: FormCreateRoomSchema) => {
       const formData = new FormData();
 
-Object.entries(body).forEach(([key, value]) => {
-  if (value !== undefined && value !== null) {
-    if (key === "address") {
-      // Parse object thành từng trường
-      Object.entries(value).forEach(([subKey, subValue]) => {
-        formData.append(`address.${subKey}`, String(subValue));
-      });
-    } else if (["amenities", "targetAudiences", "surroundingAreas", "images"].includes(key) && Array.isArray(value)) {
-      value.forEach((item, index) => {
-        if (typeof item === "object") {
-          Object.entries(item).forEach(([k, v]) => {
-            formData.append(`${key}[${index}].${k}`, String(v));
-          });
-        } else {
-          formData.append(`${key}[${index}]`, String(item));
+      Object.entries(body).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (key === "address") {
+            // Parse object thành từng trường
+            Object.entries(value).forEach(([subKey, subValue]) => {
+              formData.append(`address.${subKey}`, String(subValue));
+            });
+          } else if (
+            [
+              "amenities",
+              "targetAudiences",
+              "surroundingAreas",
+              "images",
+            ].includes(key) &&
+            Array.isArray(value)
+          ) {
+            value.forEach((item, index) => {
+              if (typeof item === "object") {
+                Object.entries(item).forEach(([k, v]) => {
+                  formData.append(`${key}[${index}].${k}`, String(v));
+                });
+              } else {
+                formData.append(`${key}[${index}]`, String(item));
+              }
+            });
+          } else {
+            formData.append(key, String(value));
+          }
         }
       });
-    } else {
-      formData.append(key, String(value));
-    }
-  }
-});
 
-return roomApi.createRoom(formData);
-
+      return roomApi.createRoom(formData);
     },
     retry: 3, // Số lần retry tối đa
     retryDelay: (attempt) => 3000 + (attempt - 1) * 1000, // 3s, 4s, 5s
@@ -409,28 +416,36 @@ return roomApi.createRoom(formData);
 
     const newFeedbacks: ImageFeedback[] = [];
     const allDetectedFlags: Record<string, boolean> = {
-      bed: false,
-      chair: false,
-      table: false,
-      tv: false,
-      refrigerator: false,
-      window: false,
-      sink: false,
-      toilet: false,
-      microwave: false,
-      laptop: false,
-    };
+  bed: false,
+  chair: false,
+  table: false,
+  tv: false,
+  refrigerator: false,
+  window: false,
+  sink: false,
+  toilet: false,
+  microwave: false,
+  laptop: false,
+};
 
-    for (const file of files) {
-      const url = URL.createObjectURL(file);
-      const result = await analyzeImage(file, url);
-      newFeedbacks.push(result);
+// Tổng hợp từ ảnh đã có trước đó
+imageFeedbacks.forEach((item) => {
+  Object.keys(item.objectFlags).forEach((key) => {
+    allDetectedFlags[key] ||= item.objectFlags[key];
+  });
+});
 
-      // Cập nhật cờ tổng hợp
-      Object.keys(result.objectFlags).forEach((key) => {
-        allDetectedFlags[key] ||= result.objectFlags[key];
-      });
-    }
+// Sau đó cộng thêm từ ảnh mới
+for (const file of files) {
+  const url = URL.createObjectURL(file);
+  const result = await analyzeImage(file, url);
+  newFeedbacks.push(result);
+
+  Object.keys(result.objectFlags).forEach((key) => {
+    allDetectedFlags[key] ||= result.objectFlags[key];
+  });
+}
+
 
     setImageFeedbacks((prev) => [...prev, ...newFeedbacks]);
 
