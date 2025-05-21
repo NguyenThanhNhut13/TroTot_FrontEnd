@@ -18,7 +18,7 @@ export const URL_REMOVE_FROM_WISH_LIST = "api/v1/users/wish-list";
 export const URL_GET_ROOM_BY_ID_WISH_LIST = "api/v1/users/wish-list/ids";
 
 const externalHttp = axios.create({
-  baseURL: "http://localhost:5000/",
+  baseURL: "https://trotot-backend-recommendation-service-1-0.onrender.com/",
   headers: {
     "Content-Type": "application/json",
   },
