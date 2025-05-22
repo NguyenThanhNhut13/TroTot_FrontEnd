@@ -1225,7 +1225,7 @@ for (const file of files) {
                       lên
                     </Button>
 
-                    {errors.images && (
+                    {imagePreviews.length ===0 && errors.images && (
                       <div className="text-danger mb-3">
                         {errors.images.message}
                       </div>

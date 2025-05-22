@@ -50,15 +50,21 @@ const HotListings: React.FC<HotListingsProps> = ({
 
   // Define fetchRooms outside useEffect
   const fetchRooms = async (attempt = 1) => {
-    try {
-      setLoading(true);
-      setError(null);
-      console.log(`Fetching rooms, attempt ${attempt}/${maxRetries}`);
-      const res = await roomApi.getRooms({ page, size, sort, roomType });
-      console.log("API response:", res.data);
-      const rooms = res.data.data.content;
+  try {
+    setLoading(true);
+    setError(null);
+    console.log(`Fetching rooms, attempt ${attempt}/${maxRetries}`);
+    
+    const res = await roomApi.getRooms({ page, size, sort, roomType });
+    console.log("API response:", res.data);
+    const rooms = res.data.data.content;
 
-      const mapped: Listing[] = rooms.map((room: Room) => ({
+    const mapped: Listing[] = rooms.map((room: Room) => {
+      const district = room.district ?? "";
+      const province = room.province ?? "";
+      const location = `${district}, ${province}`.replace(/^, |, $/g, "");
+
+      return {
         id: room.id,
         image:
           room.imageUrls[0] ||
@@ -66,23 +72,35 @@ const HotListings: React.FC<HotListingsProps> = ({
         title: room.title,
         price: `${room.price.toLocaleString()} VNĐ`,
         area: room.area,
-        location: `${room.district}, ${room.province}`,
-      }));
+        location,
+      };
+    });
 
-      localStorage.setItem(`list${roomType}Pagging`, JSON.stringify(mapped));
-      setHotListings(mapped);
-    } catch (error) {
-      console.error("Error fetching hot listings", error);
-      if (attempt <= maxRetries) {
-        const delay = 3000 + (attempt - 1) * 1000; // 3s, 4s, 5s
-        setTimeout(() => fetchRooms(attempt + 1), delay);
-      } else {
-        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
-      }
-    } finally {
-      setLoading(false);
+    // Kiểm tra nếu tất cả các location đều trống => có thể lỗi address service, thử reload nếu chưa vượt quá giới hạn
+    const allLocationsEmpty = mapped.every(listing => listing.location === "");
+
+    if (allLocationsEmpty && attempt <= maxRetries) {
+      const delay = 3000 + (attempt - 1) * 1000;
+      console.warn("Address service có thể đang gặp sự cố. Đang thử lại...");
+      setTimeout(() => fetchRooms(attempt + 1), delay);
+      return;
     }
-  };
+
+    localStorage.setItem(`list${roomType}Pagging`, JSON.stringify(mapped));
+    setHotListings(mapped);
+  } catch (error) {
+    console.error("Error fetching hot listings", error);
+    if (attempt <= maxRetries) {
+      const delay = 3000 + (attempt - 1) * 1000;
+      setTimeout(() => fetchRooms(attempt + 1), delay);
+    } else {
+      setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     const cachedData = localStorage.getItem(`list${roomType}Pagging`);

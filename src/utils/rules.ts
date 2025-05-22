@@ -123,7 +123,13 @@ export const formCreateRoom = yup.object({
   description: yup
     .string()
     .required("Mô tả là bắt buộc")
-    .max(2000, "Mô tả không được quá 2000 ký tự"),
+    .max(2000, "Mô tả không được quá 2000 ký tự")
+    .test(
+      "min-words",
+      "Mô tả phải có ít nhất 10 từ",
+      (value) =>
+        typeof value === "string" && value.trim().split(/\s+/).length >= 10
+    ),
   price: yup
     .number()
     .transform((value, originalValue) =>
