@@ -102,7 +102,7 @@ const StepOne = () => {
 
   // Create mutation for room creation
   const createRoomMutation = useMutation({
-    mutationFn: (body: FormCreateRoomSchema) => {
+    mutationFn: async (body: FormCreateRoomSchema) => {
       const formData = new FormData();
 
       Object.entries(body).forEach(([key, value]) => {
@@ -142,8 +142,11 @@ const StepOne = () => {
     retryDelay: (attempt) => 3000 + (attempt - 1) * 1000, // 3s, 4s, 5s
     onSuccess: async (data) => {
       console.log("Mutation Success Response:", data);
-      toast.success("Đăng tin thành công!");
       navigate("/post-room");
+      toast.success("Đăng tin thành công!");
+      localStorage.removeItem("listAPARTMENTPagging");
+      localStorage.removeItem("listBOARDING_HOUSEPagging");
+      localStorage.removeItem("listWHOLE_HOUSEPagging");
     },
     onError: (error) => {
       console.error("Mutation Error:", error);

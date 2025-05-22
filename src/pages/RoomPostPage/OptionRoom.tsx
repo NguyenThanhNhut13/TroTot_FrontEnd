@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Row, Col, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../MainPage/Sidebar";
 import "../../assets/styles/PostRoom.css";
 import { min } from "moment";
+import userApi from "../../apis/user.api";
 
 interface RoomType {
   icon: string;
@@ -14,6 +15,8 @@ interface RoomType {
 
 const PostRoomPage = () => {
   const navigate = useNavigate();
+
+
 
   const roomTypes: RoomType[] = [
     {

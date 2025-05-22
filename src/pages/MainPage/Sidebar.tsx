@@ -1,10 +1,9 @@
-import React, { use, useContext, useEffect, useState } from "react"; 
+import React, { use, useContext, useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../contexts/app.context";
-import PurchasePostModal from "../RoomPostPage/PurchaseSlot"; 
-import "../../assets/styles/Sidebar.css"; 
-import { number } from "yup";
+import PurchasePostModal from "../RoomPostPage/PurchaseSlot";
+import "../../assets/styles/Sidebar.css";
 import paymentAPI from "../../apis/payment.api";
 import { toast } from "react-toastify";
 import userApi from "../../apis/user.api";
@@ -14,22 +13,24 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false); // Trạng thái hiển thị modal
   const [total, setTotal] = useState<number>(0);
-
+  const [slot, setSlot] = useState<number>(0);
 
   useEffect(() => {
     const userId = profile?.id;
     if (userId) {
-    const getTotal = async () => {
-      try{
-        const response  = await paymentAPI.getWallet(userId);
-        await userApi.getProfile();
-        setTotal(response.data.data.balance);
-      }catch (error) {
-        toast.error("Lỗi khi lấy thông tin ví");
-      }
+      const getTotal = async () => {
+        try {
+          const response = await paymentAPI.getWallet(userId);
+          const profile = await userApi.getProfile();
+          setTotal(response.data.data.balance);
+          setSlot(profile.data.data.numberOfPosts);
+        } catch (error) {
+          toast.error("Lỗi khi lấy thông tin ví");
+        }
+      };
+      getTotal();
     }
-    getTotal()}
-  })
+  });
 
   const sidebarItems = [
     { icon: "📊", label: "Thông tin chung", path: "/profile" },
@@ -56,7 +57,6 @@ const Sidebar = () => {
       currency: "VND",
     }).format(value);
   };
-  
 
   return (
     <div className="sidebar p-3">
@@ -83,7 +83,7 @@ const Sidebar = () => {
         </div>
         <div className="d-flex justify-content-between">
           <span>Số lượng tin:</span>
-          <span className="text-danger fw-bold">{profile?.numberOfPosts}</span>
+          <span className="text-danger fw-bold">{slot}</span>
         </div>
       </div>
 
