@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Container, Col, Nav } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -12,10 +12,13 @@ import {
 const SidebarPersion = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }); // rooms là danh sách được set lại
 
   return (
     <Container fluid className="p-0">
-      <Col className="bg-white p-2 shadow-sm" >
+      <Col className="bg-white p-2 shadow-sm">
         <Nav className="flex-column">
           <Nav.Link
             as={Link}
@@ -151,8 +154,6 @@ const SidebarPersion = () => {
             Quản lý đánh giá trọ
           </Nav.Link>
         </Nav>
-
-        
       </Col>
       {/* Empty space at the bottom */}
       <div style={{ height: "400px" }}></div>

@@ -87,8 +87,7 @@ const ManageReviewsPage = () => {
         setTotalProcessingReports(processing);
         setTotalResolvedReports(resolved);
       } catch (err: any) {
-        setError(err.message || "Lỗi khi lấy dữ liệu");
-        toast.error(err.message || "Lỗi khi lấy dữ liệu");
+        //
       } finally {
         setLoading(false);
       }
