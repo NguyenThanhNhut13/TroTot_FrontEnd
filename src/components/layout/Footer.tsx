@@ -206,12 +206,12 @@ const Footer = () => {
 
       {/* Scroll to top button */}
       <button
-        className="btn btn-primary rounded-circle position-fixed bottom-0 end-0 m-4 shadow"
+        className="btn rounded-circle position-fixed end-0 m-4"
         onClick={scrollToTop}
-        style={{ width: "45px", height: "45px" }}
+        style={{ width: "60px", height: "60px", bottom: "80px", right: "10px", backgroundColor: "transparent", "border": "none"}}
         aria-label="Scroll to top"
       >
-        <FaArrowUp />
+        <FaArrowUp className="text-primary" size={24}/>
       </button>
     </footer>
   );
