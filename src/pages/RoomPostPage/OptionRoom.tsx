@@ -49,7 +49,7 @@ const PostRoomPage = () => {
 
   return (
     <div className="main-content" style={{ display: "flex" }}>
-      <div className="sidebar-container" style={{ width: "30%" }}>
+      <div className="sidebar-container bg-light p-3 shadow-sm vh-100" style={{ width: "30%" }}>
         <Sidebar />
       </div>
 

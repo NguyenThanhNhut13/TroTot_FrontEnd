@@ -14,6 +14,7 @@ const Sidebar = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false); // Trạng thái hiển thị modal
   const [total, setTotal] = useState<number>(0);
   const [slot, setSlot] = useState<number>(0);
+  const [activePath, setActivePath] = useState<string>("");
 
   useEffect(() => {
     const userId = profile?.id;
@@ -32,6 +33,12 @@ const Sidebar = () => {
     }
   });
 
+  // Set active path based on current location when component mounts
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    setActivePath(currentPath);
+  }, []);
+
   const sidebarItems = [
     { icon: "📊", label: "Thông tin chung", path: "/profile" },
     { icon: "📋", label: "Quản lý tin", path: "/manage-posts" },
@@ -40,6 +47,7 @@ const Sidebar = () => {
   ];
 
   const handleSidebarClick = (path: string) => {
+    setActivePath(path);
     navigate(path);
   };
 
@@ -105,23 +113,56 @@ const Sidebar = () => {
       </div>
 
       <div className="sidebar-menu">
-        {sidebarItems.map((item, index) => (
-          <div
-            key={index}
-            className="d-flex justify-content-between align-items-center py-2 px-3 mb-1"
-            style={{
-              borderRadius: 8,
-              backgroundColor: "#f8f9fa",
-              cursor: "pointer",
-            }}
-            onClick={() => handleSidebarClick(item.path)}
-          >
-            <span>
-              <span style={{ marginRight: 8 }}>{item.icon}</span>
-              {item.label}
-            </span>
-          </div>
-        ))}
+        {sidebarItems.map((item, index) => {
+          const isActive = activePath === item.path;
+          return (
+            <div
+              key={index}
+              className="d-flex justify-content-between align-items-center py-3 px-3 mb-2"
+              style={{
+                borderRadius: 8,
+                backgroundColor: isActive ? "#0d6efd" : "#f8f9fa",
+                cursor: "pointer",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                transition: "all 0.2s ease",
+                height: "48px",
+                fontWeight: 500,
+                border: isActive ? "1px solid #0d6efd" : "1px solid #e9ecef",
+              }}
+              onMouseOver={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = "#e9ecef";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = "#f8f9fa";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 2px 4px rgba(0,0,0,0.05)";
+                }
+              }}
+              onClick={() => handleSidebarClick(item.path)}
+            >
+              <span className="d-flex align-items-center">
+                <span
+                  style={{
+                    marginRight: 12,
+                    fontSize: "18px",
+                    color: isActive ? "white" : "inherit",
+                  }}
+                >
+                  {item.icon}
+                </span>
+                <span style={{ color: isActive ? "white" : "inherit" }}>
+                  {item.label}
+                </span>
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Modal mua số lượng tin đăng */}
