@@ -18,6 +18,8 @@ const Sidebar = () => {
 
   useEffect(() => {
     const userId = profile?.id;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     if (userId) {
       const getTotal = async () => {
         try {

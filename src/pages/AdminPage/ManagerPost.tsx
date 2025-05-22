@@ -339,13 +339,23 @@ export default function ManagerPost() {
           </h5>
 
           {/* Statistics Cards */}
-          <Row className="mb-4">
-            <Col xs={12} sm={6} md={4} lg={2} className="mb-3">
+          <Row className="mb-4 gx-3">
+            {/* Stats grid system - spread cards evenly across the full width */}
+            <Col xs={12} sm={6} md={4} xl={2} className="mb-3">
               <Card
-                className="text-white bg-primary rounded shadow-sm"
-                style={styles.statCard}
+                className="text-white bg-primary rounded shadow h-100"
+                style={{
+                  transition: "transform 0.2s",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
-                <Card.Body className="text-center p-3">
+                <Card.Body className="text-center p-3 d-flex flex-column justify-content-center">
                   <Card.Title style={styles.statTitle}>
                     Tổng tin đăng
                   </Card.Title>
@@ -354,12 +364,21 @@ export default function ManagerPost() {
               </Card>
             </Col>
 
-            <Col xs={12} sm={6} md={4} lg={2} className="mb-3">
+            <Col xs={12} sm={6} md={4} xl={2} className="mb-3">
               <Card
-                className="text-white bg-success rounded shadow-sm"
-                style={styles.statCard}
+                className="text-white bg-success rounded shadow h-100"
+                style={{
+                  transition: "transform 0.2s",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
-                <Card.Body className="text-center p-3">
+                <Card.Body className="text-center p-3 d-flex flex-column justify-content-center">
                   <Card.Title style={styles.statTitle}>
                     Đang hoạt động
                   </Card.Title>
@@ -368,12 +387,21 @@ export default function ManagerPost() {
               </Card>
             </Col>
 
-            <Col xs={12} sm={6} md={4} lg={2} className="mb-3">
+            <Col xs={12} sm={6} md={4} xl={2} className="mb-3">
               <Card
-                className="text-white bg-warning rounded shadow-sm"
-                style={styles.statCard}
+                className="text-white bg-warning rounded shadow h-100"
+                style={{
+                  transition: "transform 0.2s",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
-                <Card.Body className="text-center p-3">
+                <Card.Body className="text-center p-3 d-flex flex-column justify-content-center">
                   <Card.Title style={styles.statTitle}>
                     Đang chờ duyệt
                   </Card.Title>
@@ -384,12 +412,21 @@ export default function ManagerPost() {
               </Card>
             </Col>
 
-            <Col xs={12} sm={6} md={4} lg={2} className="mb-3">
+            <Col xs={12} sm={6} md={4} xl={2} className="mb-3">
               <Card
-                className="text-white bg-danger rounded shadow-sm"
-                style={styles.statCard}
+                className="text-white bg-danger rounded shadow h-100"
+                style={{
+                  transition: "transform 0.2s",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
-                <Card.Body className="text-center p-3">
+                <Card.Body className="text-center p-3 d-flex flex-column justify-content-center">
                   <Card.Title style={styles.statTitle}>Bị từ chối</Card.Title>
                   <Card.Text style={styles.statValue}>
                     {stats.rejected}
@@ -398,12 +435,21 @@ export default function ManagerPost() {
               </Card>
             </Col>
 
-            <Col xs={12} sm={6} md={4} lg={2} className="mb-3">
+            <Col xs={12} sm={6} md={4} xl={2} className="mb-3">
               <Card
-                className="text-white bg-secondary rounded shadow-sm"
-                style={styles.statCard}
+                className="text-white bg-secondary rounded shadow h-100"
+                style={{
+                  transition: "transform 0.2s",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
-                <Card.Body className="text-center p-3">
+                <Card.Body className="text-center p-3 d-flex flex-column justify-content-center">
                   <Card.Title style={styles.statTitle}>Hết hạn</Card.Title>
                   <Card.Text style={styles.statValue}>
                     {stats.expired}
@@ -412,23 +458,6 @@ export default function ManagerPost() {
               </Card>
             </Col>
 
-            <Col xs={12} sm={6} md={4} lg={2} className="mb-3">
-              <Card
-                className="text-white bg-info rounded shadow-sm"
-                style={styles.statCard}
-              >
-                <Card.Body className="text-center p-3 d-flex flex-column justify-content-center align-items-center">
-                  <Button
-                    variant="light"
-                    size="sm"
-                    className="mb-2 rounded-pill"
-                    onClick={() => navigate("/post-room")}
-                  >
-                    Đăng tin mới
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Col>
           </Row>
 
           {/* Room Listings */}
@@ -444,12 +473,21 @@ export default function ManagerPost() {
               variant="outline-primary"
               size="sm"
               onClick={() => fetchRooms()}
+              className="d-flex align-items-center"
             >
-              Làm mới
+              <i className="fas fa-sync-alt me-2"></i> Làm mới
             </Button>
           </div>
 
-          <div style={styles.tableContainer}>
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+              overflow: "hidden",
+              marginBottom: "2rem",
+            }}
+          >
             {rooms.length === 0 ? (
               <div className="text-center py-5">
                 <p style={styles.noPostText}>Bạn chưa có tin đăng nào</p>
@@ -462,74 +500,158 @@ export default function ManagerPost() {
               </div>
             ) : (
               <div className="table-responsive">
-                <Table hover bordered responsive>
-                  <thead style={styles.tableHeader}>
-                    <tr>
-                      <th style={{ width: "50px" }}>#</th>
-                      <th>Tiêu đề</th>
-                      <th>Giá</th>
-                      <th>Diện tích</th>
-                      <th>Loại</th>
-                      <th>Địa điểm</th>
-                      <th>Ngày đăng</th>
-                      <th>Trạng thái</th>
-                      <th style={{ width: "150px" }}>Thao tác</th>
+                <Table hover responsive className="mb-0">
+                  <thead>
+                    <tr
+                      style={{
+                        backgroundColor: "#f8f9fa",
+                        borderBottom: "2px solid #e9ecef",
+                      }}
+                    >
+                      <th
+                        style={{ width: "50px", padding: "12px 8px" }}
+                        className="text-center"
+                      >
+                        #
+                      </th>
+                      <th style={{ padding: "12px 16px" }}>Tiêu đề</th>
+                      <th style={{ padding: "12px 16px" }}>Giá</th>
+                      <th style={{ padding: "12px 16px" }}>Diện tích</th>
+                      <th style={{ padding: "12px 16px" }}>Loại</th>
+                      <th style={{ padding: "12px 16px" }}>Địa điểm</th>
+                      <th style={{ padding: "12px 16px" }}>Ngày đăng</th>
+                      <th style={{ padding: "12px 16px" }}>Trạng thái</th>
+                      <th
+                        style={{ width: "150px", padding: "12px 16px" }}
+                        className="text-center"
+                      >
+                        Thao tác
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {rooms.map((room, index) => (
-                      <tr key={room.id}>
-                        <td style={styles.tableCell}>{index + 1}</td>
-                        <td style={styles.tableCell}>
-                          <div style={styles.ellipsis200}>{room.title}</div>
+                      <tr
+                        key={room.id}
+                        style={{
+                          borderBottom: "1px solid #e9ecef",
+                          transition: "background-color 0.2s",
+                        }}
+                      >
+                        <td
+                          style={{ padding: "12px 8px" }}
+                          className="text-center"
+                        >
+                          {index + 1}
                         </td>
-                        <td style={styles.tableCell}>
-                          {formatCurrency(room.price)} đ
+                        <td style={{ padding: "12px 16px" }}>
+                          <div className="d-flex align-items-center">
+                            {room.images && room.images.length > 0 ? (
+                              <div
+                                className="me-2 rounded"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  backgroundImage: `url(${room.images[0].imageUrl})`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                  flexShrink: 0,
+                                }}
+                              ></div>
+                            ) : (
+                              <div
+                                className="me-2 rounded bg-light d-flex align-items-center justify-content-center"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <i className="fas fa-home text-secondary"></i>
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                maxWidth: "180px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {room.title}
+                            </div>
+                          </div>
                         </td>
-                        <td style={styles.tableCell}>{room.area} m²</td>
-                        <td style={styles.tableCell}>
-                          {getRoomTypeLabel(room.roomType)}
+                        <td style={{ padding: "12px 16px" }}>
+                          <span className="text-danger fw-bold">
+                            {formatCurrency(room.price)} đ
+                          </span>
                         </td>
-                        <td style={styles.tableCell}>
-                          <div style={styles.ellipsis150}>
+                        <td style={{ padding: "12px 16px" }}>{room.area} m²</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span className="badge bg-light text-dark border">
+                            {getRoomTypeLabel(room.roomType)}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <div
+                            style={{
+                              maxWidth: "150px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {room.district
                               ? `${room.district}, ${room.province}`
                               : "Không có địa chỉ"}
                           </div>
                         </td>
-                        <td style={styles.tableCell}>
-                          {formatDate(room.createdAt)}
+                        <td style={{ padding: "12px 16px" }}>
+                          <div style={{ fontSize: "0.9rem" }}>
+                            {formatDate(room.createdAt)}
+                          </div>
                         </td>
-                        <td style={styles.tableCell}>
+                        <td style={{ padding: "12px 16px" }}>
                           {getStatusBadge(room.forGender || "ALL")}
                         </td>
-                        <td style={styles.tableCell}>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            className="me-1"
-                            title="Xem chi tiết"
-                            onClick={() => handleView(room.id)}
-                          >
-                            <FaEye />
-                          </Button>
-                          <Button
-                            variant="outline-success"
-                            size="sm"
-                            className="me-1"
-                            title="Cập nhật"
-                            onClick={() => handleUpdate(room.id)}
-                          >
-                            <FaEdit />
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            title="Xóa"
-                            onClick={() => handleDelete(room.id)}
-                          >
-                            <FaTrash />
-                          </Button>
+                        <td
+                          style={{ padding: "12px 16px" }}
+                          className="text-center"
+                        >
+                          <div className="d-flex justify-content-center">
+                            <Button
+                              variant="light"
+                              size="sm"
+                              className="me-1 rounded-circle p-2"
+                              title="Xem chi tiết"
+                              onClick={() => handleView(room.id)}
+                              style={{ width: "32px", height: "32px" }}
+                            >
+                              <FaEye size={14} />
+                            </Button>
+                            <Button
+                              variant="light"
+                              size="sm"
+                              className="me-1 rounded-circle p-2"
+                              title="Cập nhật"
+                              onClick={() => handleUpdate(room.id)}
+                              style={{ width: "32px", height: "32px" }}
+                            >
+                              <FaEdit size={14} />
+                            </Button>
+                            <Button
+                              variant="light"
+                              size="sm"
+                              className="rounded-circle p-2"
+                              title="Xóa"
+                              onClick={() => handleDelete(room.id)}
+                              style={{ width: "32px", height: "32px" }}
+                            >
+                              <FaTrash size={14} />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}

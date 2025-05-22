@@ -37,7 +37,6 @@ const HotListings: React.FC<HotListingsProps> = ({
   const maxRetries = 3; // Maximum retry attempts
   const [savedRoomIds, setSavedRoomIds] = useState<Set<number>>(new Set()); // Thêm state này
   const { isAuthenticated } = useContext(AppContext);
-  
 
   // Helper function to create dummy empty listings if count is less than 5
   const ensureMinimumItems = (listings: Listing[], minCount: number = 5) => {
@@ -48,59 +47,62 @@ const HotListings: React.FC<HotListingsProps> = ({
     return [...listings, ...emptySlots];
   };
 
+  
+
   // Define fetchRooms outside useEffect
   const fetchRooms = async (attempt = 1) => {
-  try {
-    setLoading(true);
-    setError(null);
-    console.log(`Fetching rooms, attempt ${attempt}/${maxRetries}`);
-    
-    const res = await roomApi.getRooms({ page, size, sort, roomType });
-    console.log("API response:", res.data);
-    const rooms = res.data.data.content;
+    try {
+      setLoading(true);
+      setError(null);
+      console.log(`Fetching rooms, attempt ${attempt}/${maxRetries}`);
 
-    const mapped: Listing[] = rooms.map((room: Room) => {
-      const district = room.district ?? "";
-      const province = room.province ?? "";
-      const location = `${district}, ${province}`.replace(/^, |, $/g, "");
+      const res = await roomApi.getRooms({ page, size, sort, roomType });
+      console.log("API response:", res.data);
+      const rooms = res.data.data.content;
 
-      return {
-        id: room.id,
-        image:
-          room.imageUrls[0] ||
-          "https://tromoi.com/uploads/guest/o_1h5tpk1fl1i0047413epqpsee3a.jpg",
-        title: room.title,
-        price: `${room.price.toLocaleString()} VNĐ`,
-        area: room.area,
-        location,
-      };
-    });
+      const mapped: Listing[] = rooms.map((room: Room) => {
+        const district = room.district ?? "";
+        const province = room.province ?? "";
+        const location = `${district}, ${province}`.replace(/^, |, $/g, "");
 
-    // Kiểm tra nếu tất cả các location đều trống => có thể lỗi address service, thử reload nếu chưa vượt quá giới hạn
-    const allLocationsEmpty = mapped.every(listing => listing.location === "");
+        return {
+          id: room.id,
+          image:
+            room.imageUrls[0] ||
+            "https://tromoi.com/uploads/guest/o_1h5tpk1fl1i0047413epqpsee3a.jpg",
+          title: room.title,
+          price: `${room.price.toLocaleString()} VNĐ`,
+          area: room.area,
+          location,
+        };
+      });
 
-    if (allLocationsEmpty && attempt <= maxRetries) {
-      const delay = 3000 + (attempt - 1) * 1000;
-      console.warn("Address service có thể đang gặp sự cố. Đang thử lại...");
-      setTimeout(() => fetchRooms(attempt + 1), delay);
-      return;
+      // Kiểm tra nếu tất cả các location đều trống => có thể lỗi address service, thử reload nếu chưa vượt quá giới hạn
+      const allLocationsEmpty = mapped.every(
+        (listing) => listing.location === ""
+      );
+
+      if (allLocationsEmpty && attempt <= maxRetries) {
+        const delay = 3000 + (attempt - 1) * 1000;
+        console.warn("Address service có thể đang gặp sự cố. Đang thử lại...");
+        setTimeout(() => fetchRooms(attempt + 1), delay);
+        return;
+      }
+
+      localStorage.setItem(`list${roomType}Pagging`, JSON.stringify(mapped));
+      setHotListings(mapped);
+    } catch (error) {
+      console.error("Error fetching hot listings", error);
+      if (attempt <= maxRetries) {
+        const delay = 3000 + (attempt - 1) * 1000;
+        setTimeout(() => fetchRooms(attempt + 1), delay);
+      } else {
+        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+      }
+    } finally {
+      setLoading(false);
     }
-
-    localStorage.setItem(`list${roomType}Pagging`, JSON.stringify(mapped));
-    setHotListings(mapped);
-  } catch (error) {
-    console.error("Error fetching hot listings", error);
-    if (attempt <= maxRetries) {
-      const delay = 3000 + (attempt - 1) * 1000;
-      setTimeout(() => fetchRooms(attempt + 1), delay);
-    } else {
-      setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     const cachedData = localStorage.getItem(`list${roomType}Pagging`);
@@ -121,19 +123,19 @@ const HotListings: React.FC<HotListingsProps> = ({
   const handleSaveRoom = async (e: React.MouseEvent, roomId: number) => {
     e.stopPropagation();
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       toast.info("Vui lòng đăng nhập để lưu phòng trọ");
       return;
     }
-    
+
     try {
       // Gọi API trực tiếp thay vì dùng toggleSaveRoom để kiểm soát luồng tốt hơn
       if (savedRoomIds.has(roomId)) {
         // Xóa phòng khỏi danh sách yêu thích
         await roomApi.removeFromWishList(roomId);
         // Cập nhật UI ngay lập tức
-        setSavedRoomIds(prev => {
+        setSavedRoomIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(roomId);
           return newSet;
@@ -142,7 +144,7 @@ const HotListings: React.FC<HotListingsProps> = ({
         // Thêm phòng vào danh sách yêu thích
         await roomApi.addToWishList(roomId);
         // Cập nhật UI ngay lập tức
-        setSavedRoomIds(prev => {
+        setSavedRoomIds((prev) => {
           const newSet = new Set(prev);
           newSet.add(roomId);
           return newSet;
@@ -156,7 +158,7 @@ const HotListings: React.FC<HotListingsProps> = ({
   useEffect(() => {
     // Sử dụng biến flag để chỉ gọi API một lần khi đăng nhập
     let isMounted = true;
-    
+
     if (isAuthenticated) {
       const fetchSavedRoomIds = async () => {
         try {
@@ -168,11 +170,13 @@ const HotListings: React.FC<HotListingsProps> = ({
           console.error("Error:", error);
         }
       };
-      
+
       fetchSavedRoomIds();
     }
-    
-    return () => { isMounted = false; };
+
+    return () => {
+      isMounted = false;
+    };
   }, [isAuthenticated]);
 
   return (
@@ -255,10 +259,10 @@ const HotListings: React.FC<HotListingsProps> = ({
                           onClick={(e) => handleSaveRoom(e, listing.id)}
                         >
                           {savedRoomIds.has(listing.id) ? (
-                          <FaHeart className="text-danger" size={16} />
-                        ) : (
-                          <FaRegHeart size={16} />
-                        )}
+                            <FaHeart className="text-danger" size={16} />
+                          ) : (
+                            <FaRegHeart size={16} />
+                          )}
                         </div>
 
                         <Card.Img

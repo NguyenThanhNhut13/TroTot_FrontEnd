@@ -77,6 +77,7 @@ const HomePage = () => {
       }
     };
 
+    window.scrollTo({ top: 0, behavior: "smooth" });
     fetchProvinces();
   }, []);
 
@@ -517,11 +518,13 @@ const HomePage = () => {
                                 <option value="">Chọn Tỉnh/TP...</option>
                                 {Array.isArray(provinces) &&
                                   provinces.map((province, index) => (
-                                    <option key={province.code || index} value={province.code}>
+                                    <option
+                                      key={province.code || index}
+                                      value={province.code}
+                                    >
                                       {province.name_with_type}
                                     </option>
-                                  ))
-                                  }
+                                  ))}
                               </Form.Select>
                             </div>
 
@@ -574,7 +577,9 @@ const HomePage = () => {
                                 <i className="bi bi-arrow-repeat me-1"></i> Đặt
                                 lại
                               </Button>
-                              <Button onClick={handleSearch} variant="primary">Tìm ngay</Button>
+                              <Button onClick={handleSearch} variant="primary">
+                                Tìm ngay
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -673,7 +678,9 @@ const HomePage = () => {
                               <i className="bi bi-arrow-repeat me-1"></i> Đặt
                               lại
                             </Button>
-                            <Button onClick={handleSearch} variant="primary">Tìm ngay</Button>
+                            <Button onClick={handleSearch} variant="primary">
+                              Tìm ngay
+                            </Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
@@ -726,7 +733,9 @@ const HomePage = () => {
                               <i className="bi bi-arrow-repeat me-1"></i> Đặt
                               lại
                             </Button>
-                            <Button onClick={handleSearch} variant="primary">Tìm ngay</Button>
+                            <Button onClick={handleSearch} variant="primary">
+                              Tìm ngay
+                            </Button>
                           </div>
                         </Dropdown.Menu>
                       </Dropdown>
@@ -786,10 +795,7 @@ const HomePage = () => {
       <HotListings roomType="APARTMENT" title="LỰA CHỌN CHỖ Ở HOT" />
       <RoomList />
       <HotListings roomType="WHOLE_HOUSE" title="NHÀ NGUYÊN CĂN CHO THUÊ" />
-      <HotListings
-        roomType="BOARDING_HOUSE"
-        title="NHÀ TRỌ, PHÒNG TRỌ"
-      />
+      <HotListings roomType="BOARDING_HOUSE" title="NHÀ TRỌ, PHÒNG TRỌ" />
       <ProvinceListings provinces={provinces} />
     </div>
   );

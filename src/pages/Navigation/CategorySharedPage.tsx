@@ -54,7 +54,9 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
 
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [targetAudiences, setTargetAudiences] = useState<TargetAudience[]>([]);
-  const [surroundingAreas, setSurroundingAreas] = useState<SurroundingArea[]>([]);
+  const [surroundingAreas, setSurroundingAreas] = useState<SurroundingArea[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [searchParams, setSearchParams] = useState<any>(null);
@@ -95,7 +97,11 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
   const maxRetries = 3;
 
   useEffect(() => {
-    localStorage.setItem(`filters_${roomType}`, JSON.stringify(selectedFilters));
+    localStorage.setItem(
+      `filters_${roomType}`,
+      JSON.stringify(selectedFilters)
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [selectedFilters, roomType]);
 
   const areaOptions = [
@@ -127,22 +133,35 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     }
 
     try {
-      const [amenitiesResponse, targetAudiencesResponse, surroundingAreasResponse] = await Promise.all([
+      const [
+        amenitiesResponse,
+        targetAudiencesResponse,
+        surroundingAreasResponse,
+      ] = await Promise.all([
         roomApi.getAmenities(),
         roomApi.getTargetAudiences(),
         roomApi.getSurroundingAreas(),
       ]);
 
       if (amenitiesResponse.data && amenitiesResponse.data.data) {
-        localStorage.setItem(`amenities`, JSON.stringify(amenitiesResponse.data.data));
+        localStorage.setItem(
+          `amenities`,
+          JSON.stringify(amenitiesResponse.data.data)
+        );
         setAmenities(amenitiesResponse.data.data);
       }
       if (targetAudiencesResponse.data && targetAudiencesResponse.data.data) {
-        localStorage.setItem(`targetAudiences`, JSON.stringify(targetAudiencesResponse.data.data));
+        localStorage.setItem(
+          `targetAudiences`,
+          JSON.stringify(targetAudiencesResponse.data.data)
+        );
         setTargetAudiences(targetAudiencesResponse.data.data);
       }
       if (surroundingAreasResponse.data && surroundingAreasResponse.data.data) {
-        localStorage.setItem(`surroundingAreas`, JSON.stringify(surroundingAreasResponse.data.data));
+        localStorage.setItem(
+          `surroundingAreas`,
+          JSON.stringify(surroundingAreasResponse.data.data)
+        );
         setSurroundingAreas(surroundingAreasResponse.data.data);
       }
     } catch (error) {
@@ -177,7 +196,10 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       const response = await addressAPI.getProvinces();
       if (response.data && response.data.data && response.data.data.data) {
         setProvinces(response.data.data.data as Province[]);
-        localStorage.setItem("provinces", JSON.stringify(response.data.data.data as Province[]));
+        localStorage.setItem(
+          "provinces",
+          JSON.stringify(response.data.data.data as Province[])
+        );
       }
     } catch (error: any) {
       console.error(`Attempt ${attempt}: Error fetching provinces:`, error);
@@ -185,11 +207,16 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
         setTimeout(() => fetchProvinces(attempt + 1), 3000 * attempt);
       } else if (error.response?.status === 429) {
         setLocationError("Đã vượt quá giới hạn gọi API. Vui lòng thử lại sau.");
-        toast.error("Đã vượt quá giới hạn gọi API. Vui lòng chờ và thử lại sau.", {
-          autoClose: 5000, // Tự động đóng sau 5 giây
-        });
+        toast.error(
+          "Đã vượt quá giới hạn gọi API. Vui lòng chờ và thử lại sau.",
+          {
+            autoClose: 5000, // Tự động đóng sau 5 giây
+          }
+        );
       } else {
-        setLocationError("Không thể tải danh sách tỉnh/thành phố. Vui lòng thử lại sau.");
+        setLocationError(
+          "Không thể tải danh sách tỉnh/thành phố. Vui lòng thử lại sau."
+        );
       }
     } finally {
       setLoading(false);
@@ -219,11 +246,16 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
         setTimeout(() => fetchDistricts(attempt + 1), 3000 * attempt);
       } else if (error.response?.status === 429) {
         setLocationError("Đã vượt quá giới hạn gọi API. Vui lòng thử lại sau.");
-        toast.error("Đã vượt quá giới hạn gọi API. Vui lòng chờ và thử lại sau.", {
-          autoClose: 5000,
-        });
+        toast.error(
+          "Đã vượt quá giới hạn gọi API. Vui lòng chờ và thử lại sau.",
+          {
+            autoClose: 5000,
+          }
+        );
       } else {
-        setLocationError("Không thể tải danh sách quận/huyện. Vui lòng thử lại sau.");
+        setLocationError(
+          "Không thể tải danh sách quận/huyện. Vui lòng thử lại sau."
+        );
       }
     } finally {
       setLoading(false);
@@ -256,11 +288,16 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
         setTimeout(() => fetchWards(attempt + 1), 3000 * attempt);
       } else if (error.response?.status === 429) {
         setLocationError("Đã vượt quá giới hạn gọi API. Vui lòng thử lại sau.");
-        toast.error("Đã vượt quá giới hạn gọi API. Vui lòng chờ và thử lại sau.", {
-          autoClose: 5000,
-        });
+        toast.error(
+          "Đã vượt quá giới hạn gọi API. Vui lòng chờ và thử lại sau.",
+          {
+            autoClose: 5000,
+          }
+        );
       } else {
-        setLocationError("Không thể tải danh sách phường/xã. Vui lòng thử lại sau.");
+        setLocationError(
+          "Không thể tải danh sách phường/xã. Vui lòng thử lại sau."
+        );
       }
     } finally {
       setLoading(false);
@@ -310,11 +347,15 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
   const handleSearch = () => {
     const searchParams: any = { roomType };
     if (selectedProvince) {
-      const provinceName = provinces.find((p) => p.code === selectedProvince)?.name;
+      const provinceName = provinces.find(
+        (p) => p.code === selectedProvince
+      )?.name;
       searchParams.province = provinceName;
     }
     if (selectedDistrict) {
-      const districtName = districts.find((d) => d.code === selectedDistrict)?.name;
+      const districtName = districts.find(
+        (d) => d.code === selectedDistrict
+      )?.name;
       searchParams.district = districtName;
     }
     if (selectedWard) {
@@ -392,11 +433,15 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
   const handleSearchAdvanced = () => {
     const searchParams: any = { roomType };
     if (selectedProvince) {
-      const provinceName = provinces.find((p) => p.code === selectedProvince)?.name;
+      const provinceName = provinces.find(
+        (p) => p.code === selectedProvince
+      )?.name;
       searchParams.province = provinceName;
     }
     if (selectedDistrict) {
-      const districtName = districts.find((d) => d.code === selectedDistrict)?.name;
+      const districtName = districts.find(
+        (d) => d.code === selectedDistrict
+      )?.name;
       searchParams.district = districtName;
     }
     if (selectedWard) {
@@ -509,20 +554,24 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       if (params.query) searchRoomParams.street = params.query;
       if (params.province) searchRoomParams.city = params.province;
       if (params.district) searchRoomParams.district = params.district;
-      if (params.minPrice !== undefined) searchRoomParams.minPrice = params.minPrice;
-      if (params.maxPrice !== undefined) searchRoomParams.maxPrice = params.maxPrice;
+      if (params.minPrice !== undefined)
+        searchRoomParams.minPrice = params.minPrice;
+      if (params.maxPrice !== undefined)
+        searchRoomParams.maxPrice = params.maxPrice;
       if (params.areaRange) searchRoomParams.areaRange = params.areaRange;
 
       const response = await roomApi.searchRooms(searchRoomParams);
       if (response.data && response.data.data && response.data.data.content) {
-        const transformedListings = response.data.data.content.map((item: Room) => ({
-          id: item.id,
-          title: item.title,
-          price: item.price,
-          area: item.area,
-          image: item.imageUrls[0],
-          location: `${item.district}, ${item.province}`,
-        }));
+        const transformedListings = response.data.data.content.map(
+          (item: Room) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            area: item.area,
+            image: item.imageUrls[0],
+            location: `${item.district}, ${item.province}`,
+          })
+        );
         setListings(transformedListings);
         setFilteredListings(transformedListings);
         setTotalCount(response.data.data.totalElements);
@@ -532,9 +581,12 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
       if (error.response?.status === 429) {
         const retryAfter = error.response.headers["retry-after"] || 5; // Lấy thời gian chờ từ header, mặc định 5 giây
         setSearchError("Đã vượt quá giới hạn gọi API. Vui lòng thử lại sau.");
-        toast.error(`Đã vượt quá giới hạn gọi API. Vui lòng chờ ${retryAfter} giây và thử lại.`, {
-          autoClose: retryAfter * 1000, // Tự động đóng sau thời gian retry
-        });
+        toast.error(
+          `Đã vượt quá giới hạn gọi API. Vui lòng chờ ${retryAfter} giây và thử lại.`,
+          {
+            autoClose: retryAfter * 1000, // Tự động đóng sau thời gian retry
+          }
+        );
       } else if (attempt <= maxRetries) {
         setTimeout(() => performSearch(params, attempt + 1), 3000 * attempt);
       } else {
@@ -606,9 +658,24 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     if (filters.area.length > 0) {
       result = result.filter((listing) => {
         if (filters.area.includes("under20") && listing.area < 20) return true;
-        if (filters.area.includes("20-40") && listing.area >= 20 && listing.area < 40) return true;
-        if (filters.area.includes("40-60") && listing.area >= 40 && listing.area < 60) return true;
-        if (filters.area.includes("60-80") && listing.area >= 60 && listing.area < 80) return true;
+        if (
+          filters.area.includes("20-40") &&
+          listing.area >= 20 &&
+          listing.area < 40
+        )
+          return true;
+        if (
+          filters.area.includes("40-60") &&
+          listing.area >= 40 &&
+          listing.area < 60
+        )
+          return true;
+        if (
+          filters.area.includes("60-80") &&
+          listing.area >= 60 &&
+          listing.area < 80
+        )
+          return true;
         if (filters.area.includes("above80") && listing.area >= 80) return true;
         return filters.area.length === 0;
       });
@@ -620,10 +687,18 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
     <div>
       <div className="text-white py-4" style={{ backgroundColor: "#0145aa" }}>
         <div className="container">
-          <h1 className="fw-bold mb-4">{title.toUpperCase()} GIÁ RẺ, MỚI NHẤT</h1>
-          <div className="d-flex flex-wrap align-items-center bg-white p-2" style={{ borderRadius: "8px" }}>
+          <h1 className="fw-bold mb-4">
+            {title.toUpperCase()} GIÁ RẺ, MỚI NHẤT
+          </h1>
+          <div
+            className="d-flex flex-wrap align-items-center bg-white p-2"
+            style={{ borderRadius: "8px" }}
+          >
             <div className="d-flex align-items-center flex-grow-1 pe-2">
-              <div className="bg-primary d-flex justify-content-center align-items-center" style={{ width: "45px", height: "45px", borderRadius: "4px" }}>
+              <div
+                className="bg-primary d-flex justify-content-center align-items-center"
+                style={{ width: "45px", height: "45px", borderRadius: "4px" }}
+              >
                 <FaSearch color="white" size={20} />
               </div>
               <input
@@ -635,7 +710,10 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                 style={{ height: "45px" }}
               />
             </div>
-            <div className="border-start px-3 d-flex align-items-center" style={{ height: "45px" }}>
+            <div
+              className="border-start px-3 d-flex align-items-center"
+              style={{ height: "45px" }}
+            >
               <div className="dropdown">
                 <button
                   className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
@@ -647,14 +725,32 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                 >
                   <span>Nhà trọ, phòng trọ</span>
                 </button>
-                <ul className="dropdown-menu" aria-labelledby="categoryDropdown">
-                  <li><a className="dropdown-item" href="#">Nhà trọ, phòng trọ</a></li>
-                  <li><a className="dropdown-item" href="#">Nhà nguyên căn</a></li>
-                  <li><a className="dropdown-item" href="#">Căn hộ</a></li>
+                <ul
+                  className="dropdown-menu"
+                  aria-labelledby="categoryDropdown"
+                >
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Nhà trọ, phòng trọ
+                    </a>
+                  </li>
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Nhà nguyên căn
+                    </a>
+                  </li>
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Căn hộ
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
-            <div className="border-start px-3 d-flex align-items-center" style={{ height: "45px" }}>
+            <div
+              className="border-start px-3 d-flex align-items-center"
+              style={{ height: "45px" }}
+            >
               <div className="dropdown">
                 <button
                   className="btn btn-white dropdown-toggle text-start d-flex align-items-center justify-content-between"
@@ -665,31 +761,73 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                 >
                   <div className="d-flex align-items-center">
                     {selectedWard ? (
-                      <span className="text-truncate d-inline-block" style={{ maxWidth: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {(wards.find((w) => w.code === selectedWard)?.name || "") + ", " +
-                        (districts.find((d) => d.code === selectedDistrict)?.name || "") + ", " +
-                        (provinces.find((p) => p.code === selectedProvince)?.name || "")}
+                      <span
+                        className="text-truncate d-inline-block"
+                        style={{
+                          maxWidth: "200px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {(wards.find((w) => w.code === selectedWard)?.name ||
+                          "") +
+                          ", " +
+                          (districts.find((d) => d.code === selectedDistrict)
+                            ?.name || "") +
+                          ", " +
+                          (provinces.find((p) => p.code === selectedProvince)
+                            ?.name || "")}
                       </span>
                     ) : selectedDistrict ? (
-                      <span className="text-truncate d-inline-block" style={{ maxWidth: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {(districts.find((d) => d.code === selectedDistrict)?.name || "") + ", " +
-                        (provinces.find((p) => p.code === selectedProvince)?.name || "")}
+                      <span
+                        className="text-truncate d-inline-block"
+                        style={{
+                          maxWidth: "200px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {(districts.find((d) => d.code === selectedDistrict)
+                          ?.name || "") +
+                          ", " +
+                          (provinces.find((p) => p.code === selectedProvince)
+                            ?.name || "")}
                       </span>
                     ) : selectedProvince ? (
-                      <span className="text-truncate d-inline-block" style={{ maxWidth: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {provinces.find((p) => p.code === selectedProvince)?.name || ""}
+                      <span
+                        className="text-truncate d-inline-block"
+                        style={{
+                          maxWidth: "200px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {provinces.find((p) => p.code === selectedProvince)
+                          ?.name || ""}
                       </span>
                     ) : (
                       <span>Địa điểm</span>
                     )}
                   </div>
                 </button>
-                <div className="dropdown-menu p-0 w-100" style={{ zIndex: 1050 }} aria-labelledby="dropdownLocation">
+                <div
+                  className="dropdown-menu p-0 w-100"
+                  style={{ zIndex: 1050 }}
+                  aria-labelledby="dropdownLocation"
+                >
                   <div className="location-form p-0">
                     {locationError ? (
                       <div className="alert alert-danger m-3">
                         {locationError}
-                        <Button variant="primary" size="sm" className="ms-2" onClick={() => fetchProvinces()}>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="ms-2"
+                          onClick={() => fetchProvinces()}
+                        >
                           Thử lại
                         </Button>
                       </div>
@@ -709,7 +847,10 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                             <option value="">Chọn Tỉnh/TP...</option>
                             {Array.isArray(provinces) &&
                               provinces.map((province) => (
-                                <option key={province.code} value={province.code}>
+                                <option
+                                  key={province.code}
+                                  value={province.code}
+                                >
                                   {province.name_with_type}
                                 </option>
                               ))}
@@ -751,7 +892,11 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                       </>
                     )}
                     <div className="d-flex justify-content-between p-2">
-                      <Button variant="link" className="text-decoration-none d-flex align-items-center" onClick={resetLocationSelections}>
+                      <Button
+                        variant="link"
+                        className="text-decoration-none d-flex align-items-center"
+                        onClick={resetLocationSelections}
+                      >
                         <i className="bi bi-arrow-repeat me-1"></i> Đặt lại
                       </Button>
                       <Button onClick={handleSearch} variant="primary">
@@ -762,12 +907,20 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                 </div>
               </div>
             </div>
-            <div className="border-start px-3 d-flex align-items-center" style={{ height: "45px", minWidth: "280px" }}>
+            <div
+              className="border-start px-3 d-flex align-items-center"
+              style={{ height: "45px", minWidth: "280px" }}
+            >
               <Dropdown className="w-100 h-100">
-                <Dropdown.Toggle className="bg-white border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between" style={{ color: "#363940" }}>
+                <Dropdown.Toggle
+                  className="bg-white border-0 w-100 h-100 text-start d-flex align-items-center justify-content-between"
+                  style={{ color: "#363940" }}
+                >
                   <span className="text-start w-100">
                     {minPriceInput || maxPriceInput
-                      ? `Từ ${minPriceInput || "0"} → ${maxPriceInput || "∞"} triệu`
+                      ? `Từ ${minPriceInput || "0"} → ${
+                          maxPriceInput || "∞"
+                        } triệu`
                       : priceLabelMap[priceRange] || "Mức giá"}
                   </span>
                 </Dropdown.Toggle>
@@ -806,7 +959,13 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                         id={key}
                         name="price-range"
                         key={key}
-                        label={key === "all" ? <span className="fw-bold">{label}</span> : label}
+                        label={
+                          key === "all" ? (
+                            <span className="fw-bold">{label}</span>
+                          ) : (
+                            label
+                          )
+                        }
                         checked={priceRange === key}
                         onChange={() => {
                           setPriceRange(key);
@@ -840,7 +999,12 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
             <div className="ps-3">
               <button
                 className="btn text-white d-flex align-items-center"
-                style={{ backgroundColor: "#ff5a00", borderColor: "#ff5a00", height: "45px", fontWeight: "500" }}
+                style={{
+                  backgroundColor: "#ff5a00",
+                  borderColor: "#ff5a00",
+                  height: "45px",
+                  fontWeight: "500",
+                }}
                 onClick={handleSearch}
               >
                 <FaSearch className="me-2" /> Tìm kiếm
@@ -856,9 +1020,15 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
             <strong>Kết quả tìm kiếm cho: </strong>
             {searchParams.query && <span>"{searchParams.query}" </span>}
             {searchParams.province && <span>tại {searchParams.province} </span>}
-            {searchParams.minPrice && <span>từ {searchParams.minPrice / 1000000} triệu </span>}
-            {searchParams.maxPrice && <span>đến {searchParams.maxPrice / 1000000} triệu </span>}
-            {searchParams.areaRange && <span>diện tích {searchParams.areaRange}m² </span>}
+            {searchParams.minPrice && (
+              <span>từ {searchParams.minPrice / 1000000} triệu </span>
+            )}
+            {searchParams.maxPrice && (
+              <span>đến {searchParams.maxPrice / 1000000} triệu </span>
+            )}
+            {searchParams.areaRange && (
+              <span>diện tích {searchParams.areaRange}m² </span>
+            )}
             <button
               className="btn btn-sm btn-outline-secondary ms-2"
               onClick={() => {
@@ -874,7 +1044,10 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
         )}
 
         <div className="d-flex flex-nowrap">
-          <div className="filter-sidebar" style={{ width: "280px", minWidth: "280px", marginRight: "20px" }}>
+          <div
+            className="filter-sidebar"
+            style={{ width: "280px", minWidth: "280px", marginRight: "20px" }}
+          >
             <div className="bg-white p-3 rounded shadow-sm mb-4">
               <h5 className="fw-bold text-primary mb-3">
                 <FaSearch className="me-2" />
@@ -883,7 +1056,12 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
               {filterError ? (
                 <div className="alert alert-danger mb-3">
                   {filterError}
-                  <Button variant="primary" size="sm" className="ms-2" onClick={() => fetchFilters()}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="ms-2"
+                    onClick={() => fetchFilters()}
+                  >
                     Thử lại
                   </Button>
                 </div>
@@ -915,8 +1093,12 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                           id={`amenity-${amenity.id}`}
                           label={amenity.name}
                           className="mb-2"
-                          checked={selectedFilters.amenities.includes(amenity.id.toString())}
-                          onChange={() => toggleAmenityFilter(amenity.id.toString())}
+                          checked={selectedFilters.amenities.includes(
+                            amenity.id.toString()
+                          )}
+                          onChange={() =>
+                            toggleAmenityFilter(amenity.id.toString())
+                          }
                         />
                       ))
                     )}
@@ -933,8 +1115,12 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                           id={`audience-${audience.id}`}
                           label={audience.name}
                           className="mb-2"
-                          checked={selectedFilters.targetAudiences.includes(audience.id.toString())}
-                          onChange={() => toggleTargetAudienceFilter(audience.id.toString())}
+                          checked={selectedFilters.targetAudiences.includes(
+                            audience.id.toString()
+                          )}
+                          onChange={() =>
+                            toggleTargetAudienceFilter(audience.id.toString())
+                          }
                         />
                       ))
                     )}
@@ -951,15 +1137,22 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                           id={`surrounding-${area.id}`}
                           label={area.name}
                           className="mb-2"
-                          checked={selectedFilters.surroundingAreas.includes(area.id.toString())}
-                          onChange={() => toggleSurroundingAreaFilter(area.id.toString())}
+                          checked={selectedFilters.surroundingAreas.includes(
+                            area.id.toString()
+                          )}
+                          onChange={() =>
+                            toggleSurroundingAreaFilter(area.id.toString())
+                          }
                         />
                       ))
                     )}
                   </div>
                 </>
               )}
-              <button className="btn btn-primary w-100" onClick={handleSearchAdvanced}>
+              <button
+                className="btn btn-primary w-100"
+                onClick={handleSearchAdvanced}
+              >
                 Tìm kiếm nâng cao
               </button>
             </div>
@@ -978,49 +1171,76 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
             {searchError && !isSearching && (
               <div className="alert alert-danger mb-3">
                 {searchError}
-                <Button variant="primary" size="sm" className="ms-2" onClick={() => performSearch(searchParams || { roomType })}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="ms-2"
+                  onClick={() => performSearch(searchParams || { roomType })}
+                >
                   Thử lại
                 </Button>
               </div>
             )}
             {!isSearching && !searchError && filteredListings.length === 0 && (
               <div className="alert alert-warning">
-                Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu chí khác.
+                Không tìm thấy kết quả phù hợp. Vui lòng thử lại với các tiêu
+                chí khác.
               </div>
             )}
-            {!isSearching && !searchError && filteredListings.map((listing) => (
-              <Card key={listing.id} className="mb-3 border-0 shadow-sm">
-                <div className="position-relative">
-                  <div className="position-absolute bg-danger text-white px-2 py-1" style={{ top: "10px", left: "0" }}>
-                    HOT
+            {!isSearching &&
+              !searchError &&
+              filteredListings.map((listing) => (
+                <Card key={listing.id} className="mb-3 border-0 shadow-sm">
+                  <div className="position-relative">
+                    <div
+                      className="position-absolute bg-danger text-white px-2 py-1"
+                      style={{ top: "10px", left: "0" }}
+                    >
+                      HOT
+                    </div>
+                    <Row className="g-0">
+                      <Col md={4}>
+                        <Card.Img
+                          src={listing.image}
+                          alt={listing.title}
+                          style={{ height: "100%", objectFit: "cover" }}
+                        />
+                      </Col>
+                      <Col md={8}>
+                        <Card.Body>
+                          <div className="d-flex justify-content-between">
+                            <Card.Title className="fw-bold mb-2">
+                              {listing.title}
+                            </Card.Title>
+                            <FaHeart
+                              className="text-muted"
+                              style={{ cursor: "pointer" }}
+                            />
+                          </div>
+                          <Card.Text className="text-danger fw-bold mb-2">
+                            {listing.price.toLocaleString()}/tháng
+                          </Card.Text>
+                          <div className="d-flex mb-2">
+                            <span className="me-3">{listing.area}m²</span>
+                          </div>
+                          <div className="d-flex align-items-center text-muted mb-2">
+                            <FaMapMarkerAlt className="me-1" />
+                            {listing.location}
+                          </div>
+                          <Link
+                            to={`/phong-tro/${listing.id}`}
+                            className="text-decoration-none"
+                          >
+                            <Button variant="primary" className="mt-1">
+                              Xem chi tiết
+                            </Button>
+                          </Link>
+                        </Card.Body>
+                      </Col>
+                    </Row>
                   </div>
-                  <Row className="g-0">
-                    <Col md={4}>
-                      <Card.Img src={listing.image} alt={listing.title} style={{ height: "100%", objectFit: "cover" }} />
-                    </Col>
-                    <Col md={8}>
-                      <Card.Body>
-                        <div className="d-flex justify-content-between">
-                          <Card.Title className="fw-bold mb-2">{listing.title}</Card.Title>
-                          <FaHeart className="text-muted" style={{ cursor: "pointer" }} />
-                        </div>
-                        <Card.Text className="text-danger fw-bold mb-2">{listing.price.toLocaleString()}/tháng</Card.Text>
-                        <div className="d-flex mb-2">
-                          <span className="me-3">{listing.area}m²</span>
-                        </div>
-                        <div className="d-flex align-items-center text-muted mb-2">
-                          <FaMapMarkerAlt className="me-1" />
-                          {listing.location}
-                        </div>
-                        <Link to={`/phong-tro/${listing.id}`} className="text-decoration-none">
-                          <Button variant="primary" className="mt-1">Xem chi tiết</Button>
-                        </Link>
-                      </Card.Body>
-                    </Col>
-                  </Row>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
             <div className="d-flex justify-content-center mt-4">
               <nav aria-label="Page navigation">
                 <ul className="pagination">
@@ -1030,13 +1250,19 @@ const CategorySharedPage = ({ title, roomType }: Props) => {
                     </a>
                   </li>
                   <li className="page-item active">
-                    <a className="page-link" href="#">1</a>
+                    <a className="page-link" href="#">
+                      1
+                    </a>
                   </li>
                   <li className="page-item">
-                    <a className="page-link" href="#">2</a>
+                    <a className="page-link" href="#">
+                      2
+                    </a>
                   </li>
                   <li className="page-item">
-                    <a className="page-link" href="#">3</a>
+                    <a className="page-link" href="#">
+                      3
+                    </a>
                   </li>
                   <li className="page-item">
                     <a className="page-link" href="#" aria-label="Next">
