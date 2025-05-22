@@ -33,7 +33,7 @@ import { RoomGetByID, RoomImage } from "../../types/room.type";
 import { toast } from "react-toastify";
 import RoomMap from "../../components/common/Map/RoomMap";
 import addressAPI from "../../apis/address.api";
-import { get } from "lodash";
+import { get, set } from "lodash";
 
 export default function DetailRoom() {
   const { id } = useParams<{ id: string }>();
@@ -45,6 +45,7 @@ export default function DetailRoom() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [latitude, setLatitude] = useState(0);
+  const [address, setAddress] = useState<string | "">("");
   const [similarRoomsError, setSimilarRoomsError] = useState<string | null>(
     null
   );
@@ -73,6 +74,16 @@ export default function DetailRoom() {
         const response = await roomApi.getRoomById(Number(id));
         if (response?.data?.data) {
           setRoom(response.data.data);
+
+          const address = response.data.data.address;
+          setAddress(
+            `${address.houseNumber}, ${address.street}, ${address.ward}, ${address.district}, ${address.province}`
+          );
+
+          const ifRenderMap = await addressAPI.getMapForward(`${address}`)
+          setLongitude(ifRenderMap.data.data.longitude);
+          setLatitude(ifRenderMap.data.data.latitude);
+
         }
       } catch (error) {
         console.error("Error fetching room details:", error);
@@ -86,7 +97,7 @@ export default function DetailRoom() {
         setLoading(false);
       }
     };
-
+    window.scrollTo({ top: 0, behavior: "smooth" });
     fetchRoomDetails();
   }, [id]);
 
@@ -336,7 +347,10 @@ export default function DetailRoom() {
                     : "Căn hộ"}
                 </Link>
               </li>
-              <li className="breadcrumb-item active text-muted text-decoration-none fw-bold" aria-current="page" >
+              <li
+                className="breadcrumb-item active text-muted text-decoration-none fw-bold"
+                aria-current="page"
+              >
                 {room.title}
               </li>
             </ol>
@@ -591,9 +605,12 @@ export default function DetailRoom() {
                   position: "relative",
                 }}
               >
-                <div className="text-center text-muted">
-                  <RoomMap latitude={10.7958642} longitude={106.7067786} />
-                </div>
+                  <RoomMap
+                    latitude={latitude}
+                    longitude={longitude}
+                    roomTitle="Phòng trọ ở khu vực này"
+                    roomAddress = {address}
+                  />
               </div>
             </Card.Body>
           </Card>
