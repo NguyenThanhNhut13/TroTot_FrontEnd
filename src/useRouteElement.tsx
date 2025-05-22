@@ -15,6 +15,7 @@ import ReviewRoom from "./pages/Profile/ReviewRoom";
 import DetailRoom from "./pages/Navigation/DetailRoom";
 import HistoryPage from "./pages/PayPage/HistoryPage";
 import ManageReviewsPage from "./pages/Navigation/ManageReviewsPage";
+import ManagerPost from "./pages/AdminPage/ManagerPost";
 
 export default function useRouteElement() {
   const routeElement = useRoutes([
@@ -53,6 +54,9 @@ export default function useRouteElement() {
         {
           path: "/profile",
           element: <GeneralStatsPage />, // thêm đường dẫn mới cho trang danh cho chủ trọ
+        },{
+          path: "//manage-posts",
+          element: <ManagerPost />, // thêm đường dẫn mới cho trang danh cho chủ trọ
         },
         {
           path: "/favorites",

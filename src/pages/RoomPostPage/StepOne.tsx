@@ -39,6 +39,7 @@ import {
 } from "react-icons/fa";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
+import { SiCommonworkflowlanguage } from "react-icons/si";
 
 type ImageFeedback = {
   url: string;
@@ -85,28 +86,51 @@ const StepOne = () => {
     formState: { errors, isSubmitting },
   } = useForm<FormCreateRoomSchema>({
     resolver: yupResolver(formCreateRoom) as Resolver<FormCreateRoomSchema>,
+    defaultValues: {
+      address: {
+        id: 77,
+        province: "",
+        district: "",
+        ward: "",
+        street: "",
+        houseNumber: "",
+        latitude: 1,
+        longitude: 1,
+      },
+    },
   });
 
   // Create mutation for room creation
   const createRoomMutation = useMutation({
-    mutationFn: (body: FormCreateRoomSchema) => {
+    mutationFn: async (body: FormCreateRoomSchema) => {
       const formData = new FormData();
 
-      // Convert form data to FormData object
       Object.entries(body).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (typeof value === "object" && !Array.isArray(value)) {
-            // Handle nested objects like address
-            Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-              if (nestedValue !== undefined && nestedValue !== null) {
-                formData.append(`${key}.${nestedKey}`, String(nestedValue));
+          if (key === "address") {
+            // Parse object thành từng trường
+            Object.entries(value).forEach(([subKey, subValue]) => {
+              formData.append(`address.${subKey}`, String(subValue));
+            });
+          } else if (
+            [
+              "amenities",
+              "targetAudiences",
+              "surroundingAreas",
+              "images",
+            ].includes(key) &&
+            Array.isArray(value)
+          ) {
+            value.forEach((item, index) => {
+              if (typeof item === "object") {
+                Object.entries(item).forEach(([k, v]) => {
+                  formData.append(`${key}[${index}].${k}`, String(v));
+                });
+              } else {
+                formData.append(`${key}[${index}]`, String(item));
               }
             });
-          } else if (Array.isArray(value)) {
-            // Handle arrays like amenities, targetAudiences, surroundingAreas, images
-            formData.append(`${key}`, JSON.stringify(value));
           } else {
-            // Handle primitive values
             formData.append(key, String(value));
           }
         }
@@ -118,8 +142,11 @@ const StepOne = () => {
     retryDelay: (attempt) => 3000 + (attempt - 1) * 1000, // 3s, 4s, 5s
     onSuccess: async (data) => {
       console.log("Mutation Success Response:", data);
-      toast.success("Đăng tin thành công!");
       navigate("/post-room");
+      toast.success("Đăng tin thành công!");
+      localStorage.removeItem("listAPARTMENTPagging");
+      localStorage.removeItem("listBOARDING_HOUSEPagging");
+      localStorage.removeItem("listWHOLE_HOUSEPagging");
     },
     onError: (error) => {
       console.error("Mutation Error:", error);
@@ -127,30 +154,7 @@ const StepOne = () => {
     },
   });
 
-  const onSubmit = handleSubmit(async (data) => {
-    setLoading(true);
-    console.log("Form Data Before Submission:", data);
-    // Set address values
-    data.address.province = selectedProvince;
-    data.address.district = selectedDistrict;
-    data.address.ward = selectedWard;
-    console.log("Address Data:", {
-      province: selectedProvince,
-      district: selectedDistrict,
-      ward: selectedWard,
-    });
-
-    // Validate required fields
-    if (
-      !data.address.province ||
-      !data.address.district ||
-      !data.address.ward
-    ) {
-      toast.error("Vui lòng chọn đầy đủ thông tin địa chỉ");
-      setLoading(false);
-      return;
-    }
-
+  const onSubmit = async (data: FormCreateRoomSchema) => {
     // Validate image upload
     if (imageFiles.length === 0) {
       toast.error("Vui lòng tải lên ít nhất một hình ảnh");
@@ -160,7 +164,6 @@ const StepOne = () => {
 
     // Upload images
     const uploadedImages = await uploadImages();
-    console.log("Uploaded Images:", uploadedImages);
     if (!uploadedImages || uploadedImages.length === 0) {
       toast.error("Có lỗi xảy ra khi tải hình ảnh. Vui lòng thử lại.");
       setLoading(false);
@@ -169,7 +172,6 @@ const StepOne = () => {
 
     // Set uploaded images to form data
     data.images = uploadedImages;
-    console.log("Data with Images:", data);
 
     // Ensure selfManaged is boolean
     data.selfManaged =
@@ -186,10 +188,11 @@ const StepOne = () => {
       },
       onError: (error) => {
         console.error("Mutation Error:", error);
+        console.log(data);
         toast.error("Có lỗi xảy ra khi đăng tin. Vui lòng thử lại.");
       },
     });
-  });
+  };
 
   // Fetch required data
   useEffect(() => {
@@ -416,28 +419,36 @@ const StepOne = () => {
 
     const newFeedbacks: ImageFeedback[] = [];
     const allDetectedFlags: Record<string, boolean> = {
-      bed: false,
-      chair: false,
-      table: false,
-      tv: false,
-      refrigerator: false,
-      window: false,
-      sink: false,
-      toilet: false,
-      microwave: false,
-      laptop: false,
-    };
+  bed: false,
+  chair: false,
+  table: false,
+  tv: false,
+  refrigerator: false,
+  window: false,
+  sink: false,
+  toilet: false,
+  microwave: false,
+  laptop: false,
+};
 
-    for (const file of files) {
-      const url = URL.createObjectURL(file);
-      const result = await analyzeImage(file, url);
-      newFeedbacks.push(result);
+// Tổng hợp từ ảnh đã có trước đó
+imageFeedbacks.forEach((item) => {
+  Object.keys(item.objectFlags).forEach((key) => {
+    allDetectedFlags[key] ||= item.objectFlags[key];
+  });
+});
 
-      // Cập nhật cờ tổng hợp
-      Object.keys(result.objectFlags).forEach((key) => {
-        allDetectedFlags[key] ||= result.objectFlags[key];
-      });
-    }
+// Sau đó cộng thêm từ ảnh mới
+for (const file of files) {
+  const url = URL.createObjectURL(file);
+  const result = await analyzeImage(file, url);
+  newFeedbacks.push(result);
+
+  Object.keys(result.objectFlags).forEach((key) => {
+    allDetectedFlags[key] ||= result.objectFlags[key];
+  });
+}
+
 
     setImageFeedbacks((prev) => [...prev, ...newFeedbacks]);
 
@@ -498,8 +509,10 @@ const StepOne = () => {
       const missing: string[] = [];
       if (!combinedFlags.window) missing.push("cửa sổ");
       if (!combinedFlags.bed) missing.push("giường");
-      if (!combinedFlags.tv && !combinedFlags.refrigerator) missing.push("TV hoặc Tủ lạnh");
-      if (!combinedFlags.sink && !combinedFlags.toilet) missing.push("hình ảnh nhà vệ sinh");
+      if (!combinedFlags.tv && !combinedFlags.refrigerator)
+        missing.push("TV hoặc Tủ lạnh");
+      if (!combinedFlags.sink && !combinedFlags.toilet)
+        missing.push("hình ảnh nhà vệ sinh");
 
       if (missing.length > 0) {
         setMissingSuggestions(`📌 Gợi ý bổ sung: ${missing.join(", ")}.`);
@@ -531,6 +544,7 @@ const StepOne = () => {
         const mediaItem = response.data.data;
         uploadedImages = [
           {
+            id: 30,
             publicId: mediaItem.publicId,
             imageUrl: mediaItem.imageUrl,
           },
@@ -540,6 +554,7 @@ const StepOne = () => {
         const response = await mediaAPI.uploadFiles(imageFiles);
         console.log("Multiple Images Upload Response:", response);
         uploadedImages = response.data.data.map((media) => ({
+          id: 30,
           publicId: media.publicId,
           imageUrl: media.imageUrl,
         }));
@@ -551,8 +566,6 @@ const StepOne = () => {
       throw error;
     }
   };
-
-  // Form submission handler
 
   if (loading && !amenitiesList.length) {
     return (
@@ -590,7 +603,27 @@ const StepOne = () => {
               </p>
             </div>
 
-            <Form onSubmit={onSubmit} noValidate>
+            <Form onSubmit={handleSubmit(onSubmit)} noValidate>
+              {/* Hidden field */}
+              <Form.Control
+                type="number"
+                value={profile?.id}
+                className={errors.userId ? "is-invalid d-none" : "d-none"}
+                {...register("userId")}
+              />
+              <Form.Control
+                type="text"
+                value={new Date().toISOString()}
+                className={errors.createdAt ? "is-invalid d-none" : "d-none"}
+                {...register("createdAt")}
+              />
+              <Form.Control
+                type="text"
+                value={new Date().toISOString()}
+                className={errors.updatedAt ? "is-invalid d-none" : "d-none"}
+                {...register("updatedAt")}
+              />
+
               {/* Basic Information Card */}
               <Card className="mb-4 shadow-sm">
                 <Card.Header className="bg-primary text-white py-3">
@@ -647,7 +680,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập giá thuê"
                           className={errors.price ? "is-invalid" : ""}
-                          {...register("price", { valueAsNumber: true })}
+                          {...register("price")}
                         />
                         {errors.price && (
                           <div className="invalid-feedback">
@@ -666,7 +699,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập diện tích"
                           className={errors.area ? "is-invalid" : ""}
-                          {...register("area", { valueAsNumber: true })}
+                          {...register("area")}
                         />
                         {errors.area && (
                           <div className="invalid-feedback">
@@ -685,7 +718,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập số tiền đặt cọc"
                           className={errors.deposit ? "is-invalid" : ""}
-                          {...register("deposit", { valueAsNumber: true })}
+                          {...register("deposit")}
                         />
                         {errors.deposit && (
                           <div className="invalid-feedback">
@@ -735,7 +768,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập số phòng"
                           className={errors.totalRooms ? "is-invalid" : ""}
-                          {...register("totalRooms", { valueAsNumber: true })}
+                          {...register("totalRooms")}
                         />
                         {errors.totalRooms && (
                           <div className="invalid-feedback">
@@ -754,7 +787,7 @@ const StepOne = () => {
                           type="number"
                           placeholder="Nhập số người ở tối đa"
                           className={errors.maxPeople ? "is-invalid" : ""}
-                          {...register("maxPeople", { valueAsNumber: true })}
+                          {...register("maxPeople")}
                         />
                         {errors.maxPeople && (
                           <div className="invalid-feedback">
@@ -818,9 +851,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfLivingRooms ? "is-invalid" : ""
                           }
-                          {...register("numberOfLivingRooms", {
-                            valueAsNumber: true,
-                          })}
+                          {...register("numberOfLivingRooms", {})}
                         />
                         {errors.numberOfLivingRooms && (
                           <div className="invalid-feedback">
@@ -841,9 +872,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfBedrooms ? "is-invalid" : ""
                           }
-                          {...register("numberOfBedrooms", {
-                            valueAsNumber: true,
-                          })}
+                          {...register("numberOfBedrooms", {})}
                         />
                         {errors.numberOfBedrooms && (
                           <div className="invalid-feedback">
@@ -864,9 +893,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfBathrooms ? "is-invalid" : ""
                           }
-                          {...register("numberOfBathrooms", {
-                            valueAsNumber: true,
-                          })}
+                          {...register("numberOfBathrooms", {})}
                         />
                         {errors.numberOfBathrooms && (
                           <div className="invalid-feedback">
@@ -887,9 +914,7 @@ const StepOne = () => {
                           className={
                             errors.numberOfKitchens ? "is-invalid" : ""
                           }
-                          {...register("numberOfKitchens", {
-                            valueAsNumber: true,
-                          })}
+                          {...register("numberOfKitchens", {})}
                         />
                         {errors.numberOfKitchens && (
                           <div className="invalid-feedback">
@@ -918,11 +943,16 @@ const StepOne = () => {
                         </Form.Label>
                         <Form.Select
                           value={selectedProvince}
-                          onChange={(e) => setSelectedProvince(e.target.value)}
+                          onChange={(e) => {
+                            const selectedCode = e.target.value;
+                            const selected = provinces.find(
+                              (p) => p.code.toString() === selectedCode
+                            );
+                            setSelectedProvince(selectedCode);
+                            setValue("address.province", selected?.name || ""); // lưu tên
+                          }}
                           className={
-                            !selectedProvince && errors.address?.province
-                              ? "is-invalid"
-                              : ""
+                            errors.address?.province ? "is-invalid" : ""
                           }
                         >
                           <option value="">Chọn Tỉnh/Thành phố</option>
@@ -932,7 +962,8 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {!selectedProvince && errors.address?.province && (
+
+                        {errors.address?.province && (
                           <div className="invalid-feedback">
                             {errors.address.province.message}
                           </div>
@@ -945,14 +976,21 @@ const StepOne = () => {
                         <Form.Label className="fw-bold">Quận/Huyện</Form.Label>
                         <Form.Select
                           value={selectedDistrict}
-                          onChange={(e) => setSelectedDistrict(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const selected = districts.find(
+                              (d) => d.code.toString() === value
+                            );
+
+                            setSelectedDistrict(value);
+                            setValue(
+                              "address.district",
+                              selected?.name_with_type || ""
+                            ); // lưu tên quận/huyện
+                          }}
                           disabled={!selectedProvince}
                           className={
-                            selectedProvince &&
-                            !selectedDistrict &&
-                            errors.address?.district
-                              ? "is-invalid"
-                              : ""
+                            errors.address?.district ? "is-invalid" : ""
                           }
                         >
                           <option value="">Chọn Quận/Huyện</option>
@@ -962,13 +1000,12 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {selectedProvince &&
-                          !selectedDistrict &&
-                          errors.address?.district && (
-                            <div className="invalid-feedback">
-                              {errors.address.district.message}
-                            </div>
-                          )}
+
+                        {errors.address?.district && (
+                          <div className="invalid-feedback">
+                            {errors.address.district.message}
+                          </div>
+                        )}
                       </Form.Group>
                     </Col>
 
@@ -977,15 +1014,20 @@ const StepOne = () => {
                         <Form.Label className="fw-bold">Phường/Xã</Form.Label>
                         <Form.Select
                           value={selectedWard}
-                          onChange={(e) => setSelectedWard(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const selected = wards.find(
+                              (w) => w.code.toString() === value
+                            );
+
+                            setSelectedWard(value);
+                            setValue(
+                              "address.ward",
+                              selected?.name_with_type || ""
+                            ); // lưu tên phường/xã
+                          }}
                           disabled={!selectedDistrict}
-                          className={
-                            selectedDistrict &&
-                            !selectedWard &&
-                            errors.address?.ward
-                              ? "is-invalid"
-                              : ""
-                          }
+                          className={errors.address?.ward ? "is-invalid" : ""}
                         >
                           <option value="">Chọn Phường/Xã</option>
                           {wards.map((ward) => (
@@ -994,13 +1036,12 @@ const StepOne = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {selectedDistrict &&
-                          !selectedWard &&
-                          errors.address?.ward && (
-                            <div className="invalid-feedback">
-                              {errors.address.ward.message}
-                            </div>
-                          )}
+
+                        {errors.address?.ward && (
+                          <div className="invalid-feedback">
+                            {errors.address.ward.message}
+                          </div>
+                        )}
                       </Form.Group>
                     </Col>
                   </Row>
@@ -1184,7 +1225,7 @@ const StepOne = () => {
                       lên
                     </Button>
 
-                    {errors.images && (
+                    {imagePreviews.length ===0 && errors.images && (
                       <div className="text-danger mb-3">
                         {errors.images.message}
                       </div>

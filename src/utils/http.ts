@@ -141,9 +141,9 @@ export class Http {
           // token hết hạn nhưng gọi refresh token bị fail
           // thì tiến hành xóa local storage và toast message
 
-          clearLS();
-          this.accessToken = "";
-          this.refreshToken = "";
+          // clearLS();
+          // this.accessToken = "";
+          // this.refreshToken = "";
           toast.error(
             (error as AxiosError<ErrorResponse<{ message: string }>>).response
               ?.data.data?.message ||
@@ -172,9 +172,9 @@ export class Http {
         return accessToken;
       })
       .catch((error) => {
-        clearLS();
-        this.accessToken = "";
-        this.refreshToken = "";
+        // clearLS();
+        // this.accessToken = "";
+        // this.refreshToken = "";
         throw error;
       });
   }

@@ -100,13 +100,21 @@ export const loginSchema = yup.object({
 });
 
 export const formCreateRoom = yup.object({
-  userId: yup.number().required("User ID là bắt buộc"),
+  userId: yup
+    .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
+    .required("User ID là bắt buộc"),
   address: yup.object({
+    id: yup.number().required("ID địa chỉ là bắt buộc"),
     province: yup.string().required("Tỉnh/Thành phố là bắt buộc"),
     district: yup.string().required("Quận/Huyện là bắt buộc"),
     ward: yup.string().required("Phường/Xã là bắt buộc"),
     street: yup.string().required("Đường là bắt buộc"),
     houseNumber: yup.string().required("Số nhà là bắt buộc"),
+    latitude: yup.number(),
+    longitude: yup.number(),
   }),
   title: yup
     .string()
@@ -115,23 +123,41 @@ export const formCreateRoom = yup.object({
   description: yup
     .string()
     .required("Mô tả là bắt buộc")
-    .max(2000, "Mô tả không được quá 2000 ký tự"),
+    .max(2000, "Mô tả không được quá 2000 ký tự")
+    .test(
+      "min-words",
+      "Mô tả phải có ít nhất 10 từ",
+      (value) =>
+        typeof value === "string" && value.trim().split(/\s+/).length >= 10
+    ),
   price: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
     .required("Giá là bắt buộc")
     .positive("Giá phải là số dương"),
   area: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
     .required("Diện tích là bắt buộc")
     .positive("Diện tích phải là số dương"),
   selfManaged: yup.boolean().required("Quản lý bản thân là bắt buộc"),
   totalRooms: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
     .required("Tổng số phòng là bắt buộc")
     .positive("Tổng số phòng phải là số dương")
     .integer("Tổng số phòng phải là số nguyên"),
   maxPeople: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
     .required("Số người tối đa là bắt buộc")
     .positive("Số người tối đa phải là số dương")
     .integer("Số người tối đa phải là số nguyên"),
@@ -141,6 +167,9 @@ export const formCreateRoom = yup.object({
     .required("Giới tính là bắt buộc"),
   deposit: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
     .required("Tiền đặt cọc là bắt buộc")
     .min(0, "Tiền đặt cọc không được âm"),
   posterName: yup
@@ -156,6 +185,7 @@ export const formCreateRoom = yup.object({
     .array()
     .of(
       yup.object({
+        id: yup.number().required("ID hình ảnh là bắt buộc"),
         publicId: yup.string(),
         imageUrl: yup.string(),
       })
@@ -188,18 +218,34 @@ export const formCreateRoom = yup.object({
   ),
   numberOfLivingRooms: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
+    .required("Số phòng khách là bắt buộc")
     .min(0, "Số phòng khách không được âm")
     .integer("Số phòng khách phải là số nguyên"),
   numberOfKitchens: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
+    .required("Số nhà bếp là bắt buộc")
     .min(0, "Số nhà bếp không được âm")
     .integer("Số nhà bếp phải là số nguyên"),
   numberOfBathrooms: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
+    .required("Số phòng tắm là bắt buộc")
     .min(0, "Số phòng tắm không được âm")
     .integer("Số phòng tắm phải là số nguyên"),
   numberOfBedrooms: yup
     .number()
+    .transform((value, originalValue) =>
+      String(originalValue).trim() === "" ? undefined : value
+    )
+    .required("Số phòng ngủ là bắt buộc")
     .min(0, "Số phòng ngủ không được âm")
     .integer("Số phòng ngủ phải là số nguyên"),
   createdAt: yup.string(),
